@@ -1,15 +1,15 @@
-# Phase 1 acceptance evidence
+# Acceptance evidence
 
 This directory contains reproducible evidence for the Passport DeFi authorization acceptance criteria.
 
 ## Evidence map
 
-- Real transaction calldata: [../../fixtures/transactions](../../fixtures/transactions)
+- Real transaction calldata: [../fixtures/transactions](../fixtures/transactions)
 - Parsed intent, expected balance changes, policy decision and RPC result: [reports](./reports)
-- Policy configuration: [../../config/policy.example.json](../../config/policy.example.json)
+- Policy configuration: [../config/policy.example.json](../config/policy.example.json)
 - Fifteen explicit rejection paths: [rejection-tests.json](./rejection-tests.json)
 - Simulation and risk precheck: [simulation-and-risk-precheck.md](./simulation-and-risk-precheck.md)
-- Automated assertions: [../../tests](../../tests)
+- Automated assertions: [../tests](../tests)
 
 ## Reproduce
 

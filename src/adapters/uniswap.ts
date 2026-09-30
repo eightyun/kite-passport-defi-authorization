@@ -491,7 +491,7 @@ function decodeCommand(
         kind: "unknown",
         index,
         code: commandByte,
-        reason: "Universal Router allow-revert commands are outside the Phase 1 authorization boundary",
+        reason: "Universal Router allow-revert commands are outside the supported authorization boundary",
       },
     ];
   }

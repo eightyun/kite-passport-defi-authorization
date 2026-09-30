@@ -2,9 +2,9 @@
 
 An auditable TypeScript authorization layer for decoding DeFi calldata, evaluating transaction policy, simulating execution, and reporting expected balance changes before a Kite Passport agent submits a transaction.
 
-Phase 1 covers Uniswap and Moonwell on Base. It never signs or broadcasts transactions.
+It supports Uniswap and Moonwell on Base and never signs or broadcasts transactions.
 
-## Phase 1 scope
+## Supported protocols
 
 | Protocol | Supported operations |
 |---|---|
@@ -121,7 +121,7 @@ Each evidence simulation replays the call against the block immediately before t
 npm run evidence
 ```
 
-The committed acceptance package is available in [`evidence/phase-1`](evidence/phase-1/README.md).
+The committed acceptance package is available in [`evidence`](evidence/README.md).
 
 ## Acceptance evidence
 
@@ -129,12 +129,12 @@ The committed acceptance package is available in [`evidence/phase-1`](evidence/p
 |---|---|
 | Correct intent parsing for main operations | adapter tests and generated reports |
 | Real transaction test vectors | `fixtures/transactions/*.json` with explorer hashes |
-| At least eight rejection paths | fifteen cases in `evidence/phase-1/rejection-tests.json` |
+| At least eight rejection paths | fifteen cases in `evidence/rejection-tests.json` |
 | Exact rejection reasons | policy findings include code, message and supporting fields |
 | Expected result and balance changes | every report contains `expectedBalanceChanges` |
 | Transaction calldata | included in each fixture and generated report |
 | Policy configuration | `config/policy.example.json` |
-| Simulation and risk precheck | `evidence/phase-1/simulation-and-risk-precheck.md` |
+| Simulation and risk precheck | `evidence/simulation-and-risk-precheck.md` |
 
 ## Project layout
 
@@ -148,7 +148,7 @@ src/
   cli.ts          command-line interface
 fixtures/         real Base mainnet transaction vectors
 tests/            protocol and policy behavior tests
-evidence/phase-1/ committed acceptance evidence
+evidence/         committed acceptance evidence
 schemas/          report contract
 ```
 
@@ -156,7 +156,7 @@ schemas/          report contract
 
 - The tool performs read-only analysis and RPC calls.
 - It does not hold private keys, sign messages, submit transactions or approve spending.
-- Permit2 commands are recognized, but Phase 1 does not independently validate EIP-712 signatures.
+- Permit2 commands are recognized, but the tool does not independently validate EIP-712 signatures.
 - Unknown Uniswap v4 hooks are rejected because hook code can alter fees and asset flows.
 - Moonwell health, liquidity, caps, interest and exchange rates remain state-dependent.
 - A simulation is evidence for one chain state, not a guarantee for later execution.
@@ -170,10 +170,6 @@ This project has not received an external security audit and must not be treated
 - [Uniswap Universal Router source](https://github.com/Uniswap/universal-router)
 - [Moonwell contracts](https://docs.moonwell.fi/moonwell/protocol-information/contracts)
 - [Moonwell Core integration](https://docs.moonwell.fi/moonwell/developers/guides)
-
-## Roadmap
-
-Phase 2 adds Aerodrome and Morpho adapters, then extends state-aware risk checks. Avantis remains a later derivatives-focused milestone.
 
 ## License
 

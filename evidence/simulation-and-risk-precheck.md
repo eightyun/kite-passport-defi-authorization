@@ -1,4 +1,4 @@
-# Phase 1 simulation and risk precheck report
+# Simulation and risk precheck report
 
 Generated from Base mainnet transaction vectors. Each RPC simulation replays the call at the block immediately before the observed transaction.
 
@@ -16,7 +16,7 @@ Generated from Base mainnet transaction vectors. Each RPC simulation replays the
 - Expired or excessively distant deadlines are rejected.
 - Exact-input swaps with zero minimum output are rejected.
 - Unknown Universal Router commands and v4 actions are rejected.
-- Universal Router allow-revert commands are rejected in Phase 1.
+- Universal Router allow-revert commands are rejected by the authorization policy.
 - Non-zero Uniswap v4 hooks and dynamic-fee pools are rejected unless explicitly enabled.
 - Moonwell borrowing is denied by the example policy.
 - Failed RPC simulation is a rejection.
@@ -29,7 +29,7 @@ Generated from Base mainnet transaction vectors. Each RPC simulation replays the
 
 ## Limitations
 
-- Permit2 commands are recognized, but this phase does not independently verify EIP-712 signatures.
+- Permit2 commands are recognized, but the tool does not independently verify EIP-712 signatures.
 - Arbitrary Uniswap v4 hooks are outside the supported trust boundary.
 - RPC simulation verifies call success at a fixed historical state; it does not guarantee execution against a later state.
 - This project does not sign or broadcast transactions and is not production risk control without an independent audit.

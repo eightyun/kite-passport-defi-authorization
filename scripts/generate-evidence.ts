@@ -15,7 +15,7 @@ import { createAuthorizationReport } from "../src/report.js";
 import { simulateTransaction } from "../src/simulation.js";
 
 const fixtureDirectory = resolve("fixtures/transactions");
-const evidenceDirectory = resolve("evidence/phase-1");
+const evidenceDirectory = resolve("evidence");
 const reportDirectory = resolve(evidenceDirectory, "reports");
 const rpcUrl = process.env.BASE_RPC_URL ?? "https://mainnet.base.org";
 
@@ -224,7 +224,7 @@ async function main(): Promise<void> {
     "utf8",
   );
 
-  const riskReport = `# Phase 1 simulation and risk precheck report
+  const riskReport = `# Simulation and risk precheck report
 
 Generated from Base mainnet transaction vectors. Each RPC simulation replays the call at the block immediately before the observed transaction.
 
@@ -239,7 +239,7 @@ ${summaries.join("\n")}
 - Expired or excessively distant deadlines are rejected.
 - Exact-input swaps with zero minimum output are rejected.
 - Unknown Universal Router commands and v4 actions are rejected.
-- Universal Router allow-revert commands are rejected in Phase 1.
+- Universal Router allow-revert commands are rejected by the authorization policy.
 - Non-zero Uniswap v4 hooks and dynamic-fee pools are rejected unless explicitly enabled.
 - Moonwell borrowing is denied by the example policy.
 - Failed RPC simulation is a rejection.
@@ -252,25 +252,25 @@ ${summaries.join("\n")}
 
 ## Limitations
 
-- Permit2 commands are recognized, but this phase does not independently verify EIP-712 signatures.
+- Permit2 commands are recognized, but the tool does not independently verify EIP-712 signatures.
 - Arbitrary Uniswap v4 hooks are outside the supported trust boundary.
 - RPC simulation verifies call success at a fixed historical state; it does not guarantee execution against a later state.
 - This project does not sign or broadcast transactions and is not production risk control without an independent audit.
 `;
   await writeFile(resolve(evidenceDirectory, "simulation-and-risk-precheck.md"), riskReport, "utf8");
 
-  const index = `# Phase 1 acceptance evidence
+  const index = `# Acceptance evidence
 
 This directory contains reproducible evidence for the Passport DeFi authorization acceptance criteria.
 
 ## Evidence map
 
-- Real transaction calldata: [../../fixtures/transactions](../../fixtures/transactions)
+- Real transaction calldata: [../fixtures/transactions](../fixtures/transactions)
 - Parsed intent, expected balance changes, policy decision and RPC result: [reports](./reports)
-- Policy configuration: [../../config/policy.example.json](../../config/policy.example.json)
+- Policy configuration: [../config/policy.example.json](../config/policy.example.json)
 - Fifteen explicit rejection paths: [rejection-tests.json](./rejection-tests.json)
 - Simulation and risk precheck: [simulation-and-risk-precheck.md](./simulation-and-risk-precheck.md)
-- Automated assertions: [../../tests](../../tests)
+- Automated assertions: [../tests](../tests)
 
 ## Reproduce
 
