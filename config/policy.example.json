@@ -1,0 +1,30 @@
+{
+  "version": "1",
+  "allowedChainIds": [8453],
+  "allowedTargets": [
+    "0xd6145b2D3F379919E8CdEda7B97e37c4b2Ca9c40",
+    "0xfBb21d0380beE3312B33c4353c8936a0F13EF26C",
+    "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22",
+    "0x628ff693426583D9a7FB391E54366292F509D457"
+  ],
+  "allowedTokens": [
+    "0x0000000000000000000000000000000000000000",
+    "0x4200000000000000000000000000000000000006",
+    "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca",
+    "0xdcf5130274753c8050ab061b1a1dcbf583f5bfd0"
+  ],
+  "allowedRecipients": [],
+  "allowedV4Hooks": [],
+  "maximumAmountByToken": {
+    "0x0000000000000000000000000000000000000000": "1000000000000000000",
+    "0x4200000000000000000000000000000000000006": "1000000000000000000",
+    "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913": "1000000000",
+    "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca": "1000000000"
+  },
+  "maximumNativeValue": "1000000000000000000",
+  "maximumDeadlineSeconds": 3600,
+  "allowBorrow": false,
+  "allowDynamicV4Fee": false,
+  "requireSimulation": false
+}

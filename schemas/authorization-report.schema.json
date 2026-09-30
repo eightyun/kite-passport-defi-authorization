@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/eightyun/kite-passport-defi-authorization/schemas/authorization-report.schema.json",
+  "title": "Kite Passport DeFi authorization report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "generatedAt",
+    "transaction",
+    "intent",
+    "policy",
+    "simulation",
+    "finalDecision"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "transaction": { "type": "object" },
+    "intent": {
+      "type": "object",
+      "required": ["protocol", "actions", "expectedBalanceChanges", "warnings"]
+    },
+    "policy": {
+      "type": "object",
+      "required": ["outcome", "findings"],
+      "properties": {
+        "outcome": { "enum": ["pass", "reject", "review"] },
+        "findings": { "type": "array" }
+      }
+    },
+    "simulation": {
+      "type": "object",
+      "required": ["attempted", "success"]
+    },
+    "finalDecision": { "enum": ["pass", "reject", "review"] }
+  }
+}

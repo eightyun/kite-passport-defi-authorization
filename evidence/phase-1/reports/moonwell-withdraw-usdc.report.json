@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-09-30T15:47:49.000Z",
+  "transaction": {
+    "chainId": 8453,
+    "from": "0x1d831123b2bE21E0e4465a5fa21783aAB8453a4E",
+    "to": "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22",
+    "data": "0x852a12e3000000000000000000000000000000000000000000000000000000000000e42d",
+    "value": "0",
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0x169f9aded536ee0df26f87af015f60a16d19d0004cb794c60a06cd4daf03c690",
+      "explorerUrl": "https://base.blockscout.com/tx/0x169f9aded536ee0df26f87af015f60a16d19d0004cb794c60a06cd4daf03c690",
+      "blockNumber": 51996961,
+      "timestamp": "2026-09-30T15:47:49.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "intent": {
+    "schemaVersion": "1.0",
+    "protocol": "moonwell",
+    "adapter": "moonwell-core-v2",
+    "chainId": 8453,
+    "sender": "0x1d831123b2bE21E0e4465a5fa21783aAB8453a4E",
+    "target": "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22",
+    "nativeValue": "0",
+    "actions": [
+      {
+        "kind": "lending",
+        "index": 0,
+        "operation": "withdraw",
+        "market": "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "assetSymbol": "USDC",
+        "amount": {
+          "value": "58413",
+          "mode": "exact"
+        },
+        "beneficiary": "sender"
+      }
+    ],
+    "expectedBalanceChanges": [
+      {
+        "account": "sender",
+        "asset": "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22",
+        "assetSymbol": "mUSDC",
+        "category": "receipt",
+        "direction": "debit",
+        "amount": {
+          "value": "unknown",
+          "mode": "unknown"
+        },
+        "reason": "Moonwell burns mTokens during withdrawal"
+      },
+      {
+        "account": "sender",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "assetSymbol": "USDC",
+        "category": "asset",
+        "direction": "credit",
+        "amount": {
+          "value": "58413",
+          "mode": "exact"
+        },
+        "reason": "Underlying received depends on the redeem mode and exchange rate"
+      }
+    ],
+    "warnings": [
+      "Moonwell health, liquidity, caps, interest and exchange rates must be read at simulation time.",
+      "A successful EVM call can still return a non-zero Compound-style error code."
+    ],
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0x169f9aded536ee0df26f87af015f60a16d19d0004cb794c60a06cd4daf03c690",
+      "explorerUrl": "https://base.blockscout.com/tx/0x169f9aded536ee0df26f87af015f60a16d19d0004cb794c60a06cd4daf03c690",
+      "blockNumber": 51996961,
+      "timestamp": "2026-09-30T15:47:49.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "policy": {
+    "outcome": "pass",
+    "findings": []
+  },
+  "simulation": {
+    "attempted": true,
+    "success": true,
+    "rpcUrl": "https://mainnet.base.org",
+    "blockNumber": "51996960",
+    "returnData": "0x0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "finalDecision": "pass"
+}

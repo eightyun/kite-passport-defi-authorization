@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-09-30T17:20:17.000Z",
+  "transaction": {
+    "chainId": 8453,
+    "from": "0x907b4EB2Cb55372CC2190e87477ac1835b48539E",
+    "to": "0xd6145b2D3F379919E8CdEda7B97e37c4b2Ca9c40",
+    "data": "0x3593564c000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000006abd4bce00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000160000000000000000000000000907b4eb2cb55372cc2190e87477ac1835b48539e0000000000000000000000000000000000000000000000000000000009a7ec8000000000000000000000000000000000000000000000000072e99019791084ff00000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000001400000000000000000000000000000000000000000000000000000000000000042833589fcd6edb6e08f4c7c32d4f71b54bda029130000644200000000000000000000000000000000000006000bb8dcf5130274753c8050ab061b1a1dcbf583f5bfd00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000756e6978000001a0f354a5718000a4de0000000c0100",
+    "value": "0",
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0x4ae30763adbc67dda8b268123961950390996252a8dade837358b5a35af7224c",
+      "explorerUrl": "https://base.blockscout.com/tx/0x4ae30763adbc67dda8b268123961950390996252a8dade837358b5a35af7224c",
+      "blockNumber": 51999735,
+      "timestamp": "2026-09-30T17:20:17.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "intent": {
+    "schemaVersion": "1.0",
+    "protocol": "uniswap",
+    "adapter": "uniswap-universal-router-v2.1",
+    "chainId": 8453,
+    "sender": "0x907b4EB2Cb55372CC2190e87477ac1835b48539E",
+    "target": "0xd6145b2D3F379919E8CdEda7B97e37c4b2Ca9c40",
+    "nativeValue": "0",
+    "deadline": "1790790606",
+    "actions": [
+      {
+        "kind": "swap",
+        "index": 0,
+        "protocolVersion": "v3",
+        "mode": "exact-input",
+        "recipient": "sender",
+        "payerIsUser": true,
+        "route": [
+          {
+            "tokenIn": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+            "tokenOut": "0x4200000000000000000000000000000000000006",
+            "fee": 100
+          },
+          {
+            "tokenIn": "0x4200000000000000000000000000000000000006",
+            "tokenOut": "0xdCf5130274753c8050aB061B1a1DCbf583f5bFd0",
+            "fee": 3000
+          }
+        ],
+        "amountIn": {
+          "value": "162000000",
+          "mode": "exact"
+        },
+        "amountOut": {
+          "value": "8280307828977075455",
+          "mode": "minimum"
+        }
+      }
+    ],
+    "expectedBalanceChanges": [
+      {
+        "account": "sender",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "category": "asset",
+        "direction": "debit",
+        "amount": {
+          "value": "162000000",
+          "mode": "exact"
+        },
+        "reason": "v3 exact-input swap input"
+      },
+      {
+        "account": "sender",
+        "asset": "0xdCf5130274753c8050aB061B1a1DCbf583f5bFd0",
+        "category": "asset",
+        "direction": "credit",
+        "amount": {
+          "value": "8280307828977075455",
+          "mode": "minimum"
+        },
+        "reason": "v3 exact-input swap output"
+      }
+    ],
+    "warnings": [],
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0x4ae30763adbc67dda8b268123961950390996252a8dade837358b5a35af7224c",
+      "explorerUrl": "https://base.blockscout.com/tx/0x4ae30763adbc67dda8b268123961950390996252a8dade837358b5a35af7224c",
+      "blockNumber": 51999735,
+      "timestamp": "2026-09-30T17:20:17.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "policy": {
+    "outcome": "pass",
+    "findings": []
+  },
+  "simulation": {
+    "attempted": true,
+    "success": true,
+    "rpcUrl": "https://mainnet.base.org",
+    "blockNumber": "51999734"
+  },
+  "finalDecision": "pass"
+}

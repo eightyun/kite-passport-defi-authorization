@@ -1,0 +1,171 @@
+{
+  "generatedAt": "2026-09-30T17:20:45.000Z",
+  "count": 15,
+  "cases": [
+    {
+      "scenario": "unsupported chain",
+      "expectedCode": "UNSUPPORTED_CHAIN",
+      "outcome": "reject",
+      "observedCodes": [
+        "UNSUPPORTED_CHAIN"
+      ],
+      "messages": [
+        "Chain 1 is not allowed by policy."
+      ]
+    },
+    {
+      "scenario": "unauthorized target",
+      "expectedCode": "UNAUTHORIZED_TARGET",
+      "outcome": "reject",
+      "observedCodes": [
+        "UNAUTHORIZED_TARGET"
+      ],
+      "messages": [
+        "Target contract 0x1111111111111111111111111111111111111111 is not allowed by policy."
+      ]
+    },
+    {
+      "scenario": "unknown router action",
+      "expectedCode": "UNKNOWN_ACTION",
+      "outcome": "reject",
+      "observedCodes": [
+        "UNKNOWN_ACTION"
+      ],
+      "messages": [
+        "Unknown router action"
+      ]
+    },
+    {
+      "scenario": "unapproved token",
+      "expectedCode": "UNAPPROVED_TOKEN",
+      "outcome": "reject",
+      "observedCodes": [
+        "UNAPPROVED_TOKEN"
+      ],
+      "messages": [
+        "Token 0x1111111111111111111111111111111111111111 is not allowed by policy."
+      ]
+    },
+    {
+      "scenario": "unapproved recipient",
+      "expectedCode": "UNAPPROVED_RECIPIENT",
+      "outcome": "reject",
+      "observedCodes": [
+        "UNAPPROVED_RECIPIENT"
+      ],
+      "messages": [
+        "Recipient 0x1111111111111111111111111111111111111111 is not allowed by policy."
+      ]
+    },
+    {
+      "scenario": "token amount above policy cap",
+      "expectedCode": "AMOUNT_LIMIT_EXCEEDED",
+      "outcome": "reject",
+      "observedCodes": [
+        "AMOUNT_LIMIT_EXCEEDED"
+      ],
+      "messages": [
+        "Amount 334000000000000 exceeds the configured limit 1 for 0x0000000000000000000000000000000000000000."
+      ]
+    },
+    {
+      "scenario": "native value above policy cap",
+      "expectedCode": "NATIVE_VALUE_LIMIT_EXCEEDED",
+      "outcome": "reject",
+      "observedCodes": [
+        "NATIVE_VALUE_LIMIT_EXCEEDED"
+      ],
+      "messages": [
+        "Native value 2 exceeds the configured limit 1."
+      ]
+    },
+    {
+      "scenario": "expired deadline",
+      "expectedCode": "DEADLINE_EXPIRED",
+      "outcome": "reject",
+      "observedCodes": [
+        "DEADLINE_EXPIRED"
+      ],
+      "messages": [
+        "Transaction deadline 1790790608 has expired."
+      ]
+    },
+    {
+      "scenario": "deadline beyond permitted horizon",
+      "expectedCode": "DEADLINE_TOO_FAR",
+      "outcome": "reject",
+      "observedCodes": [
+        "DEADLINE_TOO_FAR"
+      ],
+      "messages": [
+        "Transaction deadline is more than 1 seconds in the future."
+      ]
+    },
+    {
+      "scenario": "zero minimum swap output",
+      "expectedCode": "ZERO_MINIMUM_OUTPUT",
+      "outcome": "reject",
+      "observedCodes": [
+        "ZERO_MINIMUM_OUTPUT"
+      ],
+      "messages": [
+        "Exact-input swap has no minimum output protection."
+      ]
+    },
+    {
+      "scenario": "unapproved Uniswap v4 hook",
+      "expectedCode": "V4_HOOK_NOT_ALLOWED",
+      "outcome": "reject",
+      "observedCodes": [
+        "V4_HOOK_NOT_ALLOWED"
+      ],
+      "messages": [
+        "Uniswap v4 hook 0x1111111111111111111111111111111111111111 is not allowed by policy."
+      ]
+    },
+    {
+      "scenario": "dynamic Uniswap v4 fee",
+      "expectedCode": "DYNAMIC_V4_FEE_NOT_ALLOWED",
+      "outcome": "reject",
+      "observedCodes": [
+        "DYNAMIC_V4_FEE_NOT_ALLOWED"
+      ],
+      "messages": [
+        "Uniswap v4 dynamic-fee pools are disabled by policy."
+      ]
+    },
+    {
+      "scenario": "Moonwell borrowing disabled",
+      "expectedCode": "BORROW_NOT_ALLOWED",
+      "outcome": "reject",
+      "observedCodes": [
+        "BORROW_NOT_ALLOWED"
+      ],
+      "messages": [
+        "Moonwell borrowing is disabled by policy."
+      ]
+    },
+    {
+      "scenario": "unverified Permit2 authorization",
+      "expectedCode": "UNVERIFIED_AUTHORIZATION",
+      "outcome": "reject",
+      "observedCodes": [
+        "UNVERIFIED_AUTHORIZATION"
+      ],
+      "messages": [
+        "Permit2 authorization details were not independently verified."
+      ]
+    },
+    {
+      "scenario": "RPC simulation failure",
+      "expectedCode": "SIMULATION_FAILED",
+      "outcome": "reject",
+      "observedCodes": [
+        "SIMULATION_FAILED"
+      ],
+      "messages": [
+        "execution reverted"
+      ]
+    }
+  ]
+}
