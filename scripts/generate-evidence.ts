@@ -1,5 +1,6 @@
 import { mkdir, readdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { execFileSync } from "node:child_process";
 import type {
   Address,
   IntentAnalysis,
@@ -11,8 +12,7 @@ import type {
 import { decodeTransaction } from "../src/decode.js";
 import { loadPolicy, loadTransaction } from "../src/io.js";
 import { evaluatePolicy } from "../src/policy.js";
-import { createAuthorizationReport } from "../src/report.js";
-import { simulateTransaction } from "../src/simulation.js";
+import { analyzeTransaction } from "../src/report.js";
 
 const fixtureDirectory = resolve("fixtures/transactions");
 const evidenceDirectory = resolve("evidence");
@@ -187,15 +187,25 @@ async function main(): Promise<void> {
 
   for (const file of files) {
     const transaction = await loadTransaction(resolve(fixtureDirectory, file));
-    const simulation = await simulateTransaction(transaction, rpcUrl);
     const evaluationTime = transaction.source?.timestamp ?? new Date().toISOString();
-    const report = createAuthorizationReport(transaction, policy, {
+    const report = await analyzeTransaction(transaction, policy, {
       generatedAt: evaluationTime,
       nowSeconds: Math.floor(Date.parse(evaluationTime) / 1000),
-      simulation,
+      rpcUrl,
     });
-    if (!simulation.success || report.finalDecision !== "pass") {
+    const expectedDecision = file === "uniswap-permit2-usdc.base.json" ? "reject" : "pass";
+    if (!report.simulation.success || report.finalDecision !== expectedDecision) {
       throw new Error(`${file} did not pass historical preflight`);
+    }
+    if (report.permit2 && (!report.permit2.checks.length ||
+        report.permit2.checks.some((check) => check.status !== "valid"))) {
+      throw new Error(`${file} did not pass independent Permit2 verification`);
+    }
+    if (file === "uniswap-permit2-usdc.base.json") {
+      const codes = report.policy.findings.map((finding) => finding.code).sort();
+      if (JSON.stringify(codes) !== JSON.stringify(["AMOUNT_LIMIT_EXCEEDED", "PERMIT2_EXPIRATION_TOO_FAR"])) {
+        throw new Error("Real Permit2 evidence must reject only the excessive amount and expiration");
+      }
     }
     await writeFile(
       resolve(reportDirectory, file.replace(".base.json", ".report.json")),
@@ -207,7 +217,7 @@ async function main(): Promise<void> {
       .map((action) => (action.kind === "swap" ? `${action.protocolVersion} ${action.mode}` : action.operation))
       .join(", ");
     summaries.push(
-      `| ${file} | ${report.intent.protocol} | ${operation} | ${transaction.source?.transactionHash ?? "n/a"} | pass | pass |`,
+      `| ${file} | ${report.intent.protocol} | ${operation} | ${transaction.source?.transactionHash ?? "n/a"} | ${report.finalDecision} | pass |`,
     );
     if (file.startsWith("uniswap-v4")) {
       v4Intent = report.intent;
@@ -218,6 +228,11 @@ async function main(): Promise<void> {
     throw new Error("Missing Uniswap v4 evidence vector");
   }
   const rejections = rejectionEvidence(v4Intent, policy);
+  const testFiles = (await readdir(resolve("tests"))).filter((file) => file.endsWith(".test.ts")).sort();
+  const testOutput = execFileSync(process.execPath,
+    ["--import", "tsx", "--test", "--test-reporter=tap", ...testFiles.map((file) => resolve("tests", file))],
+    { encoding: "utf8", maxBuffer: 5 * 1024 * 1024 });
+  await writeFile(resolve(evidenceDirectory, "test-results.tap"), testOutput, "utf8");
   await writeFile(
     resolve(evidenceDirectory, "rejection-tests.json"),
     `${JSON.stringify({ generatedAt: v4Intent.source?.timestamp ?? "2026-09-30T17:20:45.000Z", count: rejections.length, cases: rejections }, null, 2)}\n`,
@@ -252,7 +267,13 @@ ${summaries.join("\n")}
 
 ## Limitations
 
-- Permit2 commands are recognized, but the tool does not independently verify EIP-712 signatures.
+- PermitSingle and PermitBatch signatures are independently checked using the Permit2 EIP-712 domain. EOA signatures support 65-byte and EIP-2098 encodings; contract wallets use EIP-1271 at the checked block.
+- All four Router Permit2 commands are decoded. Nonce and explicit-transfer allowance consumption are checked in command order, with full-transaction simulation required for chain-state-dependent execution.
+- The real Permit2 vector has a valid signature and successful historical execution. The default policy rejects its unlimited allowance and approximately 30-day authorization lifetime. This is an expected rejection, not a failed signature check.
+- Allowance updates describe the authorization assigned by a permit and the maximum exposure change relative to the checked allowance. They are conditional on execution and are not the final residual allowance after swaps.
+- Balance changes are operation-level calldata bounds, not a measured net portfolio delta. Exact swap output, token balances and ERC-20 approval sufficiency depend on the simulated chain state.
+- Direct Permit2 SignatureTransfer/witness calls and nested Router subplans are outside the supported command set and fail closed. EIP-1271 coverage uses controlled RPC tests; the committed live Permit2 transaction is an EOA vector.
+- All chain reads and simulation use a fixed block number; matching block hashes are required before policy pass. Historical preflight uses the preceding block, so transactions depending on earlier writes in the same block may fail this replay.
 - Arbitrary Uniswap v4 hooks are outside the supported trust boundary.
 - RPC simulation verifies call success at a fixed historical state; it does not guarantee execution against a later state.
 - This project does not sign or broadcast transactions and is not production risk control without an independent audit.
@@ -271,6 +292,8 @@ This directory contains reproducible evidence for the Passport DeFi authorizatio
 - Fifteen explicit rejection paths: [rejection-tests.json](./rejection-tests.json)
 - Simulation and risk precheck: [simulation-and-risk-precheck.md](./simulation-and-risk-precheck.md)
 - Automated assertions: [../tests](../tests)
+- Recorded assertion results, including Permit2 rejection paths: [test-results.tap](./test-results.tap)
+- Permit2 scope and reproducible real-transaction audit: [../docs/permit2.md](../docs/permit2.md)
 
 ## Reproduce
 

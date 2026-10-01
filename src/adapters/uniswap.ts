@@ -13,7 +13,6 @@ import {
 import type {
   Address,
   Amount,
-  AuthorizationAction,
   BalanceChange,
   Hex,
   IntentAction,
@@ -24,6 +23,7 @@ import type {
   TransferAction,
   UnknownAction,
 } from "../domain.js";
+import { decodePermit2Command, transactionFingerprint } from "../permit2.js";
 
 const EXECUTE_WITH_DEADLINE_SELECTOR = "0x3593564c";
 const EXECUTE_SELECTOR = "0x24856bc3";
@@ -469,16 +469,6 @@ function decodeTransferCommand(
   };
 }
 
-function authorizationAction(command: number, index: number): AuthorizationAction {
-  const operation =
-    command === COMMAND.PERMIT2_TRANSFER_FROM
-      ? "permit2-transfer"
-      : command === COMMAND.PERMIT2_PERMIT_BATCH || command === COMMAND.PERMIT2_TRANSFER_FROM_BATCH
-        ? "permit2-batch"
-        : "permit2-permit";
-  return { kind: "authorization", index, operation, decoded: false };
-}
-
 function decodeCommand(
   commandByte: number,
   input: Hex,
@@ -517,7 +507,7 @@ function decodeCommand(
     command === COMMAND.PERMIT2_PERMIT ||
     command === COMMAND.PERMIT2_TRANSFER_FROM_BATCH
   ) {
-    return [authorizationAction(command, index)];
+    return [decodePermit2Command(command, input, index, transaction)];
   }
   if (
     command === COMMAND.SWEEP ||
@@ -540,6 +530,17 @@ function decodeCommand(
 function buildBalanceChanges(actions: readonly IntentAction[]): readonly BalanceChange[] {
   const changes: BalanceChange[] = [];
   for (const action of actions) {
+    if (action.kind === "authorization" && action.transfers) {
+      for (const transfer of action.transfers) {
+        changes.push({
+          account: transfer.from, asset: transfer.token, category: "asset", direction: "debit",
+          amount: amount(BigInt(transfer.amount), "exact"), reason: "Explicit Permit2 transfer debit",
+        }, {
+          account: transfer.to, asset: transfer.token, category: "asset", direction: "credit",
+          amount: amount(BigInt(transfer.amount), "exact"), reason: "Explicit Permit2 transfer credit",
+        });
+      }
+    }
     if (action.kind !== "swap" || action.route.length === 0) {
       continue;
     }
@@ -600,7 +601,7 @@ export function decodeUniswapTransaction(transaction: TransactionEnvelope): Inte
 
   const warnings: string[] = [];
   if (actions.some((action) => action.kind === "authorization" && !action.decoded)) {
-    warnings.push("Permit2 authorization is recognized but signature details require separate validation.");
+    warnings.push("Permit2 authorization could not be decoded.");
   }
   if (actions.some((action) => action.kind === "swap" && action.protocolVersion === "v4")) {
     warnings.push("Uniswap v4 output depends on PoolManager state and any configured hook behavior.");
@@ -614,6 +615,7 @@ export function decodeUniswapTransaction(transaction: TransactionEnvelope): Inte
     sender: transaction.from,
     target: transaction.to,
     nativeValue: transaction.value,
+    transactionFingerprint: transactionFingerprint(transaction),
     ...(deadline === undefined ? {} : { deadline: deadline.toString() }),
     actions,
     expectedBalanceChanges: buildBalanceChanges(actions),

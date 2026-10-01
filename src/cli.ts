@@ -3,8 +3,7 @@
 import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { loadPolicy, loadTransaction } from "./io.js";
-import { createAuthorizationReport } from "./report.js";
-import { simulateTransaction, skippedSimulation } from "./simulation.js";
+import { analyzeTransaction } from "./report.js";
 
 interface CliOptions {
   readonly transactionPath: string;
@@ -64,14 +63,10 @@ async function main(): Promise<void> {
     loadTransaction(options.transactionPath),
     loadPolicy(options.policyPath),
   ]);
-  const simulation =
-    options.rpcUrl === undefined
-      ? skippedSimulation()
-      : await simulateTransaction(transaction, options.rpcUrl);
-  const report = createAuthorizationReport(transaction, policy, {
+  const report = await analyzeTransaction(transaction, policy, {
     generatedAt: new Date(options.nowSeconds * 1000).toISOString(),
     nowSeconds: options.nowSeconds,
-    simulation,
+    ...(options.rpcUrl ? { rpcUrl: options.rpcUrl } : {}),
   });
   const output = `${JSON.stringify(report, null, 2)}\n`;
   if (options.outputPath === undefined) {

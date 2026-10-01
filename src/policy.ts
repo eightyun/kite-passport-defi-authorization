@@ -7,11 +7,13 @@ import type {
   PolicyDecision,
   PolicyFinding,
   SimulationResult,
+  Permit2Verification,
 } from "./domain.js";
 
 export interface PolicyContext {
   readonly nowSeconds: number;
   readonly simulation: SimulationResult;
+  readonly permit2?: Permit2Verification;
 }
 
 function addressSet(values: readonly Address[]): ReadonlySet<string> {
@@ -95,6 +97,7 @@ export function evaluatePolicy(
   const tokens = addressSet(config.allowedTokens);
   const recipients = addressSet(config.allowedRecipients);
   const hooks = addressSet(config.allowedV4Hooks);
+  const permit2Transferred = new Map<string, bigint>();
 
   if (!config.allowedChainIds.includes(intent.chainId)) {
     findings.push({
@@ -146,12 +149,67 @@ export function evaluatePolicy(
       continue;
     }
 
-    if (action.kind === "authorization" && !action.decoded) {
-      findings.push({
-        code: "UNVERIFIED_AUTHORIZATION",
-        message: "Permit2 authorization details were not independently verified.",
-        actionIndex: action.index,
-      });
+    if (action.kind === "authorization") {
+      const fail = (code: PolicyFinding["code"], message: string) =>
+        findings.push({ code, message, actionIndex: action.index });
+      const verification = context.permit2;
+      const check = verification?.checks.find((entry) => entry.actionIndex === action.index);
+      if (!action.decoded || (!action.permit && !action.transfers) || !check ||
+          !intent.transactionFingerprint || verification?.transactionFingerprint !== intent.transactionFingerprint) {
+        fail("UNVERIFIED_AUTHORIZATION", "Permit2 authorization details were not independently verified.");
+      } else {
+        findings.push(...check.findings);
+        if (check.status !== "valid" && check.findings.length === 0) {
+          fail("UNVERIFIED_AUTHORIZATION", "Permit2 validation did not succeed.");
+        }
+        if (!context.simulation.attempted || !context.simulation.success ||
+            context.simulation.transactionFingerprint !== intent.transactionFingerprint ||
+            !verification.blockHash || context.simulation.blockHash !== verification.blockHash) {
+          fail("UNVERIFIED_AUTHORIZATION", "Permit2 requires successful full-transaction simulation at the same verified block.");
+        }
+      }
+      const permit = action.permit;
+      if (permit) {
+        if (permit.owner.toLowerCase() !== intent.sender.toLowerCase()) fail("PERMIT2_OWNER_MISMATCH", "Permit2 owner must equal the Router sender.");
+        if (permit.spender.toLowerCase() !== intent.target.toLowerCase()) fail("PERMIT2_SPENDER_NOT_ALLOWED", "Permit2 spender must equal the approved Router target.");
+        const now = BigInt(context.nowSeconds);
+        const deadline = BigInt(permit.sigDeadline);
+        if (deadline < now) fail("PERMIT2_SIGNATURE_EXPIRED", "Permit2 signature deadline has expired.");
+        if (deadline > now + BigInt(config.maximumPermit2SignatureDeadlineSeconds ?? config.maximumDeadlineSeconds)) {
+          fail("PERMIT2_SIGNATURE_DEADLINE_TOO_FAR", "Permit2 signature deadline exceeds the configured horizon.");
+        }
+        if (!permit.details.length) fail("PERMIT2_EMPTY_BATCH", "Permit2 permit contains no token permissions.");
+        for (const detail of permit.details) {
+          if (detail.amount !== "0" && detail.expiration !== 0 && detail.expiration < context.nowSeconds) {
+            fail("PERMIT2_ALLOWANCE_EXPIRED", "Permit2 allowance expiration is in the past.");
+          }
+          if (detail.expiration > context.nowSeconds + (config.maximumPermit2ExpirationSeconds ?? 86400)) {
+            fail("PERMIT2_EXPIRATION_TOO_FAR", "Permit2 allowance expiration exceeds the configured horizon.");
+          }
+        }
+      }
+      if (action.transfers?.length === 0) fail("PERMIT2_EMPTY_BATCH", "Permit2 transfer batch is empty.");
+      const entries = permit?.details ?? action.transfers ?? [];
+      const totals = new Map<string, bigint>();
+      for (const entry of entries) {
+        const token = entry.token.toLowerCase();
+        if (!tokens.has(token)) fail("UNAPPROVED_TOKEN", `Permit2 token ${entry.token} is not allowed.`);
+        totals.set(token, (totals.get(token) ?? 0n) + BigInt(entry.amount));
+      }
+      for (const [token, value] of totals) {
+        const maximum = config.maximumAmountByToken[token];
+        const accumulated = action.transfers ? (permit2Transferred.get(token) ?? 0n) + value : value;
+        if (action.transfers) permit2Transferred.set(token, accumulated);
+        if (maximum === undefined) fail("PERMIT2_LIMIT_MISSING", `Permit2 requires an explicit amount limit for ${token}.`);
+        else if (accumulated > BigInt(maximum)) fail("AMOUNT_LIMIT_EXCEEDED", `Permit2 amount ${accumulated} exceeds limit ${maximum} for ${token}.`);
+      }
+      for (const transfer of action.transfers ?? []) {
+        if (transfer.from.toLowerCase() !== intent.sender.toLowerCase()) fail("PERMIT2_OWNER_MISMATCH", "Permit2 transfer owner must equal the Router sender.");
+        const recipient = transfer.to.toLowerCase();
+        if (recipient !== intent.sender.toLowerCase() && recipient !== intent.target.toLowerCase() && !recipients.has(recipient)) {
+          fail("UNAPPROVED_RECIPIENT", `Permit2 recipient ${transfer.to} is not allowed.`);
+        }
+      }
     }
 
     for (const token of actionTokens(action)) {

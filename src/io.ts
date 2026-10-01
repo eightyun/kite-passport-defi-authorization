@@ -127,6 +127,14 @@ export function parsePolicy(value: unknown): PolicyConfig {
   if (!/^\d+$/.test(maximumNativeValue)) {
     throw new Error("maximumNativeValue must be an integer string");
   }
+  const permit2Durations: { maximumPermit2ExpirationSeconds?: number; maximumPermit2SignatureDeadlineSeconds?: number } = {};
+  for (const key of ["maximumPermit2ExpirationSeconds", "maximumPermit2SignatureDeadlineSeconds"] as const) {
+    if (value[key] !== undefined) {
+      const duration = requiredNumber(value, key);
+      if (!Number.isSafeInteger(duration) || duration < 0) throw new Error(`${key} must be a non-negative safe integer`);
+      permit2Durations[key] = duration;
+    }
+  }
   return {
     version: "1",
     allowedChainIds: chainIds,
@@ -140,6 +148,7 @@ export function parsePolicy(value: unknown): PolicyConfig {
     allowBorrow: requiredBoolean(value, "allowBorrow"),
     allowDynamicV4Fee: requiredBoolean(value, "allowDynamicV4Fee"),
     requireSimulation: requiredBoolean(value, "requireSimulation"),
+    ...permit2Durations,
   };
 }
 

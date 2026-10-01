@@ -33,6 +33,69 @@
       "type": "object",
       "required": ["attempted", "success"]
     },
-    "finalDecision": { "enum": ["pass", "reject", "review"] }
+    "finalDecision": { "enum": ["pass", "reject", "review"] },
+    "permit2": {
+      "type": "object",
+      "required": ["transactionFingerprint", "contract", "checks"],
+      "additionalProperties": false,
+      "properties": {
+        "transactionFingerprint": { "$ref": "#/$defs/hash" },
+        "contract": { "$ref": "#/$defs/address" },
+        "blockNumber": { "type": "string", "pattern": "^[0-9]+$" },
+        "blockHash": { "$ref": "#/$defs/hash" },
+        "blockTimestamp": { "type": "integer", "minimum": 0 },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["actionIndex", "status", "allowances", "expectedAllowanceUpdates", "findings"],
+            "properties": {
+              "actionIndex": { "type": "integer", "minimum": 0 },
+              "status": { "enum": ["valid", "invalid", "unavailable"] },
+              "signatureMethod": { "enum": ["eoa", "eip1271"] },
+              "digest": { "$ref": "#/$defs/hash" },
+              "recoveredSigner": { "$ref": "#/$defs/address" },
+              "allowances": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["token", "owner", "spender", "amount", "expiration", "nonce", "source"],
+                  "properties": {
+                    "token": { "$ref": "#/$defs/address" },
+                    "owner": { "$ref": "#/$defs/address" },
+                    "spender": { "$ref": "#/$defs/address" },
+                    "amount": { "type": "string", "pattern": "^[0-9]+$" },
+                    "expiration": { "type": "integer", "minimum": 0 },
+                    "nonce": { "type": "integer", "minimum": 0 },
+                    "source": { "enum": ["chain", "earlier-command"] }
+                  }
+                }
+              },
+              "expectedAllowanceUpdates": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["token", "spender", "beforeAmount", "authorizedAmount", "maximumExposureChange", "expiration"],
+                  "properties": {
+                    "token": { "$ref": "#/$defs/address" },
+                    "spender": { "$ref": "#/$defs/address" },
+                    "beforeAmount": { "type": "string", "pattern": "^[0-9]+$" },
+                    "authorizedAmount": { "type": "string", "pattern": "^[0-9]+$" },
+                    "maximumExposureChange": { "type": "string", "pattern": "^-?[0-9]+$" },
+                    "expiration": { "type": "integer", "minimum": 0 }
+                  }
+                }
+              },
+              "findings": { "type": "array", "items": { "type": "object", "required": ["code", "message"] } }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^0x[0-9a-fA-F]{64}$" },
+    "address": { "type": "string", "pattern": "^0x[0-9a-fA-F]{40}$" }
   }
 }

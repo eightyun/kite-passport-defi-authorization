@@ -86,6 +86,68 @@ export interface AuthorizationAction {
   readonly index: number;
   readonly operation: "permit2-permit" | "permit2-transfer" | "permit2-batch";
   readonly decoded: boolean;
+  readonly permit?: Permit2Permit;
+  readonly transfers?: readonly Permit2Transfer[];
+}
+
+export interface Permit2Detail {
+  readonly token: Address;
+  readonly amount: string;
+  readonly expiration: number;
+  readonly nonce: number;
+}
+
+export interface Permit2Permit {
+  readonly type: "PermitSingle" | "PermitBatch";
+  readonly owner: Address;
+  readonly spender: Address;
+  readonly sigDeadline: string;
+  readonly signature: Hex;
+  readonly details: readonly Permit2Detail[];
+}
+
+export interface Permit2Transfer {
+  readonly token: Address;
+  readonly from: Address;
+  readonly to: Address;
+  readonly amount: string;
+}
+
+export interface Permit2AllowanceEvidence {
+  readonly token: Address;
+  readonly owner: Address;
+  readonly spender: Address;
+  readonly amount: string;
+  readonly expiration: number;
+  readonly nonce: number;
+  readonly source: "chain" | "earlier-command";
+}
+
+export interface Permit2Check {
+  readonly actionIndex: number;
+  readonly status: "valid" | "invalid" | "unavailable";
+  readonly signatureMethod?: "eoa" | "eip1271";
+  readonly digest?: Hex;
+  readonly recoveredSigner?: Address;
+  readonly allowances: readonly Permit2AllowanceEvidence[];
+  readonly expectedAllowanceUpdates: readonly {
+    readonly token: Address;
+    readonly spender: Address;
+    readonly beforeAmount: string;
+    readonly authorizedAmount: string;
+    readonly maximumExposureChange: string;
+    readonly expiration: number;
+  }[];
+  readonly findings: readonly PolicyFinding[];
+}
+
+export interface Permit2Verification {
+  readonly transactionFingerprint: Hex;
+  readonly contract: Address;
+  readonly blockNumber?: string;
+  readonly blockHash?: Hex;
+  readonly blockTimestamp?: number;
+  readonly checks: readonly Permit2Check[];
 }
 
 export interface UnknownAction {
@@ -115,6 +177,7 @@ export interface IntentAnalysis {
   readonly expectedBalanceChanges: readonly BalanceChange[];
   readonly warnings: readonly string[];
   readonly source?: TransactionSource;
+  readonly transactionFingerprint?: Hex;
 }
 
 export interface PolicyConfig {
@@ -130,6 +193,8 @@ export interface PolicyConfig {
   readonly allowBorrow: boolean;
   readonly allowDynamicV4Fee: boolean;
   readonly requireSimulation: boolean;
+  readonly maximumPermit2ExpirationSeconds?: number;
+  readonly maximumPermit2SignatureDeadlineSeconds?: number;
 }
 
 export type PolicyReasonCode =
@@ -147,6 +212,18 @@ export type PolicyReasonCode =
   | "DYNAMIC_V4_FEE_NOT_ALLOWED"
   | "BORROW_NOT_ALLOWED"
   | "UNVERIFIED_AUTHORIZATION"
+  | "PERMIT2_SPENDER_NOT_ALLOWED"
+  | "PERMIT2_OWNER_MISMATCH"
+  | "PERMIT2_SIGNATURE_INVALID"
+  | "PERMIT2_SIGNATURE_EXPIRED"
+  | "PERMIT2_SIGNATURE_DEADLINE_TOO_FAR"
+  | "PERMIT2_ALLOWANCE_EXPIRED"
+  | "PERMIT2_EXPIRATION_TOO_FAR"
+  | "PERMIT2_NONCE_MISMATCH"
+  | "PERMIT2_ALLOWANCE_INSUFFICIENT"
+  | "PERMIT2_LIMIT_MISSING"
+  | "PERMIT2_STATE_UNAVAILABLE"
+  | "PERMIT2_EMPTY_BATCH"
   | "SIMULATION_REQUIRED"
   | "SIMULATION_FAILED";
 
@@ -169,6 +246,8 @@ export interface SimulationResult {
   readonly blockNumber?: string;
   readonly returnData?: Hex;
   readonly error?: string;
+  readonly blockHash?: Hex;
+  readonly transactionFingerprint?: Hex;
 }
 
 export interface AuthorizationReport {
@@ -179,4 +258,5 @@ export interface AuthorizationReport {
   readonly policy: PolicyDecision;
   readonly simulation: SimulationResult;
   readonly finalDecision: "pass" | "reject" | "review";
+  readonly permit2?: Permit2Verification;
 }

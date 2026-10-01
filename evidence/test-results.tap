@@ -1,0 +1,360 @@
+TAP version 13
+# Subtest: decodes a real Uniswap v3 multi-hop exact-input transaction
+ok 1 - decodes a real Uniswap v3 multi-hop exact-input transaction
+  ---
+  duration_ms: 6.665667
+  type: 'test'
+  ...
+# Subtest: decodes a real Uniswap v4 swap and its settlement actions
+ok 2 - decodes a real Uniswap v4 swap and its settlement actions
+  ---
+  duration_ms: 3.734333
+  type: 'test'
+  ...
+# Subtest: decodes real Moonwell supply and withdraw transactions
+ok 3 - decodes real Moonwell supply and withdraw transactions
+  ---
+  duration_ms: 3.428959
+  type: 'test'
+  ...
+# Subtest: retains verifiable provenance for every real transaction vector
+ok 4 - retains verifiable provenance for every real transaction vector
+  ---
+  duration_ms: 2.484292
+  type: 'test'
+  ...
+# Subtest: decodes Uniswap v2 exact-output amounts in semantic order
+ok 5 - decodes Uniswap v2 exact-output amounts in semantic order
+  ---
+  duration_ms: 3.769209
+  type: 'test'
+  ...
+# Subtest: reverses a Uniswap v3 exact-output path into execution order
+ok 6 - reverses a Uniswap v3 exact-output path into execution order
+  ---
+  duration_ms: 1.028458
+  type: 'test'
+  ...
+# Subtest: decodes a vanilla Uniswap v4 exact-output single-pool swap
+ok 7 - decodes a vanilla Uniswap v4 exact-output single-pool swap
+  ---
+  duration_ms: 0.867292
+  type: 'test'
+  ...
+# Subtest: decodes Moonwell borrow and repay-on-behalf operations
+ok 8 - decodes Moonwell borrow and repay-on-behalf operations
+  ---
+  duration_ms: 0.476125
+  type: 'test'
+  ...
+# Subtest: decodes Moonwell collateral enablement for every requested market
+ok 9 - decodes Moonwell collateral enablement for every requested market
+  ---
+  duration_ms: 0.28575
+  type: 'test'
+  ...
+# Subtest: returns a rejectable intent for an unregistered target
+ok 10 - returns a rejectable intent for an unregistered target
+  ---
+  duration_ms: 0.063167
+  type: 'test'
+  ...
+# Subtest: marks Universal Router allow-revert commands as unsupported
+ok 11 - marks Universal Router allow-revert commands as unsupported
+  ---
+  duration_ms: 0.29
+  type: 'test'
+  ...
+# Subtest: independently recovers the signer from an unmodified real Base Permit2 transaction
+ok 12 - independently recovers the signer from an unmodified real Base Permit2 transaction
+  ---
+  duration_ms: 8.957542
+  type: 'test'
+  ...
+# Subtest: accepts an EOA permit only with nonce verification and matching full-transaction simulation
+ok 13 - accepts an EOA permit only with nonce verification and matching full-transaction simulation
+  ---
+  duration_ms: 48.736834
+  type: 'test'
+  ...
+# Subtest: validates EIP-2098 compact signatures with the Permit2 domain
+ok 14 - validates EIP-2098 compact signatures with the Permit2 domain
+  ---
+  duration_ms: 2.223417
+  type: 'test'
+  ...
+# Subtest: verifies PermitBatch and rejects a tampered batch member
+ok 15 - verifies PermitBatch and rejects a tampered batch member
+  ---
+  duration_ms: 43.026084
+  type: 'test'
+  ...
+# Subtest: checks contract-wallet EIP-1271 magic value at the same block and caller as Permit2
+ok 16 - checks contract-wallet EIP-1271 magic value at the same block and caller as Permit2
+  ---
+  duration_ms: 37.216041
+  type: 'test'
+  ...
+# Subtest: applies earlier permits and cumulative transfer consumption in Router order
+ok 17 - applies earlier permits and cumulative transfer consumption in Router order
+  ---
+  duration_ms: 61.458458
+  type: 'test'
+  ...
+# Subtest: batch transfers retain literal recipients, validate owners and report balance changes
+ok 18 - batch transfers retain literal recipients, validate owners and report balance changes
+  ---
+  duration_ms: 16.725375
+  type: 'test'
+  ...
+# Subtest: Permit2 rejection paths cover authorization constraints and missing state
+    # Subtest: wrong spender
+    ok 1 - wrong spender
+      ---
+      duration_ms: 19.152708
+      type: 'test'
+      ...
+    # Subtest: expired signature
+    ok 2 - expired signature
+      ---
+      duration_ms: 18.795791
+      type: 'test'
+      ...
+    # Subtest: excessive signature lifetime
+    ok 3 - excessive signature lifetime
+      ---
+      duration_ms: 19.185958
+      type: 'test'
+      ...
+    # Subtest: expired allowance
+    ok 4 - expired allowance
+      ---
+      duration_ms: 18.877583
+      type: 'test'
+      ...
+    # Subtest: excessive allowance lifetime
+    ok 5 - excessive allowance lifetime
+      ---
+      duration_ms: 19.919583
+      type: 'test'
+      ...
+    # Subtest: unknown token
+    ok 6 - unknown token
+      ---
+      duration_ms: 19.2665
+      type: 'test'
+      ...
+    # Subtest: missing cap
+    ok 7 - missing cap
+      ---
+      duration_ms: 18.360125
+      type: 'test'
+      ...
+    # Subtest: unlimited grant
+    ok 8 - unlimited grant
+      ---
+      duration_ms: 19.097666
+      type: 'test'
+      ...
+    # Subtest: used nonce
+    ok 9 - used nonce
+      ---
+      duration_ms: 19.445292
+      type: 'test'
+      ...
+    # Subtest: wrong chain
+    ok 10 - wrong chain
+      ---
+      duration_ms: 3.118959
+      type: 'test'
+      ...
+    # Subtest: unavailable state
+    ok 11 - unavailable state
+      ---
+      duration_ms: 19.762625
+      type: 'test'
+      ...
+    # Subtest: full call reverted
+    ok 12 - full call reverted
+      ---
+      duration_ms: 18.523542
+      type: 'test'
+      ...
+    # Subtest: empty permit batch
+    ok 13 - empty permit batch
+      ---
+      duration_ms: 16.810041
+      type: 'test'
+      ...
+    # Subtest: transfer exceeds allowance
+    ok 14 - transfer exceeds allowance
+      ---
+      duration_ms: 16.934333
+      type: 'test'
+      ...
+    # Subtest: transfer allowance expired
+    ok 15 - transfer allowance expired
+      ---
+      duration_ms: 14.669583
+      type: 'test'
+      ...
+    # Subtest: transfer to stranger
+    ok 16 - transfer to stranger
+      ---
+      duration_ms: 14.386125
+      type: 'test'
+      ...
+    1..16
+ok 19 - Permit2 rejection paths cover authorization constraints and missing state
+  ---
+  duration_ms: 278.342625
+  type: 'test'
+  ...
+# Subtest: a decoded Permit2 action cannot pass the offline reporting API without verification
+ok 20 - a decoded Permit2 action cannot pass the offline reporting API without verification
+  ---
+  duration_ms: 1.852791
+  type: 'test'
+  ...
+# Subtest: rejects a split-transfer attempt to bypass the per-transaction amount limit
+ok 21 - rejects a split-transfer attempt to bypass the per-transaction amount limit
+  ---
+  duration_ms: 14.179625
+  type: 'test'
+  ...
+# Subtest: zero expiration takes the block timestamp and repeated batch nonces cannot pass
+ok 22 - zero expiration takes the block timestamp and repeated batch nonces cannot pass
+  ---
+  duration_ms: 41.236917
+  type: 'test'
+  ...
+# Subtest: invalid EOA signature bytes and a mismatched EIP-712 domain fail closed
+ok 23 - invalid EOA signature bytes and a mismatched EIP-712 domain fail closed
+  ---
+  duration_ms: 38.001
+  type: 'test'
+  ...
+# Subtest: successfully decodes and checks a batch transfer using existing allowances
+ok 24 - successfully decodes and checks a batch transfer using existing allowances
+  ---
+  duration_ms: 14.679625
+  type: 'test'
+  ...
+# Subtest: passes an allowed vanilla Uniswap v4 transaction
+ok 25 - passes an allowed vanilla Uniswap v4 transaction
+  ---
+  duration_ms: 7.108958
+  type: 'test'
+  ...
+# Subtest: covers explicit policy rejection paths
+    # Subtest: unsupported chain
+    ok 1 - unsupported chain
+      ---
+      duration_ms: 0.468958
+      type: 'test'
+      ...
+    # Subtest: unauthorized target
+    ok 2 - unauthorized target
+      ---
+      duration_ms: 0.115833
+      type: 'test'
+      ...
+    # Subtest: unknown action
+    ok 3 - unknown action
+      ---
+      duration_ms: 0.079084
+      type: 'test'
+      ...
+    # Subtest: unapproved token
+    ok 4 - unapproved token
+      ---
+      duration_ms: 0.073417
+      type: 'test'
+      ...
+    # Subtest: unapproved recipient
+    ok 5 - unapproved recipient
+      ---
+      duration_ms: 0.060459
+      type: 'test'
+      ...
+    # Subtest: amount limit
+    ok 6 - amount limit
+      ---
+      duration_ms: 0.107958
+      type: 'test'
+      ...
+    # Subtest: native value limit
+    ok 7 - native value limit
+      ---
+      duration_ms: 0.067125
+      type: 'test'
+      ...
+    # Subtest: expired deadline
+    ok 8 - expired deadline
+      ---
+      duration_ms: 0.077666
+      type: 'test'
+      ...
+    # Subtest: deadline too far
+    ok 9 - deadline too far
+      ---
+      duration_ms: 0.080375
+      type: 'test'
+      ...
+    # Subtest: zero minimum output
+    ok 10 - zero minimum output
+      ---
+      duration_ms: 0.059084
+      type: 'test'
+      ...
+    # Subtest: unapproved v4 hook
+    ok 11 - unapproved v4 hook
+      ---
+      duration_ms: 0.053875
+      type: 'test'
+      ...
+    # Subtest: dynamic v4 fee
+    ok 12 - dynamic v4 fee
+      ---
+      duration_ms: 0.040875
+      type: 'test'
+      ...
+    # Subtest: borrow disabled
+    ok 13 - borrow disabled
+      ---
+      duration_ms: 0.056791
+      type: 'test'
+      ...
+    # Subtest: unverified Permit2 authorization
+    ok 14 - unverified Permit2 authorization
+      ---
+      duration_ms: 0.052416
+      type: 'test'
+      ...
+    # Subtest: failed simulation
+    ok 15 - failed simulation
+      ---
+      duration_ms: 0.037083
+      type: 'test'
+      ...
+    1..15
+ok 26 - covers explicit policy rejection paths
+  ---
+  duration_ms: 5.322709
+  type: 'test'
+  ...
+# Subtest: requires review when mandatory simulation was not attempted
+ok 27 - requires review when mandatory simulation was not attempted
+  ---
+  duration_ms: 3.78825
+  type: 'test'
+  ...
+1..27
+# tests 58
+# suites 0
+# pass 58
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1067.334875

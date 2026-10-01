@@ -85,6 +85,8 @@
   "simulation": {
     "attempted": true,
     "success": true,
+    "transactionFingerprint": "0x00fdc12a034abff0efe163f88439a433b0e008c5422201c8ea5b1348c3fc7e80",
+    "blockHash": "0xccf7780d3081d08be3341675ab871f8d1de94378deb23b3851be2c9bafa5e5b2",
     "rpcUrl": "https://mainnet.base.org",
     "blockNumber": "51996960",
     "returnData": "0x0000000000000000000000000000000000000000000000000000000000000000"

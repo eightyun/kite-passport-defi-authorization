@@ -99,6 +99,7 @@ test("retains verifiable provenance for every real transaction vector", async ()
     "uniswap-v4-exact-input.base.json",
     "moonwell-supply-usdc.base.json",
     "moonwell-withdraw-usdc.base.json",
+    "uniswap-permit2-usdc.base.json",
   ];
   for (const file of files) {
     const transaction = await loadTransaction(resolve(fixtureDirectory, file));

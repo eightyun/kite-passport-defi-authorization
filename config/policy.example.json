@@ -26,5 +26,7 @@
   "maximumDeadlineSeconds": 3600,
   "allowBorrow": false,
   "allowDynamicV4Fee": false,
-  "requireSimulation": false
+  "requireSimulation": false,
+  "maximumPermit2ExpirationSeconds": 86400,
+  "maximumPermit2SignatureDeadlineSeconds": 3600
 }

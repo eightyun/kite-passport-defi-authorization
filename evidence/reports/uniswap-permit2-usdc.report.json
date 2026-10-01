@@ -1,0 +1,171 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-10-01T06:16:13.000Z",
+  "transaction": {
+    "chainId": 8453,
+    "from": "0x58F1D63B5Ff08c052B5c562D8a58Aa10734d7473",
+    "to": "0xd6145b2D3F379919E8CdEda7B97e37c4b2Ca9c40",
+    "data": "0x3593564c000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000006abe01ad00000000000000000000000000000000000000000000000000000000000000020a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000001c00000000000000000000000000000000000000000000000000000000000000160000000000000000000000000833589fcd6edb6e08f4c7c32d4f71b54bda02913000000000000000000000000ffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000000000006ae5879d0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000d6145b2d3f379919e8cdeda7b97e37c4b2ca9c40000000000000000000000000000000000000000000000000000000006abe01a500000000000000000000000000000000000000000000000000000000000000e000000000000000000000000000000000000000000000000000000000000000415930714f8f36601fcf0c410c814f7c72356beb89ca05c1414ed3e33dd5bb352b025079e22bb8d4aca734c7bb11263db855cf528a1c6c1f1a3f3b7f2d08fb62211c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000014000000000000000000000000058f1d63b5ff08c052b5c562d8a58aa10734d7473000000000000000000000000000000000000000000000000000000000475a58c000000000000000000000000000000000000000000000000005f557bea5b179200000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000120000000000000000000000000000000000000000000000000000000000000002b833589fcd6edb6e08f4c7c32d4f71b54bda0291300006442000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000756e6978000001a0f61af80c8000994b0000000c0100",
+    "value": "0",
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0x264113c7264f36e1029f24d1ced8461dbdd92975663fd1338a8378aed254238c",
+      "explorerUrl": "https://base.blockscout.com/tx/0x264113c7264f36e1029f24d1ced8461dbdd92975663fd1338a8378aed254238c",
+      "blockNumber": 52023013,
+      "timestamp": "2026-10-01T06:16:13.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "intent": {
+    "schemaVersion": "1.0",
+    "protocol": "uniswap",
+    "adapter": "uniswap-universal-router-v2.1",
+    "chainId": 8453,
+    "sender": "0x58F1D63B5Ff08c052B5c562D8a58Aa10734d7473",
+    "target": "0xd6145b2D3F379919E8CdEda7B97e37c4b2Ca9c40",
+    "nativeValue": "0",
+    "transactionFingerprint": "0xaf6a37a83e79c5544b3247346d89cf27e59ac03c85efbd6e73f0b834f261e0aa",
+    "deadline": "1790837165",
+    "actions": [
+      {
+        "kind": "authorization",
+        "index": 0,
+        "operation": "permit2-permit",
+        "decoded": true,
+        "permit": {
+          "type": "PermitSingle",
+          "owner": "0x58F1D63B5Ff08c052B5c562D8a58Aa10734d7473",
+          "spender": "0xd6145b2D3F379919E8CdEda7B97e37c4b2Ca9c40",
+          "sigDeadline": "1790837157",
+          "signature": "0x5930714f8f36601fcf0c410c814f7c72356beb89ca05c1414ed3e33dd5bb352b025079e22bb8d4aca734c7bb11263db855cf528a1c6c1f1a3f3b7f2d08fb62211c",
+          "details": [
+            {
+              "token": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+              "amount": "1461501637330902918203684832716283019655932542975",
+              "expiration": 1793427357,
+              "nonce": 0
+            }
+          ]
+        }
+      },
+      {
+        "kind": "swap",
+        "index": 1,
+        "protocolVersion": "v3",
+        "mode": "exact-input",
+        "recipient": "sender",
+        "payerIsUser": true,
+        "route": [
+          {
+            "tokenIn": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+            "tokenOut": "0x4200000000000000000000000000000000000006",
+            "fee": 100
+          }
+        ],
+        "amountIn": {
+          "value": "74818956",
+          "mode": "exact"
+        },
+        "amountOut": {
+          "value": "26834113488689042",
+          "mode": "minimum"
+        }
+      }
+    ],
+    "expectedBalanceChanges": [
+      {
+        "account": "sender",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "category": "asset",
+        "direction": "debit",
+        "amount": {
+          "value": "74818956",
+          "mode": "exact"
+        },
+        "reason": "v3 exact-input swap input"
+      },
+      {
+        "account": "sender",
+        "asset": "0x4200000000000000000000000000000000000006",
+        "category": "asset",
+        "direction": "credit",
+        "amount": {
+          "value": "26834113488689042",
+          "mode": "minimum"
+        },
+        "reason": "v3 exact-input swap output"
+      }
+    ],
+    "warnings": [],
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0x264113c7264f36e1029f24d1ced8461dbdd92975663fd1338a8378aed254238c",
+      "explorerUrl": "https://base.blockscout.com/tx/0x264113c7264f36e1029f24d1ced8461dbdd92975663fd1338a8378aed254238c",
+      "blockNumber": 52023013,
+      "timestamp": "2026-10-01T06:16:13.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "policy": {
+    "outcome": "reject",
+    "findings": [
+      {
+        "code": "PERMIT2_EXPIRATION_TOO_FAR",
+        "message": "Permit2 allowance expiration exceeds the configured horizon.",
+        "actionIndex": 0
+      },
+      {
+        "code": "AMOUNT_LIMIT_EXCEEDED",
+        "message": "Permit2 amount 1461501637330902918203684832716283019655932542975 exceeds limit 1000000000 for 0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.",
+        "actionIndex": 0
+      }
+    ]
+  },
+  "simulation": {
+    "attempted": true,
+    "success": true,
+    "transactionFingerprint": "0xaf6a37a83e79c5544b3247346d89cf27e59ac03c85efbd6e73f0b834f261e0aa",
+    "blockHash": "0xfe655774324b9f1d47b5c4e73e5bca67b55bf5c4afe01cd38ca9a061b719b282",
+    "rpcUrl": "https://mainnet.base.org",
+    "blockNumber": "52023012"
+  },
+  "finalDecision": "reject",
+  "permit2": {
+    "transactionFingerprint": "0xaf6a37a83e79c5544b3247346d89cf27e59ac03c85efbd6e73f0b834f261e0aa",
+    "contract": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+    "blockNumber": "52023012",
+    "blockHash": "0xfe655774324b9f1d47b5c4e73e5bca67b55bf5c4afe01cd38ca9a061b719b282",
+    "blockTimestamp": 1790835371,
+    "checks": [
+      {
+        "actionIndex": 0,
+        "status": "valid",
+        "allowances": [
+          {
+            "owner": "0x58F1D63B5Ff08c052B5c562D8a58Aa10734d7473",
+            "token": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+            "spender": "0xd6145b2D3F379919E8CdEda7B97e37c4b2Ca9c40",
+            "amount": "0",
+            "expiration": 0,
+            "nonce": 0,
+            "source": "chain"
+          }
+        ],
+        "expectedAllowanceUpdates": [
+          {
+            "token": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+            "spender": "0xd6145b2D3F379919E8CdEda7B97e37c4b2Ca9c40",
+            "beforeAmount": "0",
+            "authorizedAmount": "1461501637330902918203684832716283019655932542975",
+            "maximumExposureChange": "1461501637330902918203684832716283019655932542975",
+            "expiration": 1793427357
+          }
+        ],
+        "findings": [],
+        "digest": "0x93b7811d3bfadff17fb282efaa066822471c00b81e6faffc4cce316fe2532b07",
+        "signatureMethod": "eoa",
+        "recoveredSigner": "0x58F1D63B5Ff08c052B5c562D8a58Aa10734d7473"
+      }
+    ]
+  }
+}

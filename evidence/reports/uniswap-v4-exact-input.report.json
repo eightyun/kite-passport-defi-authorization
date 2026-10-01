@@ -24,6 +24,7 @@
     "sender": "0xB0f430e85B54D9073F4BD7CC9feED7590a25d330",
     "target": "0xd6145b2D3F379919E8CdEda7B97e37c4b2Ca9c40",
     "nativeValue": "334000000000000",
+    "transactionFingerprint": "0x4620edc4a5a38f3705516f877081f992caab6e492a53046ced3a8df1dd439b41",
     "deadline": "1790790608",
     "actions": [
       {
@@ -118,6 +119,8 @@
   "simulation": {
     "attempted": true,
     "success": true,
+    "transactionFingerprint": "0x4620edc4a5a38f3705516f877081f992caab6e492a53046ced3a8df1dd439b41",
+    "blockHash": "0x9478d783a722a211ddac3633db94c7cb7060c5db1a50ee33aca72f2fff393f3d",
     "rpcUrl": "https://mainnet.base.org",
     "blockNumber": "51999748"
   },
