@@ -7,12 +7,14 @@ This directory contains reproducible evidence for the Passport DeFi authorizatio
 - Real transaction calldata: [../fixtures/transactions](../fixtures/transactions)
 - Parsed intent, expected balance changes, policy decision and RPC result: [reports](./reports)
 - Policy configuration: [../config/policy.example.json](../config/policy.example.json)
-- Fifteen explicit rejection paths: [rejection-tests.json](./rejection-tests.json)
+- Eighteen explicit rejection paths: [rejection-tests.json](./rejection-tests.json)
 - Simulation and risk precheck: [simulation-and-risk-precheck.md](./simulation-and-risk-precheck.md)
 - Automated assertions: [../tests](../tests)
 - Recorded assertion results, including Permit2 rejection paths: [test-results.tap](./test-results.tap)
 - Moonwell units, conversion rules and exposure interpretation: [../docs/moonwell.md](../docs/moonwell.md)
 - Permit2 scope and reproducible real-transaction audit: [../docs/permit2.md](../docs/permit2.md)
+- Aerodrome selectors, routing and failure boundaries: [../docs/aerodrome.md](../docs/aerodrome.md)
+- Morpho market identity and exposure verification: [../docs/morpho.md](../docs/morpho.md)
 
 ## Reproduce
 

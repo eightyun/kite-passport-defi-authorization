@@ -1,5 +1,6 @@
 import { ZERO_ADDRESS, findMoonwellMarket } from "./contracts.js";
 import { moonwellStateMatches, resolveMoonwellIntent } from "./moonwell.js";
+import { morphoStateMatches, resolveMorpho } from "./morpho.js";
 import type {
   Address,
   IntentAction,
@@ -10,6 +11,7 @@ import type {
   SimulationResult,
   Permit2Verification,
   MoonwellPreflight,
+  MorphoPreflight,
 } from "./domain.js";
 
 export interface PolicyContext {
@@ -17,6 +19,7 @@ export interface PolicyContext {
   readonly simulation: SimulationResult;
   readonly permit2?: Permit2Verification;
   readonly moonwell?: MoonwellPreflight;
+  readonly morpho?: MorphoPreflight;
 }
 
 function addressSet(values: readonly Address[]): ReadonlySet<string> {
@@ -29,13 +32,20 @@ function concreteRecipient(recipient: string): Address | undefined {
 
 function actionTokens(action: IntentAction): readonly Address[] {
   if (action.kind === "swap") {
-    return action.route.flatMap((step) => [step.tokenIn, step.tokenOut]);
+    return [
+      ...(action.inputAsset ? [action.inputAsset] : []),
+      ...(action.outputAsset ? [action.outputAsset] : []),
+      ...action.route.flatMap((step) => [step.tokenIn, step.tokenOut]),
+    ];
   }
   if (action.kind === "lending") {
     return action.asset === undefined ? [] : [action.asset];
   }
   if (action.kind === "transfer") {
     return action.asset === undefined ? [] : [action.asset];
+  }
+  if (action.kind === "morpho") {
+    return [action.marketParams.loanToken, action.marketParams.collateralToken];
   }
   return [];
 }
@@ -50,6 +60,9 @@ function actionRecipient(action: IntentAction): string | undefined {
   if (action.kind === "lending") {
     return action.beneficiary;
   }
+  if (action.kind === "morpho") {
+    return action.receiver ?? action.beneficiary;
+  }
   return undefined;
 }
 
@@ -60,7 +73,7 @@ function findAmountLimitFinding(
   let token: Address | undefined;
   let value: string | undefined;
   if (action.kind === "swap") {
-    token = action.route[0]?.tokenIn;
+    token = action.inputAsset ?? action.route[0]?.tokenIn;
     value = action.amountIn.mode === "all" || action.amountIn.mode === "unknown" ? undefined : action.amountIn.value;
   } else if (action.kind === "lending") {
     token = action.asset;
@@ -76,6 +89,10 @@ function findAmountLimitFinding(
       action.amount.mode === "all" || action.amount.mode === "unknown"
         ? undefined
         : action.amount.value;
+  } else if (action.kind === "morpho") {
+    token = action.operation.includes("collateral")
+      ? action.marketParams.collateralToken : action.marketParams.loanToken;
+    value = action.assets.mode === "exact" ? action.assets.value : undefined;
   }
   if (token === undefined || value === undefined) {
     return undefined;
@@ -97,16 +114,25 @@ export function evaluatePolicy(
   config: PolicyConfig,
   context: PolicyContext,
 ): PolicyDecision {
-  const intent = context.moonwell ? resolveMoonwellIntent(decoded, context.moonwell, context.simulation) : decoded;
+  const moonwellIntent = context.moonwell ? resolveMoonwellIntent(decoded, context.moonwell, context.simulation) : decoded;
+  const morphoResolved = context.morpho ? resolveMorpho(moonwellIntent, context.morpho, context.simulation) : undefined;
+  const intent = morphoResolved?.intent ?? moonwellIntent;
+  const morpho = morphoResolved?.state ?? context.morpho;
   const findings: PolicyFinding[] = [];
   const targets = addressSet(config.allowedTargets);
   const tokens = addressSet(config.allowedTokens);
   const recipients = addressSet(config.allowedRecipients);
   const hooks = addressSet(config.allowedV4Hooks);
+  const aerodromeFactories = addressSet(config.allowedAerodromeFactories ?? []);
+  const morphoMarkets = new Set((config.allowedMorphoMarkets ?? []).map((value) => value.toLowerCase()));
   const permit2Transferred = new Map<string, bigint>();
   const missingMoonwellState = intent.protocol === "moonwell" && !moonwellStateMatches(intent, context.moonwell, context.simulation);
+  const missingMorphoState = intent.protocol === "morpho" && !morphoStateMatches(intent, morpho, context.simulation);
   if (intent.protocol === "moonwell" && context.moonwell?.status === "invalid") {
     findings.push({ code: "MOONWELL_PRECHECK_FAILED", message: context.moonwell.error ?? "Moonwell preflight failed." });
+  }
+  if (intent.protocol === "morpho" && morpho?.status === "invalid") {
+    findings.push({ code: "MORPHO_PRECHECK_FAILED", message: morpho.error ?? "Morpho preflight failed." });
   }
 
   if (!config.allowedChainIds.includes(intent.chainId)) {
@@ -262,6 +288,14 @@ export function evaluatePolicy(
         });
       }
       for (const step of action.route) {
+        if (action.protocolVersion === "aerodrome" &&
+          (step.factory === undefined || !aerodromeFactories.has(step.factory.toLowerCase()))) {
+          findings.push({
+            code: "AERODROME_FACTORY_NOT_ALLOWED",
+            message: `Aerodrome factory ${step.factory ?? "missing"} is not allowed by policy.`,
+            actionIndex: action.index,
+          });
+        }
         if (
           action.protocolVersion === "v4" &&
           step.hook !== undefined &&
@@ -291,6 +325,24 @@ export function evaluatePolicy(
         actionIndex: action.index,
       });
     }
+    if (action.kind === "morpho" && action.operation === "borrow" && !config.allowBorrow) {
+      findings.push({ code: "BORROW_NOT_ALLOWED", message: "Morpho borrowing is disabled by policy.", actionIndex: action.index });
+    }
+    if (action.kind === "morpho" && !morphoMarkets.has(action.marketId.toLowerCase())) {
+      findings.push({
+        code: "MORPHO_MARKET_NOT_ALLOWED",
+        message: `Morpho market ${action.marketId} is not allowed by policy.`,
+        actionIndex: action.index,
+        evidence: { marketId: action.marketId },
+      });
+    }
+    if (action.kind === "morpho" && action.callbackData !== "0x") {
+      findings.push({
+        code: "MORPHO_CALLBACK_NOT_ALLOWED",
+        message: "Morpho callback data is disabled because callback asset flows are outside this adapter's decoded intent.",
+        actionIndex: action.index,
+      });
+    }
     if (action.kind === "lending" && (!findMoonwellMarket(action.market) || !targets.has(action.market.toLowerCase()))) {
       findings.push({ code: "UNAUTHORIZED_TARGET", message: "Moonwell market is unregistered or excluded by policy.", actionIndex: action.index, evidence: { market: action.market } });
     }
@@ -309,6 +361,10 @@ export function evaluatePolicy(
   if (missingMoonwellState) return {
     outcome: "review", findings: [{ code: "MOONWELL_STATE_REQUIRED", message: context.moonwell?.error ??
       "Moonwell requires complete account state and successful simulation bound to the same transaction and block." }],
+  };
+  if (missingMorphoState) return {
+    outcome: "review", findings: [{ code: "MORPHO_STATE_REQUIRED", message: morpho?.error ??
+      "Morpho requires canonical market and account state plus successful simulation bound to the same transaction and block." }],
   };
   if (config.requireSimulation && !context.simulation.attempted) {
     return {

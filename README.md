@@ -2,7 +2,7 @@
 
 An auditable TypeScript authorization layer for decoding DeFi calldata, evaluating transaction policy, simulating execution, and reporting expected balance changes before a Kite Passport agent submits a transaction.
 
-It supports Uniswap and Moonwell on Base and never signs or broadcasts transactions.
+It supports Uniswap, Aerodrome, Moonwell and Morpho on Base and never signs or broadcasts transactions.
 
 ## Supported protocols
 
@@ -12,7 +12,9 @@ It supports Uniswap and Moonwell on Base and never signs or broadcasts transacti
 | Uniswap v3 | single-hop and multi-hop exact-input/exact-output swaps |
 | Uniswap v4 | standard exact-input/exact-output swaps, settlement and take actions |
 | Universal Router | Permit2 single/batch permits and transfers, wrap, unwrap, sweep and transfer |
+| Aerodrome Router | token/token, native/token and token/native exact-input swaps |
 | Moonwell Core | supply, withdraw, borrow, repay and collateral enable/disable |
+| Morpho Blue | supply, withdraw, borrow, repay and collateral supply/withdraw |
 
 Uniswap v4 hooks and dynamic-fee pools are rejected by the example policy unless explicitly allowed. Unknown commands and actions are always rejected.
 
@@ -50,7 +52,7 @@ npm test
 npm run build
 ```
 
-The test suite covers real calldata vectors, protocol operation decoding, fifteen general policy rejection paths and additional Permit2 signature, allowance and policy rejection cases.
+The test suite covers real calldata vectors, protocol operation decoding, eighteen general policy rejection paths and additional Permit2 signature, allowance and policy rejection cases.
 
 ## Analyze a transaction
 
@@ -71,6 +73,7 @@ The command emits JSON containing:
 - source transaction provenance when supplied.
 - Permit2 signature verification, checked allowances and expected authorization exposure changes when applicable.
 - Moonwell resolved underlying/receipt amounts and account-level supplied, debt and collateral exposures at the checked block.
+- Morpho fixed-block market identity, exact simulated asset/share amounts and account exposure changes.
 
 Exit code `2` means the policy rejected the transaction. Invalid input or an internal error returns exit code `1`.
 
@@ -83,6 +86,8 @@ Exit code `2` means the policy rejected the transaction. Invalid input or an int
 - per-token and native-value limits;
 - maximum deadline horizon;
 - Uniswap v4 hook and dynamic-fee controls;
+- Aerodrome factory allowlist;
+- Morpho market-ID allowlist and canonical market verification;
 - Moonwell borrowing control;
 - optional mandatory RPC simulation.
 - Permit2 signature and allowance lifetime limits; Permit2 always requires independent verification and full-transaction simulation at the same block.
@@ -103,7 +108,12 @@ Implemented rejection reason codes include:
 | `ZERO_MINIMUM_OUTPUT` | exact-input swap lacks output protection |
 | `V4_HOOK_NOT_ALLOWED` | v4 pool uses an unapproved hook |
 | `DYNAMIC_V4_FEE_NOT_ALLOWED` | v4 dynamic fee is disabled |
-| `BORROW_NOT_ALLOWED` | Moonwell borrow is disabled |
+| `BORROW_NOT_ALLOWED` | lending borrow is disabled |
+| `AERODROME_FACTORY_NOT_ALLOWED` | route uses an unapproved Aerodrome factory |
+| `MORPHO_MARKET_NOT_ALLOWED` | Morpho market ID is not explicitly allowed |
+| `MORPHO_CALLBACK_NOT_ALLOWED` | supply or repay callback data is non-empty |
+| `MORPHO_STATE_REQUIRED` | verified Morpho position state or matching simulation is missing |
+| `MORPHO_PRECHECK_FAILED` | market identity, delegation or expected position change is invalid |
 | `UNVERIFIED_AUTHORIZATION` | Permit2 details were not independently verified |
 | `PERMIT2_SIGNATURE_INVALID` | EOA signature or EIP-1271 result is invalid |
 | `PERMIT2_SPENDER_NOT_ALLOWED` | signed spender differs from the approved Router |
@@ -134,6 +144,8 @@ The repository includes raw Base mainnet calldata and immutable explorer provena
 | Moonwell redemption rejected by historical preflight (error 14) | [`0x83fe37…1311`](https://base.blockscout.com/tx/0x83fe375c66d58489f8b1f8917ec7b61f812a41a79567d9d3b75ee911efde1311) |
 | Moonwell USDC withdraw | [`0x169f9a…c690`](https://base.blockscout.com/tx/0x169f9aded536ee0df26f87af015f60a16d19d0004cb794c60a06cd4daf03c690) |
 | Permit2 USDC permit and Uniswap v3 swap | [`0x264113…4238c`](https://base.blockscout.com/tx/0x264113c7264f36e1029f24d1ced8461dbdd92975663fd1338a8378aed254238c) |
+| Aerodrome USDC to AERO exact input | [`0x4ae4c2…3a81`](https://base.blockscout.com/tx/0x4ae4c26c79314c635cde20f42371ef5621ec2f543281508a3d84665eff0b3a81) |
+| Morpho USDC repayment | [`0xd84c24…ca2d`](https://base.blockscout.com/tx/0xd84c249552ff34dc2af15e63858473415b5098dee37ec3b84ab608792d15ca2d) |
 
 Each evidence simulation replays the call against the block immediately before the observed transaction. Set `BASE_RPC_URL` to an archive-capable Base endpoint when regenerating evidence.
 
@@ -142,6 +154,8 @@ npm run evidence
 ```
 
 Moonwell always requires verified fixed-block account state and matching successful simulation before `pass`, even when general simulation is optional. [Moonwell units and exposure verification](docs/moonwell.md) documents amount conversions, rounding, error codes and offline behavior.
+
+Morpho requires canonical market/account state and a matching successful fixed-block simulation before `pass`. [Morpho exposure verification](docs/morpho.md) documents this boundary. [Aerodrome authorization scope](docs/aerodrome.md) documents supported selectors and factory controls.
 
 The committed acceptance package is available in [`evidence`](evidence/README.md).
 
@@ -153,9 +167,9 @@ The Permit2 vector has a valid EOA signature, a matching historical nonce and a 
 |---|---|
 | Correct intent parsing for main operations | adapter tests and generated reports |
 | Real transaction test vectors | `fixtures/transactions/*.json` with explorer hashes |
-| At least eight rejection paths | fifteen cases in `evidence/rejection-tests.json` |
+| At least eight rejection paths | eighteen cases in `evidence/rejection-tests.json` |
 | Exact rejection reasons | policy findings include code, message and supporting fields |
-| Expected result and balance changes | `expectedBalanceChanges`, Permit2 allowance exposure and `moonwell.exposures` with fixed-block account before/after quantities |
+| Expected result and balance changes | `expectedBalanceChanges`, Permit2 allowance exposure, `moonwell.exposures` and `morpho.exposures` with fixed-block before/after quantities |
 | Transaction calldata | included in each fixture and generated report |
 | Policy configuration | `config/policy.example.json` |
 | Simulation and risk precheck | `evidence/simulation-and-risk-precheck.md` |
@@ -171,6 +185,7 @@ src/
   policy.ts       deterministic authorization decisions
   simulation.ts   read-only RPC preflight
   moonwell.ts     accrued rate, account state and exposure verification
+  morpho.ts       market identity, account state and exposure verification
   permit2.ts      Permit2 decoding, signatures and allowance verification
   report.ts       versioned authorization report
   cli.ts          command-line interface
@@ -188,7 +203,9 @@ schemas/          report contract
 - Explicit Permit2 transfers are checked against allowances in command order. Full-transaction simulation covers implicit swap payments, ERC-20 approvals and token balances.
 - Authorization exposure and per-operation balance bounds are conditional predictions; the tool does not claim measured net balance or final residual allowance changes.
 - Unknown Uniswap v4 hooks are rejected because hook code can alter fees and asset flows.
+- Aerodrome routes are restricted to approved factories and protected exact-input methods.
 - Moonwell health, liquidity, caps, interest and exchange rates remain state-dependent.
+- Morpho markets are restricted by their full parameter hash; exact share conversions require same-block simulation.
 - A simulation is evidence for one chain state, not a guarantee for later execution.
 
 This project has not received an external security audit and must not be treated as production risk control without one.
@@ -200,6 +217,8 @@ This project has not received an external security audit and must not be treated
 - [Uniswap Universal Router source](https://github.com/Uniswap/universal-router)
 - [Moonwell contracts](https://docs.moonwell.fi/moonwell/protocol-information/contracts)
 - [Moonwell Core integration](https://docs.moonwell.fi/moonwell/developers/guides)
+- [Aerodrome contracts](https://github.com/aerodrome-finance/contracts)
+- [Morpho Blue contracts](https://github.com/morpho-org/morpho-blue)
 
 ## License
 

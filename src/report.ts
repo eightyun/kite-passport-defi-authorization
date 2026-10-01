@@ -6,11 +6,13 @@ import type {
   TransactionEnvelope,
   Permit2Verification,
   MoonwellPreflight,
+  MorphoPreflight,
 } from "./domain.js";
 import { evaluatePolicy } from "./policy.js";
 import { verifyPermit2 } from "./permit2.js";
 import { simulateTransaction, skippedSimulation } from "./simulation.js";
 import { preflightMoonwell, resolveMoonwellIntent } from "./moonwell.js";
+import { preflightMorpho, resolveMorpho } from "./morpho.js";
 
 export interface ReportOptions {
   readonly generatedAt: string;
@@ -18,6 +20,7 @@ export interface ReportOptions {
   readonly simulation: SimulationResult;
   readonly permit2?: Permit2Verification;
   readonly moonwell?: MoonwellPreflight;
+  readonly morpho?: MorphoPreflight;
 }
 
 export function createAuthorizationReport(
@@ -26,12 +29,16 @@ export function createAuthorizationReport(
   options: ReportOptions,
 ): AuthorizationReport {
   const decoded = decodeTransaction(transaction);
-  const intent = options.moonwell ? resolveMoonwellIntent(decoded, options.moonwell, options.simulation) : decoded;
+  const moonwellIntent = options.moonwell ? resolveMoonwellIntent(decoded, options.moonwell, options.simulation) : decoded;
+  const morphoResolved = options.morpho ? resolveMorpho(moonwellIntent, options.morpho, options.simulation) : undefined;
+  const intent = morphoResolved?.intent ?? moonwellIntent;
+  const morpho = morphoResolved?.state ?? options.morpho;
   const policy = evaluatePolicy(intent, policyConfig, {
     nowSeconds: options.nowSeconds,
     simulation: options.simulation,
     ...(options.permit2 ? { permit2: options.permit2 } : {}),
     ...(options.moonwell ? { moonwell: options.moonwell } : {}),
+    ...(morpho ? { morpho } : {}),
   });
   return {
     schemaVersion: "1.0",
@@ -42,6 +49,7 @@ export function createAuthorizationReport(
     simulation: options.simulation,
     finalDecision: policy.outcome,
     ...(options.moonwell ? { moonwell: options.moonwell } : {}),
+    ...(morpho ? { morpho } : {}),
     ...(options.permit2 ? { permit2: options.permit2 } : {}),
   };
 }
@@ -58,7 +66,9 @@ export async function analyzeTransaction(
     ? await verifyPermit2(transaction, intent, options.rpcUrl, blockNumber) : undefined;
   const moonwell = intent.protocol === "moonwell" && options.rpcUrl
     ? await preflightMoonwell(transaction, intent, options.rpcUrl, blockNumber) : undefined;
-  const verifiedBlock = permit2?.blockNumber ?? moonwell?.blockNumber;
+  const morpho = intent.protocol === "morpho" && options.rpcUrl
+    ? await preflightMorpho(transaction, intent, options.rpcUrl, blockNumber) : undefined;
+  const verifiedBlock = permit2?.blockNumber ?? moonwell?.blockNumber ?? morpho?.blockNumber;
   const simulation = options.rpcUrl
     ? await simulateTransaction(transaction, options.rpcUrl,
       verifiedBlock ? BigInt(verifiedBlock) : blockNumber)
@@ -67,5 +77,6 @@ export async function analyzeTransaction(
     generatedAt: options.generatedAt, nowSeconds: options.nowSeconds, simulation,
     ...(permit2 ? { permit2 } : {}),
     ...(moonwell ? { moonwell } : {}),
+    ...(morpho ? { morpho } : {}),
   });
 }

@@ -41,18 +41,49 @@ export interface SwapRouteStep {
   readonly tickSpacing?: number;
   readonly hook?: Address;
   readonly dynamicFee?: boolean;
+  readonly stable?: boolean;
+  readonly factory?: Address;
 }
 
 export interface SwapAction {
   readonly kind: "swap";
   readonly index: number;
-  readonly protocolVersion: "v2" | "v3" | "v4";
+  readonly protocolVersion: "v2" | "v3" | "v4" | "aerodrome";
   readonly mode: "exact-input" | "exact-output";
   readonly recipient: string;
   readonly payerIsUser: boolean;
   readonly route: readonly SwapRouteStep[];
   readonly amountIn: Amount;
   readonly amountOut: Amount;
+  readonly inputAsset?: Address;
+  readonly outputAsset?: Address;
+}
+
+export interface MorphoMarketParams {
+  readonly loanToken: Address;
+  readonly collateralToken: Address;
+  readonly oracle: Address;
+  readonly irm: Address;
+  readonly lltv: string;
+}
+
+export interface MorphoAction {
+  readonly kind: "morpho";
+  readonly index: number;
+  readonly operation:
+    | "supply"
+    | "withdraw"
+    | "borrow"
+    | "repay"
+    | "supply-collateral"
+    | "withdraw-collateral";
+  readonly marketId: Hex;
+  readonly marketParams: MorphoMarketParams;
+  readonly beneficiary: Address;
+  readonly receiver?: Address;
+  readonly assets: Amount;
+  readonly shares?: Amount;
+  readonly callbackData: Hex;
 }
 
 export interface LendingAction {
@@ -163,13 +194,14 @@ export interface UnknownAction {
 export type IntentAction =
   | SwapAction
   | LendingAction
+  | MorphoAction
   | TransferAction
   | AuthorizationAction
   | UnknownAction;
 
 export interface IntentAnalysis {
   readonly schemaVersion: "1.0";
-  readonly protocol: "uniswap" | "moonwell" | "unknown";
+  readonly protocol: "uniswap" | "aerodrome" | "moonwell" | "morpho" | "unknown";
   readonly adapter: string;
   readonly chainId: number;
   readonly sender: Address;
@@ -190,6 +222,8 @@ export interface PolicyConfig {
   readonly allowedTokens: readonly Address[];
   readonly allowedRecipients: readonly Address[];
   readonly allowedV4Hooks: readonly Address[];
+  readonly allowedAerodromeFactories?: readonly Address[];
+  readonly allowedMorphoMarkets?: readonly Hex[];
   readonly maximumAmountByToken: Readonly<Record<string, string>>;
   readonly maximumNativeValue: string;
   readonly maximumDeadlineSeconds: number;
@@ -203,6 +237,11 @@ export interface PolicyConfig {
 export type PolicyReasonCode =
   | "MOONWELL_STATE_REQUIRED"
   | "MOONWELL_PRECHECK_FAILED"
+  | "MORPHO_STATE_REQUIRED"
+  | "MORPHO_PRECHECK_FAILED"
+  | "MORPHO_MARKET_NOT_ALLOWED"
+  | "MORPHO_CALLBACK_NOT_ALLOWED"
+  | "AERODROME_FACTORY_NOT_ALLOWED"
   | "UNSUPPORTED_CHAIN"
   | "UNAUTHORIZED_TARGET"
   | "UNKNOWN_ACTION"
@@ -265,6 +304,7 @@ export interface AuthorizationReport {
   readonly finalDecision: "pass" | "reject" | "review";
   readonly permit2?: Permit2Verification;
   readonly moonwell?: MoonwellPreflight;
+  readonly morpho?: MorphoPreflight;
 }
 
 export interface MoonwellExposure {
@@ -294,5 +334,36 @@ export interface MoonwellPreflight {
   readonly blockHash?: Hex;
   readonly blockTimestamp?: number;
   readonly exposures: readonly MoonwellExposure[];
+  readonly error?: string;
+}
+
+export interface MorphoExposure {
+  readonly actionIndex: number;
+  readonly marketId: Hex;
+  readonly account: Address;
+  readonly loanToken: Address;
+  readonly collateralToken: Address;
+  readonly operation: MorphoAction["operation"];
+  readonly assets: string;
+  readonly shares: string;
+  readonly supplySharesBefore: string;
+  readonly supplySharesAfter: string;
+  readonly borrowSharesBefore: string;
+  readonly borrowSharesAfter: string;
+  readonly collateralBefore: string;
+  readonly collateralAfter: string;
+  readonly totalSupplyAssets: string;
+  readonly totalSupplyShares: string;
+  readonly totalBorrowAssets: string;
+  readonly totalBorrowShares: string;
+}
+
+export interface MorphoPreflight {
+  readonly transactionFingerprint: Hex;
+  readonly status: "ready" | "unavailable" | "invalid";
+  readonly blockNumber?: string;
+  readonly blockHash?: Hex;
+  readonly blockTimestamp?: number;
+  readonly exposures: readonly MorphoExposure[];
   readonly error?: string;
 }

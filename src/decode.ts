@@ -1,8 +1,12 @@
 import {
+  BASE_AERODROME_ROUTER,
+  BASE_MORPHO,
   BASE_MOONWELL_COMPTROLLER,
   BASE_MOONWELL_MARKETS,
   BASE_UNISWAP_UNIVERSAL_ROUTER,
 } from "./contracts.js";
+import { decodeAerodromeTransaction } from "./adapters/aerodrome.js";
+import { decodeMorphoTransaction } from "./adapters/morpho.js";
 import { decodeMoonwellTransaction } from "./adapters/moonwell.js";
 import { decodeUniswapTransaction } from "./adapters/uniswap.js";
 import type { IntentAnalysis, TransactionEnvelope } from "./domain.js";
@@ -11,6 +15,12 @@ export function decodeTransaction(transaction: TransactionEnvelope): IntentAnaly
   const target = transaction.to.toLowerCase();
   if (target === BASE_UNISWAP_UNIVERSAL_ROUTER.toLowerCase()) {
     return decodeUniswapTransaction(transaction);
+  }
+  if (target === BASE_AERODROME_ROUTER.toLowerCase()) {
+    return decodeAerodromeTransaction(transaction);
+  }
+  if (target === BASE_MORPHO.toLowerCase()) {
+    return decodeMorphoTransaction(transaction);
   }
   if (
     target === BASE_MOONWELL_COMPTROLLER.toLowerCase() ||

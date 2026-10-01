@@ -10,6 +10,15 @@ export const BASE_PERMIT2 = "0x000000000022D473030F116dDEE9F6B43aC78BA3" as Addr
 export const BASE_UNISWAP_UNIVERSAL_ROUTER =
   "0xd6145b2D3F379919E8CdEda7B97e37c4b2Ca9c40" as Address;
 
+export const BASE_AERODROME_ROUTER =
+  "0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43" as Address;
+export const BASE_AERODROME_POOL_FACTORY =
+  "0x420DD381b31aEf6683db6B902084cB0FFECe40Da" as Address;
+export const BASE_AERO = "0x940181a94A35A4569E4529A3CDfB74e38FD98631" as Address;
+
+export const BASE_MORPHO =
+  "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb" as Address;
+
 export interface MoonwellMarket {
   readonly market: Address;
   readonly underlying: Address;

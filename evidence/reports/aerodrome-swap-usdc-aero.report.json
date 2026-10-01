@@ -1,0 +1,107 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-10-01T16:52:39.000Z",
+  "transaction": {
+    "chainId": 8453,
+    "from": "0x910dad4796F21Bc1258CD4760DBBB57cbF081D0d",
+    "to": "0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43",
+    "data": "0xcac88ea9000000000000000000000000000000000000000000000000000000003b9ac9f1000000000000000000000000000000000000000000000045595873823f1e68d500000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000910dad4796f21bc1258cd4760dbbb57cbf081d0d000000000000000000000000000000000000000000000000000000006abe8fe40000000000000000000000000000000000000000000000000000000000000001000000000000000000000000833589fcd6edb6e08f4c7c32d4f71b54bda02913000000000000000000000000940181a94a35a4569e4529a3cdfb74e38fd986310000000000000000000000000000000000000000000000000000000000000000000000000000000000000000420dd381b31aef6683db6b902084cb0ffece40da",
+    "value": "0",
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0x4ae4c26c79314c635cde20f42371ef5621ec2f543281508a3d84665eff0b3a81",
+      "explorerUrl": "https://base.blockscout.com/tx/0x4ae4c26c79314c635cde20f42371ef5621ec2f543281508a3d84665eff0b3a81",
+      "blockNumber": 52042106,
+      "timestamp": "2026-10-01T16:52:39.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "intent": {
+    "schemaVersion": "1.0",
+    "protocol": "aerodrome",
+    "adapter": "aerodrome-router-v1",
+    "chainId": 8453,
+    "sender": "0x910dad4796F21Bc1258CD4760DBBB57cbF081D0d",
+    "target": "0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43",
+    "nativeValue": "0",
+    "deadline": "1790873572",
+    "transactionFingerprint": "0x02639a78216090bd606bc3c040eeaa25b79c260b39548880e5c2be3028a41f6d",
+    "actions": [
+      {
+        "kind": "swap",
+        "index": 0,
+        "protocolVersion": "aerodrome",
+        "mode": "exact-input",
+        "recipient": "0x910dad4796F21Bc1258CD4760DBBB57cbF081D0d",
+        "payerIsUser": true,
+        "route": [
+          {
+            "tokenIn": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+            "tokenOut": "0x940181a94A35A4569E4529A3CDfB74e38FD98631",
+            "stable": false,
+            "factory": "0x420DD381b31aEf6683db6B902084cB0FFECe40Da"
+          }
+        ],
+        "amountIn": {
+          "value": "999999985",
+          "mode": "exact"
+        },
+        "amountOut": {
+          "value": "1279263363756527085781",
+          "mode": "minimum"
+        },
+        "inputAsset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "outputAsset": "0x940181a94A35A4569E4529A3CDfB74e38FD98631"
+      }
+    ],
+    "expectedBalanceChanges": [
+      {
+        "account": "sender",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "category": "asset",
+        "direction": "debit",
+        "amount": {
+          "value": "999999985",
+          "mode": "exact"
+        },
+        "reason": "Aerodrome exact-input amount"
+      },
+      {
+        "account": "0x910dad4796F21Bc1258CD4760DBBB57cbF081D0d",
+        "asset": "0x940181a94A35A4569E4529A3CDfB74e38FD98631",
+        "category": "asset",
+        "direction": "credit",
+        "amount": {
+          "value": "1279263363756527085781",
+          "mode": "minimum"
+        },
+        "reason": "Aerodrome minimum output guarantee"
+      }
+    ],
+    "warnings": [
+      "Output is a calldata minimum; realized output depends on pool state."
+    ],
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0x4ae4c26c79314c635cde20f42371ef5621ec2f543281508a3d84665eff0b3a81",
+      "explorerUrl": "https://base.blockscout.com/tx/0x4ae4c26c79314c635cde20f42371ef5621ec2f543281508a3d84665eff0b3a81",
+      "blockNumber": 52042106,
+      "timestamp": "2026-10-01T16:52:39.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "policy": {
+    "outcome": "pass",
+    "findings": []
+  },
+  "simulation": {
+    "attempted": true,
+    "success": true,
+    "transactionFingerprint": "0x02639a78216090bd606bc3c040eeaa25b79c260b39548880e5c2be3028a41f6d",
+    "blockHash": "0x46ff224b19c7ce35e26313490c6d3a8fb6139b9c78edbce9defc9ca09defdb5c",
+    "rpcUrl": "https://mainnet.base.org",
+    "blockNumber": "52042105",
+    "returnData": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000003b9ac9f1000000000000000000000000000000000000000000000045623a055397e6130e"
+  },
+  "finalDecision": "pass"
+}

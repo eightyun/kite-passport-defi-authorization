@@ -1,6 +1,6 @@
 {
   "generatedAt": "2026-09-30T17:20:45.000Z",
-  "count": 15,
+  "count": 18,
   "cases": [
     {
       "scenario": "unsupported chain",
@@ -139,10 +139,12 @@
       "expectedCode": "BORROW_NOT_ALLOWED",
       "outcome": "reject",
       "observedCodes": [
-        "BORROW_NOT_ALLOWED"
+        "BORROW_NOT_ALLOWED",
+        "UNAUTHORIZED_TARGET"
       ],
       "messages": [
-        "Moonwell borrowing is disabled by policy."
+        "Moonwell borrowing is disabled by policy.",
+        "Moonwell market is unregistered or excluded by policy."
       ]
     },
     {
@@ -165,6 +167,41 @@
       ],
       "messages": [
         "execution reverted"
+      ]
+    },
+    {
+      "scenario": "unapproved Aerodrome factory",
+      "expectedCode": "AERODROME_FACTORY_NOT_ALLOWED",
+      "outcome": "reject",
+      "observedCodes": [
+        "DEADLINE_TOO_FAR",
+        "AERODROME_FACTORY_NOT_ALLOWED"
+      ],
+      "messages": [
+        "Transaction deadline is more than 3600 seconds in the future.",
+        "Aerodrome factory 0x1111111111111111111111111111111111111111 is not allowed by policy."
+      ]
+    },
+    {
+      "scenario": "unapproved Morpho market",
+      "expectedCode": "MORPHO_MARKET_NOT_ALLOWED",
+      "outcome": "reject",
+      "observedCodes": [
+        "MORPHO_MARKET_NOT_ALLOWED"
+      ],
+      "messages": [
+        "Morpho market 0x1111111111111111111111111111111111111111111111111111111111111111 is not allowed by policy."
+      ]
+    },
+    {
+      "scenario": "Morpho callback data",
+      "expectedCode": "MORPHO_CALLBACK_NOT_ALLOWED",
+      "outcome": "reject",
+      "observedCodes": [
+        "MORPHO_CALLBACK_NOT_ALLOWED"
+      ],
+      "messages": [
+        "Morpho callback data is disabled because callback asset flows are outside this adapter's decoded intent."
       ]
     }
   ]

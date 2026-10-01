@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { resolve } from "node:path";
+import { readdir } from "node:fs/promises";
 import { loadPolicy, loadTransaction } from "../src/io.js";
 import { createAuthorizationReport } from "../src/report.js";
 import { skippedSimulation } from "../src/simulation.js";
@@ -94,15 +95,7 @@ test("decodes real Moonwell supply and withdraw transactions", async () => {
 });
 
 test("retains verifiable provenance for every real transaction vector", async () => {
-  const files = [
-    "uniswap-v3-exact-input.base.json",
-    "uniswap-v4-exact-input.base.json",
-    "moonwell-supply-usdc.base.json",
-    "moonwell-withdraw-usdc.base.json",
-    "moonwell-redeem-mtokens.base.json",
-    "moonwell-redeem-cash-rejection.base.json",
-    "uniswap-permit2-usdc.base.json",
-  ];
+  const files = (await readdir(fixtureDirectory)).filter((file) => file.endsWith(".json"));
   for (const file of files) {
     const transaction = await loadTransaction(resolve(fixtureDirectory, file));
     assert.equal(transaction.source?.name, "Base Blockscout");

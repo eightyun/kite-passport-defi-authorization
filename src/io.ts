@@ -56,6 +56,17 @@ function addressArray(record: Record<string, unknown>, key: string): readonly Ad
   });
 }
 
+function hexArray(record: Record<string, unknown>, key: string): readonly Hex[] {
+  const value = record[key];
+  if (!Array.isArray(value)) throw new Error(`${key} must be a hex array`);
+  return value.map((item, index) => {
+    if (typeof item !== "string" || !isHex(item) || item.length !== 66) {
+      throw new Error(`${key}[${index}] must be a 32-byte hex value`);
+    }
+    return item as Hex;
+  });
+}
+
 function parseSource(value: unknown): TransactionSource | undefined {
   if (value === undefined) {
     return undefined;
@@ -142,6 +153,10 @@ export function parsePolicy(value: unknown): PolicyConfig {
     allowedTokens: addressArray(value, "allowedTokens"),
     allowedRecipients: addressArray(value, "allowedRecipients"),
     allowedV4Hooks: addressArray(value, "allowedV4Hooks"),
+    allowedAerodromeFactories: value.allowedAerodromeFactories === undefined
+      ? [] : addressArray(value, "allowedAerodromeFactories"),
+    allowedMorphoMarkets: value.allowedMorphoMarkets === undefined
+      ? [] : hexArray(value, "allowedMorphoMarkets"),
     maximumAmountByToken: limits,
     maximumNativeValue,
     maximumDeadlineSeconds: requiredNumber(value, "maximumDeadlineSeconds"),

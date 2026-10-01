@@ -31,12 +31,22 @@ function successfulSimulation(): SimulationResult {
   return { attempted: true, success: true };
 }
 
-function rejectionEvidence(intent: IntentAnalysis, policy: PolicyConfig): readonly RejectionEvidence[] {
+function rejectionEvidence(
+  intent: IntentAnalysis,
+  aerodromeIntent: IntentAnalysis,
+  morphoIntent: IntentAnalysis,
+  policy: PolicyConfig,
+): readonly RejectionEvidence[] {
   const swap = intent.actions[0];
   if (swap?.kind !== "swap") {
     throw new Error("Expected the Uniswap v4 evidence vector to start with a swap");
   }
   const unknownAddress = "0x1111111111111111111111111111111111111111" as Address;
+  const aerodromeSwap = aerodromeIntent.actions[0];
+  const morphoAction = morphoIntent.actions[0];
+  if (aerodromeSwap?.kind !== "swap" || morphoAction?.kind !== "morpho") {
+    throw new Error("Expected Aerodrome and Morpho evidence vectors");
+  }
   const baseNow = 1_790_788_845;
   const scenarios: readonly {
     name: string;
@@ -158,6 +168,24 @@ function rejectionEvidence(intent: IntentAnalysis, policy: PolicyConfig): readon
       policy,
       simulation: { attempted: true, success: false, error: "execution reverted" },
     },
+    {
+      name: "unapproved Aerodrome factory",
+      code: "AERODROME_FACTORY_NOT_ALLOWED",
+      intent: { ...aerodromeIntent, actions: [{ ...aerodromeSwap, route: [{ ...aerodromeSwap.route[0]!, factory: unknownAddress }] }] },
+      policy,
+    },
+    {
+      name: "unapproved Morpho market",
+      code: "MORPHO_MARKET_NOT_ALLOWED",
+      intent: { ...morphoIntent, actions: [{ ...morphoAction, marketId: `0x${"11".repeat(32)}` }] },
+      policy,
+    },
+    {
+      name: "Morpho callback data",
+      code: "MORPHO_CALLBACK_NOT_ALLOWED",
+      intent: { ...morphoIntent, actions: [{ ...morphoAction, callbackData: "0x01" }] },
+      policy,
+    },
   ];
 
   return scenarios.map((scenario) => {
@@ -184,7 +212,10 @@ async function main(): Promise<void> {
   const files = (await readdir(fixtureDirectory)).filter((file) => file.endsWith(".json")).sort();
   const summaries: string[] = [];
   const moonwellExposures: string[] = [];
+  const morphoExposures: string[] = [];
   let v4Intent: IntentAnalysis | undefined;
+  let aerodromeIntent: IntentAnalysis | undefined;
+  let morphoIntent: IntentAnalysis | undefined;
 
   for (const file of files) {
     const transaction = await loadTransaction(resolve(fixtureDirectory, file));
@@ -213,6 +244,17 @@ async function main(): Promise<void> {
         moonwellExposures.push(`| ${file} | ${exposure.underlyingAmount} | ${exposure.receiptAmount} | ${exposure.receiptBalanceBefore} → ${exposure.receiptBalanceAfter} | ${exposure.debtBefore} → ${exposure.debtAfter} | ${exposure.collateralUnderlyingBefore} → ${exposure.collateralUnderlyingAfter} | ${cashRejection ? "not executable" : "simulation passed"} |`);
       }
     }
+    if (report.intent.protocol === "morpho") {
+      if (report.morpho?.status !== "ready" || !report.morpho.exposures.length ||
+          report.morpho.blockHash !== report.simulation.blockHash ||
+          report.intent.expectedBalanceChanges.some((change) => change.amount.mode !== "exact")) {
+        throw new Error(`${file} is missing concrete Morpho fixed-block exposure evidence`);
+      }
+      for (const exposure of report.morpho.exposures) {
+        morphoExposures.push(`| ${file} | ${exposure.operation} | ${exposure.assets} | ${exposure.shares} | ${exposure.supplySharesBefore} → ${exposure.supplySharesAfter} | ${exposure.borrowSharesBefore} → ${exposure.borrowSharesAfter} | ${exposure.collateralBefore} → ${exposure.collateralAfter} |`);
+      }
+      morphoIntent = report.intent;
+    }
     if (report.permit2 && (!report.permit2.checks.length ||
         report.permit2.checks.some((check) => check.status !== "valid"))) {
       throw new Error(`${file} did not pass independent Permit2 verification`);
@@ -229,7 +271,7 @@ async function main(): Promise<void> {
       "utf8",
     );
     const operation = report.intent.actions
-      .filter((action) => action.kind === "swap" || action.kind === "lending")
+      .filter((action) => action.kind === "swap" || action.kind === "lending" || action.kind === "morpho")
       .map((action) => (action.kind === "swap" ? `${action.protocolVersion} ${action.mode}` : action.operation))
       .join(", ");
     summaries.push(
@@ -238,12 +280,13 @@ async function main(): Promise<void> {
     if (file.startsWith("uniswap-v4")) {
       v4Intent = report.intent;
     }
+    if (file.startsWith("aerodrome-")) aerodromeIntent = report.intent;
   }
 
-  if (v4Intent === undefined) {
-    throw new Error("Missing Uniswap v4 evidence vector");
+  if (v4Intent === undefined || aerodromeIntent === undefined || morphoIntent === undefined) {
+    throw new Error("Missing Uniswap v4, Aerodrome or Morpho evidence vector");
   }
-  const rejections = rejectionEvidence(v4Intent, policy);
+  const rejections = rejectionEvidence(v4Intent, aerodromeIntent, morphoIntent, policy);
   const testFiles = (await readdir(resolve("tests"))).filter((file) => file.endsWith(".test.ts")).sort();
   const testOutput = execFileSync(process.execPath,
     ["--import", "tsx", "--test", "--test-reporter=tap", ...testFiles.map((file) => resolve("tests", file))],
@@ -272,7 +315,9 @@ ${summaries.join("\n")}
 - Unknown Universal Router commands and v4 actions are rejected.
 - Universal Router allow-revert commands are rejected by the authorization policy.
 - Non-zero Uniswap v4 hooks and dynamic-fee pools are rejected unless explicitly enabled.
+- Aerodrome routes must use configured factories; unsafe and fee-on-transfer selectors fail closed.
 - Moonwell borrowing is denied by the example policy.
+- Morpho markets must match an explicit market-ID allowlist and verified canonical parameters.
 - Failed RPC simulation is a rejection.
 
 ## Balance-change interpretation
@@ -282,6 +327,7 @@ ${summaries.join("\n")}
 - Moonwell receipt balances, underlying-valued supplied positions, debt and collateral membership/exposure are reported before and conditionally after execution. Missing verified state requires review.
 - Mint and redeemUnderlying receipt calculations use floor rounding, matching the contract; max-uint sentinels apply only to redemption and repayment. Protocol return codes are checked for market and controller calls.
 - Uniswap outputs are minimum guarantees; realized output still depends on pool state.
+- Morpho share-denominated amounts are resolved from the successful fixed-block call return data before policy caps are applied.
 
 ## Moonwell fixed-block exposure evidence
 
@@ -290,6 +336,14 @@ All values are raw token units. Receipt quantities use mToken decimals; underlyi
 | Fixture | Underlying amount | Receipt amount | Receipt balance before → after | Debt before → after | Collateral underlying before → after | Executability |
 |---|---|---|---|---|---|---|
 ${moonwellExposures.join("\n")}
+
+## Morpho fixed-block exposure evidence
+
+The exact asset/share result comes from the historical call. Position shares and collateral are read immediately before that call at the same block and reported as conditional before/after values.
+
+| Fixture | Operation | Assets | Shares | Supply shares before → after | Borrow shares before → after | Collateral before → after |
+|---|---|---|---|---|---|---|
+${morphoExposures.join("\n")}
 
 ## Limitations
 
@@ -303,6 +357,8 @@ ${moonwellExposures.join("\n")}
 - Direct Permit2 SignatureTransfer/witness calls and nested Router subplans are outside the supported command set and fail closed. EIP-1271 coverage uses controlled RPC tests; the committed live Permit2 transaction is an EOA vector.
 - All chain reads and simulation use a fixed block number; matching block hashes are required before policy pass. Historical preflight uses the preceding block, so transactions depending on earlier writes in the same block may fail this replay.
 - Arbitrary Uniswap v4 hooks are outside the supported trust boundary.
+- Aerodrome support covers the three standard exact-input methods. Fee-on-transfer and unsafe methods are deliberately unsupported.
+- Morpho liquidation, flash loans and authorization mutation are outside the supported operation set. Market totals are recorded as stored at the checked block; operation asset/share deltas come from full call simulation after Morpho interest accrual.
 - RPC simulation verifies call success at a fixed historical state; it does not guarantee execution against a later state.
 - This project does not sign or broadcast transactions and is not production risk control without an independent audit.
 `;
@@ -317,12 +373,14 @@ This directory contains reproducible evidence for the Passport DeFi authorizatio
 - Real transaction calldata: [../fixtures/transactions](../fixtures/transactions)
 - Parsed intent, expected balance changes, policy decision and RPC result: [reports](./reports)
 - Policy configuration: [../config/policy.example.json](../config/policy.example.json)
-- Fifteen explicit rejection paths: [rejection-tests.json](./rejection-tests.json)
+- Eighteen explicit rejection paths: [rejection-tests.json](./rejection-tests.json)
 - Simulation and risk precheck: [simulation-and-risk-precheck.md](./simulation-and-risk-precheck.md)
 - Automated assertions: [../tests](../tests)
 - Recorded assertion results, including Permit2 rejection paths: [test-results.tap](./test-results.tap)
 - Moonwell units, conversion rules and exposure interpretation: [../docs/moonwell.md](../docs/moonwell.md)
 - Permit2 scope and reproducible real-transaction audit: [../docs/permit2.md](../docs/permit2.md)
+- Aerodrome selectors, routing and failure boundaries: [../docs/aerodrome.md](../docs/aerodrome.md)
+- Morpho market identity and exposure verification: [../docs/morpho.md](../docs/morpho.md)
 
 ## Reproduce
 
