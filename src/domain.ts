@@ -69,6 +69,9 @@ export interface LendingAction {
   readonly asset?: Address;
   readonly assetSymbol?: string;
   readonly amount?: Amount;
+  readonly amountAsset?: Address;
+  readonly underlyingAmount?: Amount;
+  readonly receiptAmount?: Amount;
   readonly beneficiary: string;
 }
 
@@ -198,6 +201,8 @@ export interface PolicyConfig {
 }
 
 export type PolicyReasonCode =
+  | "MOONWELL_STATE_REQUIRED"
+  | "MOONWELL_PRECHECK_FAILED"
   | "UNSUPPORTED_CHAIN"
   | "UNAUTHORIZED_TARGET"
   | "UNKNOWN_ACTION"
@@ -259,4 +264,35 @@ export interface AuthorizationReport {
   readonly simulation: SimulationResult;
   readonly finalDecision: "pass" | "reject" | "review";
   readonly permit2?: Permit2Verification;
+  readonly moonwell?: MoonwellPreflight;
+}
+
+export interface MoonwellExposure {
+  readonly actionIndex: number;
+  readonly market: Address;
+  readonly account: Address;
+  readonly underlying: Address;
+  readonly exchangeRateMantissa: string;
+  readonly underlyingAmount: string;
+  readonly receiptAmount: string;
+  readonly receiptBalanceBefore: string;
+  readonly receiptBalanceAfter: string;
+  readonly suppliedUnderlyingBefore: string;
+  readonly suppliedUnderlyingAfter: string;
+  readonly debtBefore: string;
+  readonly debtAfter: string;
+  readonly collateralEnabledBefore: boolean;
+  readonly collateralEnabledAfter: boolean;
+  readonly collateralUnderlyingBefore: string;
+  readonly collateralUnderlyingAfter: string;
+}
+
+export interface MoonwellPreflight {
+  readonly transactionFingerprint: Hex;
+  readonly status: "ready" | "unavailable" | "invalid";
+  readonly blockNumber?: string;
+  readonly blockHash?: Hex;
+  readonly blockTimestamp?: number;
+  readonly exposures: readonly MoonwellExposure[];
+  readonly error?: string;
 }

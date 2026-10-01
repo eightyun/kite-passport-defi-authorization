@@ -24,6 +24,7 @@
     "sender": "0x1d831123b2bE21E0e4465a5fa21783aAB8453a4E",
     "target": "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22",
     "nativeValue": "0",
+    "transactionFingerprint": "0x8576c1948e01d75c422cf6315f7dfd347852d5984a4eab28c17f242bbd079cdd",
     "actions": [
       {
         "kind": "lending",
@@ -36,7 +37,16 @@
           "value": "58413",
           "mode": "exact"
         },
-        "beneficiary": "sender"
+        "amountAsset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "beneficiary": "sender",
+        "underlyingAmount": {
+          "value": "58413",
+          "mode": "exact"
+        },
+        "receiptAmount": {
+          "value": "243552516",
+          "mode": "exact"
+        }
       }
     ],
     "expectedBalanceChanges": [
@@ -59,15 +69,14 @@
         "category": "receipt",
         "direction": "credit",
         "amount": {
-          "value": "unknown",
-          "mode": "unknown"
+          "value": "243552516",
+          "mode": "exact"
         },
-        "reason": "Exact mToken amount depends on the current exchange rate"
+        "reason": "mToken amount uses the accrued exchange rate when verified state is available"
       }
     ],
     "warnings": [
-      "Moonwell health, liquidity, caps, interest and exchange rates must be read at simulation time.",
-      "A successful EVM call can still return a non-zero Compound-style error code."
+      "Moonwell amounts are conditional predictions at the checked block using the accrued exchange rate; later state and rounding can change results."
     ],
     "source": {
       "name": "Base Blockscout",
@@ -91,5 +100,33 @@
     "blockNumber": "51996957",
     "returnData": "0x0000000000000000000000000000000000000000000000000000000000000000"
   },
-  "finalDecision": "pass"
+  "finalDecision": "pass",
+  "moonwell": {
+    "transactionFingerprint": "0x8576c1948e01d75c422cf6315f7dfd347852d5984a4eab28c17f242bbd079cdd",
+    "status": "ready",
+    "blockNumber": "51996957",
+    "blockHash": "0xc91f592add40e0752cddd0d69da8788655a81cc93544084ab7f67f033492dc35",
+    "blockTimestamp": 1790783261,
+    "exposures": [
+      {
+        "actionIndex": 0,
+        "market": "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22",
+        "account": "0x1d831123b2bE21E0e4465a5fa21783aAB8453a4E",
+        "underlying": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "exchangeRateMantissa": "239837390276971",
+        "underlyingAmount": "58413",
+        "receiptAmount": "243552516",
+        "receiptBalanceBefore": "0",
+        "receiptBalanceAfter": "243552516",
+        "suppliedUnderlyingBefore": "0",
+        "suppliedUnderlyingAfter": "58412",
+        "debtBefore": "0",
+        "debtAfter": "0",
+        "collateralEnabledBefore": false,
+        "collateralEnabledAfter": false,
+        "collateralUnderlyingBefore": "0",
+        "collateralUnderlyingAfter": "0"
+      }
+    ]
+  }
 }

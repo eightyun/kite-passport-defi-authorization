@@ -183,6 +183,7 @@ async function main(): Promise<void> {
   const policy = await loadPolicy(resolve("config/policy.example.json"));
   const files = (await readdir(fixtureDirectory)).filter((file) => file.endsWith(".json")).sort();
   const summaries: string[] = [];
+  const moonwellExposures: string[] = [];
   let v4Intent: IntentAnalysis | undefined;
 
   for (const file of files) {
@@ -193,9 +194,24 @@ async function main(): Promise<void> {
       nowSeconds: Math.floor(Date.parse(evaluationTime) / 1000),
       rpcUrl,
     });
-    const expectedDecision = file === "uniswap-permit2-usdc.base.json" ? "reject" : "pass";
-    if (!report.simulation.success || report.finalDecision !== expectedDecision) {
-      throw new Error(`${file} did not pass historical preflight`);
+    const cashRejection = file === "moonwell-redeem-cash-rejection.base.json";
+    const expectedDecision = cashRejection || file === "uniswap-permit2-usdc.base.json" ? "reject" : "pass";
+    if (report.simulation.success !== !cashRejection || report.finalDecision !== expectedDecision) {
+      throw new Error(`${file}: expected ${expectedDecision}, got ${report.finalDecision}; simulation=${report.simulation.error ?? report.simulation.success}; Moonwell=${report.moonwell?.status ?? "n/a"}; reasons=${report.policy.findings.map((finding) => finding.code).join(",")}`);
+    }
+    if (cashRejection && (report.simulation.returnData === undefined || BigInt(report.simulation.returnData) !== 14n ||
+        !report.policy.findings.some((finding) => finding.code === "SIMULATION_FAILED"))) {
+      throw new Error("Real Moonwell rejection must retain protocol error code 14");
+    }
+    if (report.intent.protocol === "moonwell") {
+      if (report.moonwell?.status !== "ready" || !report.moonwell.exposures.length ||
+          report.moonwell.blockHash !== report.simulation.blockHash ||
+          (!cashRejection && report.intent.expectedBalanceChanges.some((change) => change.amount.mode !== "exact"))) {
+        throw new Error(`${file} is missing concrete Moonwell exposure evidence`);
+      }
+      for (const exposure of report.moonwell.exposures) {
+        moonwellExposures.push(`| ${file} | ${exposure.underlyingAmount} | ${exposure.receiptAmount} | ${exposure.receiptBalanceBefore} → ${exposure.receiptBalanceAfter} | ${exposure.debtBefore} → ${exposure.debtAfter} | ${exposure.collateralUnderlyingBefore} → ${exposure.collateralUnderlyingAfter} | ${cashRejection ? "not executable" : "simulation passed"} |`);
+      }
     }
     if (report.permit2 && (!report.permit2.checks.length ||
         report.permit2.checks.some((check) => check.status !== "valid"))) {
@@ -217,7 +233,7 @@ async function main(): Promise<void> {
       .map((action) => (action.kind === "swap" ? `${action.protocolVersion} ${action.mode}` : action.operation))
       .join(", ");
     summaries.push(
-      `| ${file} | ${report.intent.protocol} | ${operation} | ${transaction.source?.transactionHash ?? "n/a"} | ${report.finalDecision} | pass |`,
+      `| ${file} | ${report.intent.protocol} | ${operation} | ${transaction.source?.transactionHash ?? "n/a"} | ${report.finalDecision} | ${report.simulation.success ? "pass" : "expected protocol rejection (14)"} |`,
     );
     if (file.startsWith("uniswap-v4")) {
       v4Intent = report.intent;
@@ -262,11 +278,23 @@ ${summaries.join("\n")}
 ## Balance-change interpretation
 
 - Exact calldata bounds are reported as exact, minimum or maximum amounts.
-- Moonwell mToken mint/burn amounts are marked unknown because the exchange rate is state-dependent.
+- Moonwell amounts identify the calldata asset. Policy caps always compare underlying units after conversion at a fixed, accrued exchange rate.
+- Moonwell receipt balances, underlying-valued supplied positions, debt and collateral membership/exposure are reported before and conditionally after execution. Missing verified state requires review.
+- Mint and redeemUnderlying receipt calculations use floor rounding, matching the contract; max-uint sentinels apply only to redemption and repayment. Protocol return codes are checked for market and controller calls.
 - Uniswap outputs are minimum guarantees; realized output still depends on pool state.
+
+## Moonwell fixed-block exposure evidence
+
+All values are raw token units. Receipt quantities use mToken decimals; underlying and debt quantities use the underlying token decimals. These are conditional predictions valued at the checked accrued rate, not measured post-transaction balances.
+
+| Fixture | Underlying amount | Receipt amount | Receipt balance before → after | Debt before → after | Collateral underlying before → after | Executability |
+|---|---|---|---|---|---|---|
+${moonwellExposures.join("\n")}
 
 ## Limitations
 
+- The cash-rejection vector is marked successful by the explorer at EVM level, but preceding-block simulation returns Moonwell error 14 (insufficient cash). It is intentionally rejected; its conditional exposure calculation must not be interpreted as executed movement. Explorer status alone is not protocol-success evidence.
+- Moonwell support is limited to registered Base USDC/WETH markets. Fee-on-transfer and rebasing assets are outside this registry. Supplied/collateral valuation holds the checked accrued exchange rate fixed; post-operation rounding may change the eventual exchange rate. USD valuation and portfolio-wide liquidation health are not inferred.
 - PermitSingle and PermitBatch signatures are independently checked using the Permit2 EIP-712 domain. EOA signatures support 65-byte and EIP-2098 encodings; contract wallets use EIP-1271 at the checked block.
 - All four Router Permit2 commands are decoded. Nonce and explicit-transfer allowance consumption are checked in command order, with full-transaction simulation required for chain-state-dependent execution.
 - The real Permit2 vector has a valid signature and successful historical execution. The default policy rejects its unlimited allowance and approximately 30-day authorization lifetime. This is an expected rejection, not a failed signature check.
@@ -293,6 +321,7 @@ This directory contains reproducible evidence for the Passport DeFi authorizatio
 - Simulation and risk precheck: [simulation-and-risk-precheck.md](./simulation-and-risk-precheck.md)
 - Automated assertions: [../tests](../tests)
 - Recorded assertion results, including Permit2 rejection paths: [test-results.tap](./test-results.tap)
+- Moonwell units, conversion rules and exposure interpretation: [../docs/moonwell.md](../docs/moonwell.md)
 - Permit2 scope and reproducible real-transaction audit: [../docs/permit2.md](../docs/permit2.md)
 
 ## Reproduce

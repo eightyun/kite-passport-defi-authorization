@@ -1,0 +1,131 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-10-01T00:54:25.000Z",
+  "transaction": {
+    "chainId": 8453,
+    "from": "0x95d299784a6336B59a9C27CA57A6D6D9B6eEa2E0",
+    "to": "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22",
+    "data": "0xdb006a750000000000000000000000000000000000000000000000000000000000050680",
+    "value": "0",
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0x83fe375c66d58489f8b1f8917ec7b61f812a41a79567d9d3b75ee911efde1311",
+      "explorerUrl": "https://base.blockscout.com/tx/0x83fe375c66d58489f8b1f8917ec7b61f812a41a79567d9d3b75ee911efde1311",
+      "blockNumber": 52013359,
+      "timestamp": "2026-10-01T00:54:25.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "intent": {
+    "schemaVersion": "1.0",
+    "protocol": "moonwell",
+    "adapter": "moonwell-core-v2",
+    "chainId": 8453,
+    "sender": "0x95d299784a6336B59a9C27CA57A6D6D9B6eEa2E0",
+    "target": "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22",
+    "nativeValue": "0",
+    "transactionFingerprint": "0xb7a1519a29d25886c946c5d6dac4e7cc682f07ece851de21184be713bd930b39",
+    "actions": [
+      {
+        "kind": "lending",
+        "index": 0,
+        "operation": "withdraw",
+        "market": "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "assetSymbol": "USDC",
+        "amount": {
+          "value": "329344",
+          "mode": "exact"
+        },
+        "amountAsset": "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22",
+        "beneficiary": "sender"
+      }
+    ],
+    "expectedBalanceChanges": [
+      {
+        "account": "sender",
+        "asset": "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22",
+        "assetSymbol": "mUSDC",
+        "category": "receipt",
+        "direction": "debit",
+        "amount": {
+          "value": "329344",
+          "mode": "exact"
+        },
+        "reason": "Moonwell burns mTokens during withdrawal"
+      },
+      {
+        "account": "sender",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "assetSymbol": "USDC",
+        "category": "asset",
+        "direction": "credit",
+        "amount": {
+          "value": "unknown",
+          "mode": "unknown"
+        },
+        "reason": "Underlying received depends on the redeem mode and exchange rate"
+      }
+    ],
+    "warnings": [
+      "Moonwell health, liquidity, caps, interest and exchange rates must be read at simulation time.",
+      "A successful EVM call can still return a non-zero Compound-style error code."
+    ],
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0x83fe375c66d58489f8b1f8917ec7b61f812a41a79567d9d3b75ee911efde1311",
+      "explorerUrl": "https://base.blockscout.com/tx/0x83fe375c66d58489f8b1f8917ec7b61f812a41a79567d9d3b75ee911efde1311",
+      "blockNumber": 52013359,
+      "timestamp": "2026-10-01T00:54:25.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "policy": {
+    "outcome": "reject",
+    "findings": [
+      {
+        "code": "SIMULATION_FAILED",
+        "message": "Moonwell returned Compound error code 14."
+      }
+    ]
+  },
+  "simulation": {
+    "attempted": true,
+    "success": false,
+    "error": "Moonwell returned Compound error code 14.",
+    "transactionFingerprint": "0xb7a1519a29d25886c946c5d6dac4e7cc682f07ece851de21184be713bd930b39",
+    "blockHash": "0x037a348e4fe55618dd3ae021b20d4334e04910582e2896c918ad4c94a5c911df",
+    "rpcUrl": "https://mainnet.base.org",
+    "blockNumber": "52013358",
+    "returnData": "0x000000000000000000000000000000000000000000000000000000000000000e"
+  },
+  "finalDecision": "reject",
+  "moonwell": {
+    "transactionFingerprint": "0xb7a1519a29d25886c946c5d6dac4e7cc682f07ece851de21184be713bd930b39",
+    "status": "ready",
+    "blockNumber": "52013358",
+    "blockHash": "0x037a348e4fe55618dd3ae021b20d4334e04910582e2896c918ad4c94a5c911df",
+    "blockTimestamp": 1790816063,
+    "exposures": [
+      {
+        "actionIndex": 0,
+        "market": "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22",
+        "account": "0x95d299784a6336B59a9C27CA57A6D6D9B6eEa2E0",
+        "underlying": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "exchangeRateMantissa": "239874073283312",
+        "underlyingAmount": "79",
+        "receiptAmount": "329344",
+        "receiptBalanceBefore": "1111467744208",
+        "receiptBalanceAfter": "1111467414864",
+        "suppliedUnderlyingBefore": "266612295",
+        "suppliedUnderlyingAfter": "266612216",
+        "debtBefore": "0",
+        "debtAfter": "0",
+        "collateralEnabledBefore": true,
+        "collateralEnabledAfter": true,
+        "collateralUnderlyingBefore": "266612295",
+        "collateralUnderlyingAfter": "266612216"
+      }
+    ]
+  }
+}

@@ -1,10 +1,10 @@
+import { rpcTransport } from "./rpc.js";
 import {
   createPublicClient,
   decodeAbiParameters,
   encodeAbiParameters,
   getAddress,
   hashTypedData,
-  http,
   keccak256,
   parseAbi,
   parseAbiParameters,
@@ -223,7 +223,7 @@ export async function verifyPermit2(
     contract: BASE_PERMIT2,
   };
   const client = createPublicClient({
-    transport: http(rpcUrl, { retryCount: 1, timeout: 15_000 }),
+    transport: rpcTransport(rpcUrl),
   });
   let block;
   try {

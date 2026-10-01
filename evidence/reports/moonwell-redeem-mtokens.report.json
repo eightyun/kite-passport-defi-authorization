@@ -1,18 +1,18 @@
 {
   "schemaVersion": "1.0",
-  "generatedAt": "2026-09-30T15:47:49.000Z",
+  "generatedAt": "2026-09-25T02:07:25.000Z",
   "transaction": {
     "chainId": 8453,
-    "from": "0x1d831123b2bE21E0e4465a5fa21783aAB8453a4E",
+    "from": "0xe88394ea5C738Ef18101C2dDdb7214903Ec3518E",
     "to": "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22",
-    "data": "0x852a12e3000000000000000000000000000000000000000000000000000000000000e42d",
+    "data": "0xdb006a750000000000000000000000000000000000000000000000000000000000066155",
     "value": "0",
     "source": {
       "name": "Base Blockscout",
-      "transactionHash": "0x169f9aded536ee0df26f87af015f60a16d19d0004cb794c60a06cd4daf03c690",
-      "explorerUrl": "https://base.blockscout.com/tx/0x169f9aded536ee0df26f87af015f60a16d19d0004cb794c60a06cd4daf03c690",
-      "blockNumber": 51996961,
-      "timestamp": "2026-09-30T15:47:49.000Z",
+      "transactionHash": "0x4cad47b6aad60765ab73444797d8a5804147e9a0c0a4d209586a04b37cc516be",
+      "explorerUrl": "https://base.blockscout.com/tx/0x4cad47b6aad60765ab73444797d8a5804147e9a0c0a4d209586a04b37cc516be",
+      "blockNumber": 51756349,
+      "timestamp": "2026-09-25T02:07:25.000Z",
       "observedStatus": "success"
     }
   },
@@ -21,10 +21,10 @@
     "protocol": "moonwell",
     "adapter": "moonwell-core-v2",
     "chainId": 8453,
-    "sender": "0x1d831123b2bE21E0e4465a5fa21783aAB8453a4E",
+    "sender": "0xe88394ea5C738Ef18101C2dDdb7214903Ec3518E",
     "target": "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22",
     "nativeValue": "0",
-    "transactionFingerprint": "0x00fdc12a034abff0efe163f88439a433b0e008c5422201c8ea5b1348c3fc7e80",
+    "transactionFingerprint": "0x7397fbb4f35c09ec003511c78b16643d052df0168955de65940a0058eab403d1",
     "actions": [
       {
         "kind": "lending",
@@ -34,17 +34,17 @@
         "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
         "assetSymbol": "USDC",
         "amount": {
-          "value": "58413",
+          "value": "418133",
           "mode": "exact"
         },
-        "amountAsset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "amountAsset": "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22",
         "beneficiary": "sender",
         "underlyingAmount": {
-          "value": "58413",
+          "value": "100",
           "mode": "exact"
         },
         "receiptAmount": {
-          "value": "243552509",
+          "value": "418133",
           "mode": "exact"
         }
       }
@@ -57,7 +57,7 @@
         "category": "receipt",
         "direction": "debit",
         "amount": {
-          "value": "243552509",
+          "value": "418133",
           "mode": "exact"
         },
         "reason": "Moonwell burns mTokens during withdrawal"
@@ -69,7 +69,7 @@
         "category": "asset",
         "direction": "credit",
         "amount": {
-          "value": "58413",
+          "value": "100",
           "mode": "exact"
         },
         "reason": "Underlying received depends on the redeem mode and exchange rate"
@@ -80,10 +80,10 @@
     ],
     "source": {
       "name": "Base Blockscout",
-      "transactionHash": "0x169f9aded536ee0df26f87af015f60a16d19d0004cb794c60a06cd4daf03c690",
-      "explorerUrl": "https://base.blockscout.com/tx/0x169f9aded536ee0df26f87af015f60a16d19d0004cb794c60a06cd4daf03c690",
-      "blockNumber": 51996961,
-      "timestamp": "2026-09-30T15:47:49.000Z",
+      "transactionHash": "0x4cad47b6aad60765ab73444797d8a5804147e9a0c0a4d209586a04b37cc516be",
+      "explorerUrl": "https://base.blockscout.com/tx/0x4cad47b6aad60765ab73444797d8a5804147e9a0c0a4d209586a04b37cc516be",
+      "blockNumber": 51756349,
+      "timestamp": "2026-09-25T02:07:25.000Z",
       "observedStatus": "success"
     }
   },
@@ -94,31 +94,31 @@
   "simulation": {
     "attempted": true,
     "success": true,
-    "transactionFingerprint": "0x00fdc12a034abff0efe163f88439a433b0e008c5422201c8ea5b1348c3fc7e80",
-    "blockHash": "0xccf7780d3081d08be3341675ab871f8d1de94378deb23b3851be2c9bafa5e5b2",
+    "transactionFingerprint": "0x7397fbb4f35c09ec003511c78b16643d052df0168955de65940a0058eab403d1",
+    "blockHash": "0x53574ebd840f95182a5f8af1bbebbd09b98d1db1ef2c6140050d1ce7b4be6abe",
     "rpcUrl": "https://mainnet.base.org",
-    "blockNumber": "51996960",
+    "blockNumber": "51756348",
     "returnData": "0x0000000000000000000000000000000000000000000000000000000000000000"
   },
   "finalDecision": "pass",
   "moonwell": {
-    "transactionFingerprint": "0x00fdc12a034abff0efe163f88439a433b0e008c5422201c8ea5b1348c3fc7e80",
+    "transactionFingerprint": "0x7397fbb4f35c09ec003511c78b16643d052df0168955de65940a0058eab403d1",
     "status": "ready",
-    "blockNumber": "51996960",
-    "blockHash": "0xccf7780d3081d08be3341675ab871f8d1de94378deb23b3851be2c9bafa5e5b2",
-    "blockTimestamp": 1790783267,
+    "blockNumber": "51756348",
+    "blockHash": "0x53574ebd840f95182a5f8af1bbebbd09b98d1db1ef2c6140050d1ce7b4be6abe",
+    "blockTimestamp": 1790302043,
     "exposures": [
       {
         "actionIndex": 0,
         "market": "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22",
-        "account": "0x1d831123b2bE21E0e4465a5fa21783aAB8453a4E",
+        "account": "0xe88394ea5C738Ef18101C2dDdb7214903Ec3518E",
         "underlying": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-        "exchangeRateMantissa": "239837396986100",
-        "underlyingAmount": "58413",
-        "receiptAmount": "243552509",
-        "receiptBalanceBefore": "243552514",
-        "receiptBalanceAfter": "5",
-        "suppliedUnderlyingBefore": "58413",
+        "exchangeRateMantissa": "239300577522466",
+        "underlyingAmount": "100",
+        "receiptAmount": "418133",
+        "receiptBalanceBefore": "418133",
+        "receiptBalanceAfter": "0",
+        "suppliedUnderlyingBefore": "100",
         "suppliedUnderlyingAfter": "0",
         "debtBefore": "0",
         "debtAfter": "0",

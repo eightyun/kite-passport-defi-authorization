@@ -70,6 +70,7 @@ The command emits JSON containing:
 - RPC simulation result;
 - source transaction provenance when supplied.
 - Permit2 signature verification, checked allowances and expected authorization exposure changes when applicable.
+- Moonwell resolved underlying/receipt amounts and account-level supplied, debt and collateral exposures at the checked block.
 
 Exit code `2` means the policy rejected the transaction. Invalid input or an internal error returns exit code `1`.
 
@@ -116,6 +117,8 @@ Implemented rejection reason codes include:
 | `PERMIT2_LIMIT_MISSING` | token has no explicit authorization amount cap |
 | `PERMIT2_STATE_UNAVAILABLE` | required chain or contract state could not be verified |
 | `PERMIT2_EMPTY_BATCH` | a permit or transfer batch has no entries |
+| `MOONWELL_STATE_REQUIRED` | review required because verified account state or matching simulation is missing |
+| `MOONWELL_PRECHECK_FAILED` | redemption exceeds receipts or repayment exceeds accrued debt |
 | `SIMULATION_FAILED` | pre-execution RPC call reverted or failed |
 
 ## Real transaction vectors
@@ -127,6 +130,8 @@ The repository includes raw Base mainnet calldata and immutable explorer provena
 | Uniswap v3 multi-hop exact input | [`0x4ae307…224c`](https://base.blockscout.com/tx/0x4ae30763adbc67dda8b268123961950390996252a8dade837358b5a35af7224c) |
 | Uniswap v4 exact input and settlement | [`0x05365b…6e28`](https://base.blockscout.com/tx/0x05365bdae052690a649ccb3499c41dc029f4aed119dbf76a30abbc42dfef6e28) |
 | Moonwell USDC supply | [`0x5aab69…4c73`](https://base.blockscout.com/tx/0x5aab6990eae508c972c1db9cf04cb2e2dd97c8ed3aa9c1e409e1c07ea3784c73) |
+| Moonwell mToken-denominated redemption | [`0x4cad47…16be`](https://base.blockscout.com/tx/0x4cad47b6aad60765ab73444797d8a5804147e9a0c0a4d209586a04b37cc516be) |
+| Moonwell redemption rejected by historical preflight (error 14) | [`0x83fe37…1311`](https://base.blockscout.com/tx/0x83fe375c66d58489f8b1f8917ec7b61f812a41a79567d9d3b75ee911efde1311) |
 | Moonwell USDC withdraw | [`0x169f9a…c690`](https://base.blockscout.com/tx/0x169f9aded536ee0df26f87af015f60a16d19d0004cb794c60a06cd4daf03c690) |
 | Permit2 USDC permit and Uniswap v3 swap | [`0x264113…4238c`](https://base.blockscout.com/tx/0x264113c7264f36e1029f24d1ced8461dbdd92975663fd1338a8378aed254238c) |
 
@@ -135,6 +140,8 @@ Each evidence simulation replays the call against the block immediately before t
 ```bash
 npm run evidence
 ```
+
+Moonwell always requires verified fixed-block account state and matching successful simulation before `pass`, even when general simulation is optional. [Moonwell units and exposure verification](docs/moonwell.md) documents amount conversions, rounding, error codes and offline behavior.
 
 The committed acceptance package is available in [`evidence`](evidence/README.md).
 
@@ -148,7 +155,7 @@ The Permit2 vector has a valid EOA signature, a matching historical nonce and a 
 | Real transaction test vectors | `fixtures/transactions/*.json` with explorer hashes |
 | At least eight rejection paths | fifteen cases in `evidence/rejection-tests.json` |
 | Exact rejection reasons | policy findings include code, message and supporting fields |
-| Expected result and balance changes | every report contains `expectedBalanceChanges` |
+| Expected result and balance changes | `expectedBalanceChanges`, Permit2 allowance exposure and `moonwell.exposures` with fixed-block account before/after quantities |
 | Transaction calldata | included in each fixture and generated report |
 | Policy configuration | `config/policy.example.json` |
 | Simulation and risk precheck | `evidence/simulation-and-risk-precheck.md` |
@@ -163,6 +170,7 @@ src/
   decode.ts       target-to-adapter dispatch
   policy.ts       deterministic authorization decisions
   simulation.ts   read-only RPC preflight
+  moonwell.ts     accrued rate, account state and exposure verification
   permit2.ts      Permit2 decoding, signatures and allowance verification
   report.ts       versioned authorization report
   cli.ts          command-line interface

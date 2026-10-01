@@ -1,4 +1,5 @@
-import { ZERO_ADDRESS } from "./contracts.js";
+import { ZERO_ADDRESS, findMoonwellMarket } from "./contracts.js";
+import { moonwellStateMatches, resolveMoonwellIntent } from "./moonwell.js";
 import type {
   Address,
   IntentAction,
@@ -8,12 +9,14 @@ import type {
   PolicyFinding,
   SimulationResult,
   Permit2Verification,
+  MoonwellPreflight,
 } from "./domain.js";
 
 export interface PolicyContext {
   readonly nowSeconds: number;
   readonly simulation: SimulationResult;
   readonly permit2?: Permit2Verification;
+  readonly moonwell?: MoonwellPreflight;
 }
 
 function addressSet(values: readonly Address[]): ReadonlySet<string> {
@@ -61,10 +64,12 @@ function findAmountLimitFinding(
     value = action.amountIn.mode === "all" || action.amountIn.mode === "unknown" ? undefined : action.amountIn.value;
   } else if (action.kind === "lending") {
     token = action.asset;
+    const quantity = action.underlyingAmount ??
+      (action.amountAsset?.toLowerCase() === action.market.toLowerCase() ? undefined : action.amount);
     value =
-      action.amount === undefined || action.amount.mode === "all" || action.amount.mode === "unknown"
+      quantity === undefined || quantity.mode === "all" || quantity.mode === "unknown"
         ? undefined
-        : action.amount.value;
+        : quantity.value;
   } else if (action.kind === "transfer") {
     token = action.asset;
     value =
@@ -88,16 +93,21 @@ function findAmountLimitFinding(
 }
 
 export function evaluatePolicy(
-  intent: IntentAnalysis,
+  decoded: IntentAnalysis,
   config: PolicyConfig,
   context: PolicyContext,
 ): PolicyDecision {
+  const intent = context.moonwell ? resolveMoonwellIntent(decoded, context.moonwell, context.simulation) : decoded;
   const findings: PolicyFinding[] = [];
   const targets = addressSet(config.allowedTargets);
   const tokens = addressSet(config.allowedTokens);
   const recipients = addressSet(config.allowedRecipients);
   const hooks = addressSet(config.allowedV4Hooks);
   const permit2Transferred = new Map<string, bigint>();
+  const missingMoonwellState = intent.protocol === "moonwell" && !moonwellStateMatches(intent, context.moonwell, context.simulation);
+  if (intent.protocol === "moonwell" && context.moonwell?.status === "invalid") {
+    findings.push({ code: "MOONWELL_PRECHECK_FAILED", message: context.moonwell.error ?? "Moonwell preflight failed." });
+  }
 
   if (!config.allowedChainIds.includes(intent.chainId)) {
     findings.push({
@@ -281,6 +291,9 @@ export function evaluatePolicy(
         actionIndex: action.index,
       });
     }
+    if (action.kind === "lending" && (!findMoonwellMarket(action.market) || !targets.has(action.market.toLowerCase()))) {
+      findings.push({ code: "UNAUTHORIZED_TARGET", message: "Moonwell market is unregistered or excluded by policy.", actionIndex: action.index, evidence: { market: action.market } });
+    }
   }
 
   if (context.simulation.attempted && !context.simulation.success) {
@@ -293,6 +306,10 @@ export function evaluatePolicy(
   if (findings.length > 0) {
     return { outcome: "reject", findings };
   }
+  if (missingMoonwellState) return {
+    outcome: "review", findings: [{ code: "MOONWELL_STATE_REQUIRED", message: context.moonwell?.error ??
+      "Moonwell requires complete account state and successful simulation bound to the same transaction and block." }],
+  };
   if (config.requireSimulation && !context.simulation.attempted) {
     return {
       outcome: "review",

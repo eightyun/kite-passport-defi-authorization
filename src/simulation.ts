@@ -1,5 +1,6 @@
-import { createPublicClient, http } from "viem";
-import { findMoonwellMarket } from "./contracts.js";
+import { rpcTransport } from "./rpc.js";
+import { createPublicClient, decodeAbiParameters, parseAbiParameters, sliceHex, toFunctionSelector } from "viem";
+import { BASE_MOONWELL_COMPTROLLER, findMoonwellMarket } from "./contracts.js";
 import type { Hex, SimulationResult, TransactionEnvelope } from "./domain.js";
 import { transactionFingerprint } from "./permit2.js";
 
@@ -24,7 +25,7 @@ export async function simulateTransaction(
   rpcUrl: string,
   requestedBlock?: bigint,
 ): Promise<SimulationResult> {
-  const client = createPublicClient({ transport: http(rpcUrl) });
+  const client = createPublicClient({ transport: rpcTransport(rpcUrl) });
   const blockNumber = requestedBlock ??
     (transaction.source === undefined ? undefined : BigInt(transaction.source.blockNumber - 1));
   try {
@@ -42,24 +43,29 @@ export async function simulateTransaction(
       throw new Error("Block changed during simulation.");
     }
     const returnData = result.data as Hex | undefined;
-    if (
-      findMoonwellMarket(transaction.to) !== undefined &&
-      returnData !== undefined &&
-      returnData.length === 66 &&
-      BigInt(returnData) !== 0n
-    ) {
-      return {
-        attempted: true,
-        success: false,
-        rpcUrl: safeRpcUrl(rpcUrl),
-        ...(blockNumber === undefined ? {} : { blockNumber: blockNumber.toString() }),
-        returnData,
-        error: `Moonwell returned Compound error code ${BigInt(returnData).toString()}.`,
-      };
+    let protocolError: string | undefined;
+    const isController = transaction.to.toLowerCase() === BASE_MOONWELL_COMPTROLLER.toLowerCase();
+    if (findMoonwellMarket(transaction.to) || isController) {
+      try {
+        if (isController && transaction.data.slice(0, 10).toLowerCase() === toFunctionSelector("enterMarkets(address[])")) {
+          const [markets] = decodeAbiParameters(parseAbiParameters("address[]"), sliceHex(transaction.data, 4));
+          const [codes] = decodeAbiParameters(parseAbiParameters("uint256[]"), returnData ?? "0x");
+          if (codes.length !== markets.length) throw new Error("Wrong return count");
+          const failures = codes.flatMap((code, index) => code === 0n ? [] : [`market ${index}: ${code}`]);
+          if (failures.length) protocolError = `Moonwell returned Compound error codes (${failures.join(", ")}).`;
+        } else {
+          if (returnData?.length !== 66) throw new Error("Invalid scalar return");
+          const [code] = decodeAbiParameters(parseAbiParameters("uint256"), returnData);
+          if (code !== 0n) protocolError = `Moonwell returned Compound error code ${code}.`;
+        }
+      } catch {
+        protocolError = "Moonwell returned missing or malformed protocol error codes.";
+      }
     }
     return {
       attempted: true,
-      success: true,
+      success: protocolError === undefined,
+      ...(protocolError ? { error: protocolError } : {}),
       transactionFingerprint: transactionFingerprint(transaction),
       blockHash: block.hash,
       rpcUrl: safeRpcUrl(rpcUrl),

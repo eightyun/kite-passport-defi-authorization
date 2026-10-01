@@ -1,0 +1,15 @@
+{
+  "chainId": 8453,
+  "from": "0x95d299784a6336b59a9c27ca57a6d6d9b6eea2e0",
+  "to": "0xedc817a28e8b93b03976fbd4a3ddbc9f7d176c22",
+  "value": "0",
+  "data": "0xdb006a750000000000000000000000000000000000000000000000000000000000050680",
+  "source": {
+    "name": "Base Blockscout",
+    "transactionHash": "0x83fe375c66d58489f8b1f8917ec7b61f812a41a79567d9d3b75ee911efde1311",
+    "explorerUrl": "https://base.blockscout.com/tx/0x83fe375c66d58489f8b1f8917ec7b61f812a41a79567d9d3b75ee911efde1311",
+    "blockNumber": 52013359,
+    "timestamp": "2026-10-01T00:54:25.000Z",
+    "observedStatus": "success"
+  }
+}

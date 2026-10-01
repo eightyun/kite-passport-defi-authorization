@@ -1,5 +1,6 @@
 import { decodeAbiParameters, getAddress, parseAbiParameters, sliceHex, toFunctionSelector } from "viem";
 import { BASE_MOONWELL_COMPTROLLER, findMoonwellMarket } from "../contracts.js";
+import { transactionFingerprint } from "../permit2.js";
 import type {
   Address,
   Amount,
@@ -28,8 +29,8 @@ function normalizeAddress(value: Address): Address {
   return getAddress(value) as Address;
 }
 
-function exactAmount(value: bigint): Amount {
-  if (value === MAX_UINT256) {
+function exactAmount(value: bigint, supportsAll = false): Amount {
+  if (supportsAll && value === MAX_UINT256) {
     return { value: "all", mode: "all" };
   }
   return { value: value.toString(), mode: "exact" };
@@ -53,8 +54,10 @@ function lendingAction(
   market: Address,
   beneficiary: string,
   amount?: Amount,
+  amountAsset?: Address,
 ): LendingAction {
   const metadata = findMoonwellMarket(market);
+  const quantityAsset = amountAsset ?? metadata?.underlying;
   return {
     kind: "lending",
     index: 0,
@@ -63,18 +66,25 @@ function lendingAction(
     ...(metadata === undefined
       ? {}
       : { asset: normalizeAddress(metadata.underlying), assetSymbol: metadata.symbol }),
-    ...(amount === undefined ? {} : { amount }),
+    ...(amount === undefined ? {} : {
+      amount,
+      ...(quantityAsset ? { amountAsset: quantityAsset } : {}),
+    }),
     beneficiary,
   };
 }
 
-function marketBalanceChanges(action: LendingAction): readonly BalanceChange[] {
+export function marketBalanceChanges(action: LendingAction): readonly BalanceChange[] {
   const metadata = findMoonwellMarket(action.market);
   if (metadata === undefined || action.amount === undefined) {
     return [];
   }
   const asset = normalizeAddress(metadata.underlying);
   const market = normalizeAddress(metadata.market);
+  const underlyingAmount = action.underlyingAmount ??
+    (action.amountAsset?.toLowerCase() === market.toLowerCase() ? unknownAmount() : action.amount);
+  const receiptAmount = action.receiptAmount ??
+    (action.amountAsset?.toLowerCase() === market.toLowerCase() ? action.amount : unknownAmount());
   if (action.operation === "supply") {
     return [
       {
@@ -83,7 +93,7 @@ function marketBalanceChanges(action: LendingAction): readonly BalanceChange[] {
         assetSymbol: metadata.symbol,
         category: "asset",
         direction: "debit",
-        amount: action.amount,
+        amount: underlyingAmount,
         reason: "Moonwell supply transfers underlying to the market",
       },
       {
@@ -92,13 +102,12 @@ function marketBalanceChanges(action: LendingAction): readonly BalanceChange[] {
         assetSymbol: metadata.receiptSymbol,
         category: "receipt",
         direction: "credit",
-        amount: unknownAmount(),
-        reason: "Exact mToken amount depends on the current exchange rate",
+        amount: receiptAmount,
+        reason: "mToken amount uses the accrued exchange rate when verified state is available",
       },
     ];
   }
   if (action.operation === "withdraw") {
-    const withdrawsUnderlying = action.amount.mode === "exact";
     return [
       {
         account: "sender",
@@ -106,7 +115,7 @@ function marketBalanceChanges(action: LendingAction): readonly BalanceChange[] {
         assetSymbol: metadata.receiptSymbol,
         category: "receipt",
         direction: "debit",
-        amount: withdrawsUnderlying ? unknownAmount() : action.amount,
+        amount: receiptAmount,
         reason: "Moonwell burns mTokens during withdrawal",
       },
       {
@@ -115,7 +124,7 @@ function marketBalanceChanges(action: LendingAction): readonly BalanceChange[] {
         assetSymbol: metadata.symbol,
         category: "asset",
         direction: "credit",
-        amount: withdrawsUnderlying ? action.amount : unknownAmount(),
+        amount: underlyingAmount,
         reason: "Underlying received depends on the redeem mode and exchange rate",
       },
     ];
@@ -128,7 +137,7 @@ function marketBalanceChanges(action: LendingAction): readonly BalanceChange[] {
         assetSymbol: metadata.symbol,
         category: "asset",
         direction: "credit",
-        amount: action.amount,
+        amount: underlyingAmount,
         reason: "Borrowed underlying is transferred to the borrower",
       },
       {
@@ -137,7 +146,7 @@ function marketBalanceChanges(action: LendingAction): readonly BalanceChange[] {
         assetSymbol: metadata.symbol,
         category: "debt",
         direction: "credit",
-        amount: action.amount,
+        amount: underlyingAmount,
         reason: "Moonwell borrow balance increases",
       },
     ];
@@ -150,7 +159,7 @@ function marketBalanceChanges(action: LendingAction): readonly BalanceChange[] {
         assetSymbol: metadata.symbol,
         category: "asset",
         direction: "debit",
-        amount: action.amount,
+        amount: underlyingAmount,
         reason: "Underlying is transferred to Moonwell for repayment",
       },
       {
@@ -159,7 +168,7 @@ function marketBalanceChanges(action: LendingAction): readonly BalanceChange[] {
         assetSymbol: metadata.symbol,
         category: "debt",
         direction: "debit",
-        amount: action.amount,
+        amount: underlyingAmount,
         reason: "Moonwell borrow balance decreases",
       },
     ];
@@ -178,11 +187,11 @@ function decodeMarketAction(transaction: TransactionEnvelope): IntentAction {
   }
   if (selector === SELECTOR.redeem) {
     const [value] = decodeAbiParameters(parseAbiParameters("uint256 mTokenAmount"), payload);
-    return lendingAction("withdraw", market, "sender", { value: value.toString(), mode: "maximum" });
+    return lendingAction("withdraw", market, "sender", exactAmount(value, true), market);
   }
   if (selector === SELECTOR.redeemUnderlying) {
     const [value] = decodeAbiParameters(parseAbiParameters("uint256 underlyingAmount"), payload);
-    return lendingAction("withdraw", market, "sender", exactAmount(value));
+    return lendingAction("withdraw", market, "sender", exactAmount(value, true));
   }
   if (selector === SELECTOR.borrow) {
     const [value] = decodeAbiParameters(parseAbiParameters("uint256 amount"), payload);
@@ -190,14 +199,14 @@ function decodeMarketAction(transaction: TransactionEnvelope): IntentAction {
   }
   if (selector === SELECTOR.repayBorrow) {
     const [value] = decodeAbiParameters(parseAbiParameters("uint256 amount"), payload);
-    return lendingAction("repay", market, "sender", exactAmount(value));
+    return lendingAction("repay", market, "sender", exactAmount(value, true));
   }
   if (selector === SELECTOR.repayBorrowBehalf) {
     const [borrower, value] = decodeAbiParameters(
       parseAbiParameters("address borrower, uint256 amount"),
       payload,
     );
-    return lendingAction("repay", market, normalizeAddress(borrower), exactAmount(value));
+    return lendingAction("repay", market, normalizeAddress(borrower), exactAmount(value, true));
   }
   return unknownAction(selector);
 }
@@ -207,6 +216,7 @@ function decodeComptrollerActions(transaction: TransactionEnvelope): readonly In
   const payload = sliceHex(transaction.data, 4);
   if (selector === SELECTOR.enterMarkets) {
     const [markets] = decodeAbiParameters(parseAbiParameters("address[] markets"), payload);
+    if (!markets.length) return [{ ...unknownAction(selector), reason: "Empty Moonwell collateral market list" }];
     return markets.map((market, index) => ({
       ...lendingAction("enable-collateral", normalizeAddress(market), "sender"),
       index,
@@ -234,6 +244,7 @@ export function decodeMoonwellTransaction(transaction: TransactionEnvelope): Int
     sender: transaction.from,
     target: transaction.to,
     nativeValue: transaction.value,
+    transactionFingerprint: transactionFingerprint(transaction),
     actions,
     expectedBalanceChanges,
     warnings: [

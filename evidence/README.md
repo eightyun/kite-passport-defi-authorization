@@ -11,6 +11,7 @@ This directory contains reproducible evidence for the Passport DeFi authorizatio
 - Simulation and risk precheck: [simulation-and-risk-precheck.md](./simulation-and-risk-precheck.md)
 - Automated assertions: [../tests](../tests)
 - Recorded assertion results, including Permit2 rejection paths: [test-results.tap](./test-results.tap)
+- Moonwell units, conversion rules and exposure interpretation: [../docs/moonwell.md](../docs/moonwell.md)
 - Permit2 scope and reproducible real-transaction audit: [../docs/permit2.md](../docs/permit2.md)
 
 ## Reproduce

@@ -34,6 +34,156 @@
       "required": ["attempted", "success"]
     },
     "finalDecision": { "enum": ["pass", "reject", "review"] },
+    "moonwell": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transactionFingerprint",
+        "status",
+        "exposures"
+      ],
+      "properties": {
+        "transactionFingerprint": {
+          "$ref": "#/$defs/hash"
+        },
+        "status": {
+          "enum": [
+            "ready",
+            "unavailable",
+            "invalid"
+          ]
+        },
+        "blockNumber": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "blockHash": {
+          "$ref": "#/$defs/hash"
+        },
+        "blockTimestamp": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "error": {
+          "type": "string"
+        },
+        "exposures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "actionIndex",
+              "market",
+              "account",
+              "underlying",
+              "exchangeRateMantissa",
+              "underlyingAmount",
+              "receiptAmount",
+              "receiptBalanceBefore",
+              "receiptBalanceAfter",
+              "suppliedUnderlyingBefore",
+              "suppliedUnderlyingAfter",
+              "debtBefore",
+              "debtAfter",
+              "collateralUnderlyingBefore",
+              "collateralUnderlyingAfter",
+              "collateralEnabledBefore",
+              "collateralEnabledAfter"
+            ],
+            "properties": {
+              "actionIndex": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "market": {
+                "$ref": "#/$defs/address"
+              },
+              "account": {
+                "$ref": "#/$defs/address"
+              },
+              "underlying": {
+                "$ref": "#/$defs/address"
+              },
+              "exchangeRateMantissa": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "underlyingAmount": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "receiptAmount": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "receiptBalanceBefore": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "receiptBalanceAfter": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "suppliedUnderlyingBefore": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "suppliedUnderlyingAfter": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "debtBefore": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "debtAfter": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "collateralUnderlyingBefore": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "collateralUnderlyingAfter": {
+                "type": "string",
+                "pattern": "^[0-9]+$"
+              },
+              "collateralEnabledBefore": {
+                "type": "boolean"
+              },
+              "collateralEnabledAfter": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "ready"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "blockNumber",
+              "blockHash",
+              "blockTimestamp"
+            ],
+            "properties": {
+              "exposures": {
+                "type": "array",
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
     "permit2": {
       "type": "object",
       "required": ["transactionFingerprint", "contract", "checks"],
