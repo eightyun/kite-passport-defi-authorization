@@ -237,6 +237,43 @@
         }
       }]
     },
+    "avantis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["transactionFingerprint", "status", "checks"],
+      "properties": {
+        "transactionFingerprint": { "$ref": "#/$defs/hash" },
+        "status": { "enum": ["ready", "unavailable", "invalid"] },
+        "blockNumber": { "$ref": "#/$defs/integerString" },
+        "blockHash": { "$ref": "#/$defs/hash" },
+        "blockTimestamp": { "type": "integer", "minimum": 0 },
+        "error": { "type": "string" },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["actionIndex", "status", "trader", "nonce"],
+            "properties": {
+              "actionIndex": { "type": "integer", "minimum": 0 },
+              "status": { "enum": ["valid", "invalid", "unavailable"] },
+              "trader": { "$ref": "#/$defs/address" },
+              "signer": { "$ref": "#/$defs/address" },
+              "digest": { "$ref": "#/$defs/hash" },
+              "nonce": { "$ref": "#/$defs/integerString" },
+              "nonceUsed": { "type": "boolean" },
+              "delegated": { "type": "boolean" },
+              "delegationExpiry": { "$ref": "#/$defs/integerString" },
+              "error": { "type": "string" }
+            }
+          }
+        }
+      },
+      "allOf": [{
+        "if": { "properties": { "status": { "const": "ready" } } },
+        "then": { "required": ["blockNumber", "blockHash", "blockTimestamp"] }
+      }]
+    },
     "permit2": {
       "type": "object",
       "required": ["transactionFingerprint", "contract", "checks"],

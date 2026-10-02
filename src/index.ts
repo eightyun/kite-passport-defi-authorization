@@ -8,3 +8,4 @@ export * from "./simulation.js";
 export * from "./permit2.js";
 export * from "./moonwell.js";
 export * from "./morpho.js";
+export * from "./avantis.js";

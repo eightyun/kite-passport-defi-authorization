@@ -19,6 +19,9 @@ export const BASE_AERO = "0x940181a94A35A4569E4529A3CDfB74e38FD98631" as Address
 export const BASE_MORPHO =
   "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb" as Address;
 
+export const BASE_AVANTIS_TRADING_ROUTER =
+  "0x44914408af82bC9983bbb330e3578E1105e11d4e" as Address;
+
 export interface MoonwellMarket {
   readonly market: Address;
   readonly underlying: Address;

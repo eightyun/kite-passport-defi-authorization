@@ -146,6 +146,20 @@ export function parsePolicy(value: unknown): PolicyConfig {
       permit2Durations[key] = duration;
     }
   }
+  const allowedAvantisPairIndexes = value.allowedAvantisPairIndexes;
+  if (allowedAvantisPairIndexes !== undefined && (!Array.isArray(allowedAvantisPairIndexes) ||
+      allowedAvantisPairIndexes.some((pair) => typeof pair !== "number" || !Number.isSafeInteger(pair) || pair < 0))) {
+    throw new Error("allowedAvantisPairIndexes must be a non-negative integer array");
+  }
+  const optionalIntegerString = (key: string): string | undefined => {
+    const candidate = value[key];
+    if (candidate === undefined) return undefined;
+    if (typeof candidate !== "string" || !/^\d+$/.test(candidate)) throw new Error(`${key} must be an integer string`);
+    return candidate;
+  };
+  const maximumAvantisLeverage = optionalIntegerString("maximumAvantisLeverage");
+  const maximumAvantisSlippageP = optionalIntegerString("maximumAvantisSlippageP");
+  const allowAvantisOpen = value.allowAvantisOpen === undefined ? undefined : requiredBoolean(value, "allowAvantisOpen");
   return {
     version: "1",
     allowedChainIds: chainIds,
@@ -164,6 +178,10 @@ export function parsePolicy(value: unknown): PolicyConfig {
     allowDynamicV4Fee: requiredBoolean(value, "allowDynamicV4Fee"),
     requireSimulation: requiredBoolean(value, "requireSimulation"),
     ...permit2Durations,
+    ...(allowedAvantisPairIndexes === undefined ? {} : { allowedAvantisPairIndexes }),
+    ...(maximumAvantisLeverage === undefined ? {} : { maximumAvantisLeverage }),
+    ...(maximumAvantisSlippageP === undefined ? {} : { maximumAvantisSlippageP }),
+    ...(allowAvantisOpen === undefined ? {} : { allowAvantisOpen }),
   };
 }
 

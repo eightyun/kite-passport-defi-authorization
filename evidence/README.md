@@ -16,6 +16,7 @@ This directory contains reproducible evidence for the Passport DeFi authorizatio
 - Permit2 scope and reproducible real-transaction audit: [../docs/permit2.md](../docs/permit2.md)
 - Aerodrome selectors, routing and failure boundaries: [../docs/aerodrome.md](../docs/aerodrome.md)
 - Morpho market identity and exposure verification: [../docs/morpho.md](../docs/morpho.md)
+- Avantis v2 intent and delegation verification: [../docs/avantis.md](../docs/avantis.md)
 
 ## Reproduce
 

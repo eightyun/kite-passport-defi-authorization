@@ -124,6 +124,45 @@ export interface AuthorizationAction {
   readonly transfers?: readonly Permit2Transfer[];
 }
 
+export type AvantisIntentType =
+  | "OpenTradeReq"
+  | "OpenTradeCoinExposureReq"
+  | "CloseTradeReq"
+  | "CloseTradeCoinExposureReq"
+  | "IncreasePositionSizeReq"
+  | "IncreasePositionSizeWithCoinExposureReq";
+
+export interface AvantisAction {
+  readonly kind: "avantis";
+  readonly index: number;
+  readonly operation: "open" | "close" | "increase" | "update-margin" | "cancel-limit" | "update-limit";
+  readonly trader: Address;
+  readonly pairIndex: number;
+  readonly positionIndex?: string;
+  readonly side?: "long" | "short";
+  readonly orderType?: "market" | "limit" | "stop-limit" | "market-pnl";
+  readonly sizing: "usdc" | "coin";
+  readonly marginAction?: "deposit" | "withdraw";
+  readonly collateral?: Amount;
+  readonly closeAmount?: Amount;
+  readonly coinExposure?: Amount;
+  readonly leverage?: string;
+  readonly minimumLeverage?: string;
+  readonly maximumLeverage?: string;
+  readonly slippageP?: string;
+  readonly openPrice?: string;
+  readonly wantedPrice?: string;
+  readonly takeProfit?: string;
+  readonly stopLoss?: string;
+  readonly openTimestamp?: string;
+  readonly deadlineMs?: string;
+  readonly nonce?: string;
+  readonly signedIntent: boolean;
+  readonly intentType?: AvantisIntentType;
+  readonly intentMessage?: Readonly<Record<string, unknown>>;
+  readonly signature?: Hex;
+}
+
 export interface Permit2Detail {
   readonly token: Address;
   readonly amount: string;
@@ -197,11 +236,12 @@ export type IntentAction =
   | MorphoAction
   | TransferAction
   | AuthorizationAction
+  | AvantisAction
   | UnknownAction;
 
 export interface IntentAnalysis {
   readonly schemaVersion: "1.0";
-  readonly protocol: "uniswap" | "aerodrome" | "moonwell" | "morpho" | "unknown";
+  readonly protocol: "uniswap" | "aerodrome" | "moonwell" | "morpho" | "avantis" | "unknown";
   readonly adapter: string;
   readonly chainId: number;
   readonly sender: Address;
@@ -224,6 +264,7 @@ export interface PolicyConfig {
   readonly allowedV4Hooks: readonly Address[];
   readonly allowedAerodromeFactories?: readonly Address[];
   readonly allowedMorphoMarkets?: readonly Hex[];
+  readonly allowedAvantisPairIndexes?: readonly number[];
   readonly maximumAmountByToken: Readonly<Record<string, string>>;
   readonly maximumNativeValue: string;
   readonly maximumDeadlineSeconds: number;
@@ -232,6 +273,9 @@ export interface PolicyConfig {
   readonly requireSimulation: boolean;
   readonly maximumPermit2ExpirationSeconds?: number;
   readonly maximumPermit2SignatureDeadlineSeconds?: number;
+  readonly maximumAvantisLeverage?: string;
+  readonly maximumAvantisSlippageP?: string;
+  readonly allowAvantisOpen?: boolean;
 }
 
 export type PolicyReasonCode =
@@ -242,6 +286,16 @@ export type PolicyReasonCode =
   | "MORPHO_MARKET_NOT_ALLOWED"
   | "MORPHO_CALLBACK_NOT_ALLOWED"
   | "AERODROME_FACTORY_NOT_ALLOWED"
+  | "AVANTIS_STATE_REQUIRED"
+  | "AVANTIS_PRECHECK_FAILED"
+  | "AVANTIS_PAIR_NOT_ALLOWED"
+  | "AVANTIS_TRADER_MISMATCH"
+  | "AVANTIS_SIGNATURE_INVALID"
+  | "AVANTIS_NONCE_USED"
+  | "AVANTIS_DELEGATION_INVALID"
+  | "AVANTIS_OPEN_NOT_ALLOWED"
+  | "AVANTIS_LEVERAGE_LIMIT_EXCEEDED"
+  | "AVANTIS_SLIPPAGE_LIMIT_EXCEEDED"
   | "UNSUPPORTED_CHAIN"
   | "UNAUTHORIZED_TARGET"
   | "UNKNOWN_ACTION"
@@ -305,6 +359,30 @@ export interface AuthorizationReport {
   readonly permit2?: Permit2Verification;
   readonly moonwell?: MoonwellPreflight;
   readonly morpho?: MorphoPreflight;
+  readonly avantis?: AvantisPreflight;
+}
+
+export interface AvantisIntentCheck {
+  readonly actionIndex: number;
+  readonly status: "valid" | "invalid" | "unavailable";
+  readonly trader: Address;
+  readonly signer?: Address;
+  readonly digest?: Hex;
+  readonly nonce: string;
+  readonly nonceUsed?: boolean;
+  readonly delegated?: boolean;
+  readonly delegationExpiry?: string;
+  readonly error?: string;
+}
+
+export interface AvantisPreflight {
+  readonly transactionFingerprint: Hex;
+  readonly status: "ready" | "unavailable" | "invalid";
+  readonly blockNumber?: string;
+  readonly blockHash?: Hex;
+  readonly blockTimestamp?: number;
+  readonly checks: readonly AvantisIntentCheck[];
+  readonly error?: string;
 }
 
 export interface MoonwellExposure {

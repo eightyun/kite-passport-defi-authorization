@@ -7,6 +7,9 @@ Generated from Base mainnet transaction vectors. Each RPC simulation replays the
 | aerodrome-native-to-token.base.json | aerodrome | aerodrome-native-to-token | 0x7428694f963a813ffec6fbff8c1c412985bba9bf388fd2262e7dc4e88ba9ce4c | reject | pass |
 | aerodrome-swap-usdc-aero.base.json | aerodrome | aerodrome-token-to-token | 0x4ae4c26c79314c635cde20f42371ef5621ec2f543281508a3d84665eff0b3a81 | pass | pass |
 | aerodrome-token-to-native.base.json | aerodrome | aerodrome-token-to-native | 0x81e4244c39b24e142355e197a709a88ee7dd84a77539fb8b9b7bba3739c7d2fc | reject | pass |
+| avantis-close-usdc.base.json | avantis | avantis-signed-close-usdc | 0xff6794e1a05d064426aaf5ca85afe6da24e560232038221a143318305bff3cd0 | pass | pass |
+| avantis-increase-coin.base.json | avantis | avantis-signed-increase-coin-exposure | 0x563e765ea868d256480925764fb81e5a9bef599838d5539e9637efc16ef8e8a8 | pass | pass |
+| avantis-open-usdc.base.json | avantis | avantis-signed-open-usdc | 0x9f49761cfaa78094eed041fb19ba770457ff95efcc36dc7a6657c303868e34e4 | pass | pass |
 | moonwell-borrow-usdc.base.json | moonwell | moonwell-borrow | 0x5eec6902b6f43617cacff4c4c78ad9853ad33860978d176bd4dfb89cb1816575 | reject | pass |
 | moonwell-disable-collateral.base.json | moonwell | moonwell-disable-collateral | 0xfa41cb14ff31739c4ba213a29d956408efb4f49a5794497d042c871bc25f8e57 | pass | pass |
 | moonwell-enable-collateral.base.json | moonwell | moonwell-enable-collateral | 0x3ffebe8b41bf8d40b5bf8faa7d82ce16ba7a677eae49c9f4772f821442005549 | pass | pass |
@@ -48,6 +51,8 @@ Generated from Base mainnet transaction vectors. Each RPC simulation replays the
 - Aerodrome routes must use configured factories; unsafe and fee-on-transfer selectors fail closed.
 - Moonwell borrowing is denied by the example policy.
 - Morpho markets must match an explicit market-ID allowlist and verified canonical parameters.
+- Avantis pair indexes, leverage, slippage and opening permissions are explicitly bounded.
+- Signed Avantis v2 intents require EIP-712 recovery, an unused unordered nonce and an active trader delegation when the signer differs from the trader.
 - Failed RPC simulation is a rejection.
 
 ## Operation coverage
@@ -96,6 +101,16 @@ The exact asset/share result comes from the historical call. Position shares and
 | morpho-withdraw-collateral-weth.base.json | withdraw-collateral | 1200000000000000 | 0 | 0 → 0 | 0 → 0 | 1200000000000000 → 0 |
 | morpho-withdraw-usdc.base.json | withdraw | 50000 | 44746841279 | 447469269212 → 402722427933 | 0 → 0 | 0 → 0 |
 
+## Avantis fixed-block authorization evidence
+
+The signer is recovered from the exact v2 EIP-712 intent. Nonce bitmap and delegation state are read at the same historical block used for full-call simulation.
+
+| Fixture | Trader | Recovered signer | Delegation | Nonce | Digest |
+|---|---|---|---|---|---|
+| avantis-close-usdc.base.json | 0x20F8035a8B2F0E9FED192Df381e5CB58c73C51b9 | 0x9ee3636ad865bC67DeBEcf1b5E27382eef36D5BE | yes, until 2105668361 | unused | 0x2129eb639a07b0373c1a5d125d0ddce7d944b520c3907adcc4c5d34bc9576d32 |
+| avantis-increase-coin.base.json | 0x314bA0212a95635763cFc6986EE207CC47F06271 | 0xb6d2F7DBc5b5Ab8B59f3baF1BB3fc95Ce28e68c4 | yes, until 1820950940 | unused | 0x967e7adf02990dfe54c4aceaab0de79d835e192ee7c9c7b5b3ffcba26a518502 |
+| avantis-open-usdc.base.json | 0x16A264040DDC08421A25dE638321b217f01D050f | 0xfD4420cb60871833Ef33cD775D486Ac71E7b495C | yes, until 1796637304 | unused | 0xe24122a1c00411b0f49fc4c2c02675ed6740340a2a381233d212091493255970 |
+
 ## Limitations
 
 - The cash-rejection vector is marked successful by the explorer at EVM level, but preceding-block simulation returns Moonwell error 14 (insufficient cash). It is intentionally rejected; its conditional exposure calculation must not be interpreted as executed movement. Explorer status alone is not protocol-success evidence.
@@ -110,5 +125,7 @@ The exact asset/share result comes from the historical call. Position shares and
 - Arbitrary Uniswap v4 hooks are outside the supported trust boundary.
 - Aerodrome support covers the three standard exact-input methods. Fee-on-transfer and unsafe methods are deliberately unsupported.
 - Morpho liquidation, flash loans and authorization mutation are outside the supported operation set. Market totals are recorded as stored at the checked block; operation asset/share deltas come from full call simulation after Morpho interest accrual.
+- Avantis support covers direct open, close, increase, margin and limit-order management plus signed v2 market open, close and increase intents. Keeper-only execution, TP/SL, TWAP and RFQ paths fail closed.
+- Avantis closing proceeds remain unknown before execution because realized PnL, fees and oracle fill determine the final USDC credit. Opening and size-increase collateral are exact calldata amounts.
 - RPC simulation verifies call success at a fixed historical state; it does not guarantee execution against a later state.
 - This project does not sign or broadcast transactions and is not production risk control without an independent audit.

@@ -2,7 +2,7 @@
 
 An auditable TypeScript authorization layer for decoding DeFi calldata, evaluating transaction policy, simulating execution, and reporting expected balance changes before a Kite Passport agent submits a transaction.
 
-It supports Uniswap, Aerodrome, Moonwell and Morpho on Base and never signs or broadcasts transactions.
+It supports Uniswap, Aerodrome, Moonwell, Morpho and Avantis/Veranta on Base and never signs or broadcasts transactions.
 
 ## Supported protocols
 
@@ -15,6 +15,7 @@ It supports Uniswap, Aerodrome, Moonwell and Morpho on Base and never signs or b
 | Aerodrome Router | token/token, native/token and token/native exact-input swaps |
 | Moonwell Core | supply, withdraw, borrow, repay and collateral enable/disable |
 | Morpho Blue | supply, withdraw, borrow, repay and collateral supply/withdraw |
+| Avantis/Veranta v2 | direct and signed market open/close, position increase, margin update and limit-order management |
 
 Uniswap v4 hooks and dynamic-fee pools are rejected by the example policy unless explicitly allowed. Unknown commands and actions are always rejected.
 
@@ -74,6 +75,7 @@ The command emits JSON containing:
 - Permit2 signature verification, checked allowances and expected authorization exposure changes when applicable.
 - Moonwell resolved underlying/receipt amounts and account-level supplied, debt and collateral exposures at the checked block.
 - Morpho fixed-block market identity, exact simulated asset/share amounts and account exposure changes.
+- Avantis v2 EIP-712 signer recovery, unordered nonce status, delegation expiry and same-block simulation.
 
 Exit code `2` means the policy rejected the transaction. Invalid input or an internal error returns exit code `1`.
 
@@ -88,6 +90,7 @@ Exit code `2` means the policy rejected the transaction. Invalid input or an int
 - Uniswap v4 hook and dynamic-fee controls;
 - Aerodrome factory allowlist;
 - Morpho market-ID allowlist and canonical market verification;
+- Avantis pair allowlist, open-position switch, leverage and slippage limits;
 - Moonwell borrowing control;
 - optional mandatory RPC simulation.
 - Permit2 signature and allowance lifetime limits; Permit2 always requires independent verification and full-transaction simulation at the same block.
@@ -114,6 +117,15 @@ Implemented rejection reason codes include:
 | `MORPHO_CALLBACK_NOT_ALLOWED` | supply or repay callback data is non-empty |
 | `MORPHO_STATE_REQUIRED` | verified Morpho position state or matching simulation is missing |
 | `MORPHO_PRECHECK_FAILED` | market identity, delegation or expected position change is invalid |
+| `AVANTIS_STATE_REQUIRED` | signed intent verification or same-block simulation is missing |
+| `AVANTIS_PRECHECK_FAILED` | signed intent preflight is invalid |
+| `AVANTIS_PAIR_NOT_ALLOWED` | pair index is outside the configured allowlist |
+| `AVANTIS_SIGNATURE_INVALID` | EIP-712 signature or encoded intent is invalid |
+| `AVANTIS_NONCE_USED` | unordered intent nonce is already consumed |
+| `AVANTIS_DELEGATION_INVALID` | recovered signer lacks an active trader delegation |
+| `AVANTIS_OPEN_NOT_ALLOWED` | policy disables new positions |
+| `AVANTIS_LEVERAGE_LIMIT_EXCEEDED` | requested leverage exceeds policy |
+| `AVANTIS_SLIPPAGE_LIMIT_EXCEEDED` | requested slippage exceeds policy |
 | `UNVERIFIED_AUTHORIZATION` | Permit2 details were not independently verified |
 | `PERMIT2_SIGNATURE_INVALID` | EOA signature or EIP-1271 result is invalid |
 | `PERMIT2_SPENDER_NOT_ALLOWED` | signed spender differs from the approved Router |
@@ -133,7 +145,7 @@ Implemented rejection reason codes include:
 
 ## Real transaction vectors
 
-The repository includes 31 raw Base mainnet transaction envelopes with immutable explorer provenance. A transaction can prove several decoded actions.
+The repository includes 34 raw Base mainnet transaction envelopes with immutable explorer provenance. A transaction can prove several decoded actions.
 
 | Protocol | Real-vector coverage | Vector count |
 |---|---|---:|
@@ -141,6 +153,7 @@ The repository includes 31 raw Base mainnet transaction envelopes with immutable
 | Aerodrome | token-to-token, native-to-token and token-to-native exact-input swaps | 3 |
 | Moonwell | supply, underlying withdrawal, receipt redemption, borrow, direct repay, repay on behalf, collateral enable/disable and a protocol-level rejection | 9 |
 | Morpho | supply, withdraw, borrow, repay and collateral supply/withdraw | 6 |
+| Avantis/Veranta v2 | delegated EIP-712 market open, market close and coin-exposure position increase | 3 |
 
 [`fixtures/operation-coverage.json`](fixtures/operation-coverage.json) maps every operation to its fixture and records the expected policy and historical simulation outcomes. Uniswap v4 native-currency swaps are represented directly by the zero address and have real vectors in both directions; they do not require wrapping. Permit2 batch permit/transfer and the separate v4 action-level WRAP/UNWRAP commands remain deterministic test vectors because no matching top-level call to the registered Base Router is included in the observed transaction sample; they are not presented as real transactions.
 
@@ -153,6 +166,8 @@ npm run evidence
 Moonwell always requires verified fixed-block account state and matching successful simulation before `pass`, even when general simulation is optional. [Moonwell units and exposure verification](docs/moonwell.md) documents amount conversions, rounding, error codes and offline behavior.
 
 Morpho requires canonical market/account state and a matching successful fixed-block simulation before `pass`. [Morpho exposure verification](docs/morpho.md) documents this boundary. [Aerodrome authorization scope](docs/aerodrome.md) documents supported selectors and factory controls.
+
+Signed Avantis v2 operations require signature recovery, an unused bitmap nonce, an active delegation when applicable and a matching successful fixed-block simulation. [Avantis v2 authorization](docs/avantis.md) documents units, supported calls and failure boundaries.
 
 The committed acceptance package is available in [`evidence`](evidence/README.md).
 
@@ -167,7 +182,7 @@ The Permit2 permit vector has a valid EOA signature, a matching historical nonce
 | Per-operation vector coverage | `fixtures/operation-coverage.json` |
 | At least eight rejection paths | eighteen cases in `evidence/rejection-tests.json` |
 | Exact rejection reasons | policy findings include code, message and supporting fields |
-| Expected result and balance changes | `expectedBalanceChanges`, Permit2 allowance exposure, `moonwell.exposures` and `morpho.exposures` with fixed-block before/after quantities |
+| Expected result and balance changes | `expectedBalanceChanges`, Permit2 allowance exposure, fixed-block lending exposures and Avantis authorization checks |
 | Transaction calldata | included in each fixture and generated report |
 | Policy configuration | `config/policy.example.json` |
 | Simulation and risk precheck | `evidence/simulation-and-risk-precheck.md` |
@@ -184,6 +199,7 @@ src/
   simulation.ts   read-only RPC preflight
   moonwell.ts     accrued rate, account state and exposure verification
   morpho.ts       market identity, account state and exposure verification
+  avantis.ts      EIP-712 signature, unordered nonce and delegation verification
   permit2.ts      Permit2 decoding, signatures and allowance verification
   report.ts       versioned authorization report
   cli.ts          command-line interface
@@ -204,6 +220,7 @@ schemas/          report contract
 - Aerodrome routes are restricted to approved factories and protected exact-input methods.
 - Moonwell health, liquidity, caps, interest and exchange rates remain state-dependent.
 - Morpho markets are restricted by their full parameter hash; exact share conversions require same-block simulation.
+- Avantis signed intents are bound to the v2 domain, nonce bitmap, delegation state and simulation block. Keeper-only paths fail closed.
 - A simulation is evidence for one chain state, not a guarantee for later execution.
 
 This project has not received an external security audit and must not be treated as production risk control without one.
@@ -217,6 +234,7 @@ This project has not received an external security audit and must not be treated
 - [Moonwell Core integration](https://docs.moonwell.fi/moonwell/developers/guides)
 - [Aerodrome contracts](https://github.com/aerodrome-finance/contracts)
 - [Morpho Blue contracts](https://github.com/morpho-org/morpho-blue)
+- [Avantis/Veranta trader SDK](https://github.com/Avantis-Labs/avantis_trader_sdk)
 
 ## License
 

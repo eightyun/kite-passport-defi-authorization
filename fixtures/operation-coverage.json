@@ -187,6 +187,24 @@
       "operations": ["morpho-withdraw-collateral"],
       "expectedDecision": "pass",
       "expectedSimulation": "pass"
+    },
+    {
+      "fixture": "avantis-open-usdc.base.json",
+      "operations": ["avantis-signed-open-usdc"],
+      "expectedDecision": "pass",
+      "expectedSimulation": "pass"
+    },
+    {
+      "fixture": "avantis-close-usdc.base.json",
+      "operations": ["avantis-signed-close-usdc"],
+      "expectedDecision": "pass",
+      "expectedSimulation": "pass"
+    },
+    {
+      "fixture": "avantis-increase-coin.base.json",
+      "operations": ["avantis-signed-increase-coin-exposure"],
+      "expectedDecision": "pass",
+      "expectedSimulation": "pass"
     }
   ],
   "deterministicOnly": [

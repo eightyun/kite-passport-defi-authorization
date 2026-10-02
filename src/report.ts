@@ -7,12 +7,14 @@ import type {
   Permit2Verification,
   MoonwellPreflight,
   MorphoPreflight,
+  AvantisPreflight,
 } from "./domain.js";
 import { evaluatePolicy } from "./policy.js";
 import { verifyPermit2 } from "./permit2.js";
 import { simulateTransaction, skippedSimulation } from "./simulation.js";
 import { preflightMoonwell, resolveMoonwellIntent } from "./moonwell.js";
 import { preflightMorpho, resolveMorpho } from "./morpho.js";
+import { preflightAvantis } from "./avantis.js";
 
 export interface ReportOptions {
   readonly generatedAt: string;
@@ -21,6 +23,7 @@ export interface ReportOptions {
   readonly permit2?: Permit2Verification;
   readonly moonwell?: MoonwellPreflight;
   readonly morpho?: MorphoPreflight;
+  readonly avantis?: AvantisPreflight;
 }
 
 export function createAuthorizationReport(
@@ -39,6 +42,7 @@ export function createAuthorizationReport(
     ...(options.permit2 ? { permit2: options.permit2 } : {}),
     ...(options.moonwell ? { moonwell: options.moonwell } : {}),
     ...(morpho ? { morpho } : {}),
+    ...(options.avantis ? { avantis: options.avantis } : {}),
   });
   return {
     schemaVersion: "1.0",
@@ -51,6 +55,7 @@ export function createAuthorizationReport(
     ...(options.moonwell ? { moonwell: options.moonwell } : {}),
     ...(morpho ? { morpho } : {}),
     ...(options.permit2 ? { permit2: options.permit2 } : {}),
+    ...(options.avantis ? { avantis: options.avantis } : {}),
   };
 }
 
@@ -68,7 +73,9 @@ export async function analyzeTransaction(
     ? await preflightMoonwell(transaction, intent, options.rpcUrl, blockNumber) : undefined;
   const morpho = intent.protocol === "morpho" && options.rpcUrl
     ? await preflightMorpho(transaction, intent, options.rpcUrl, blockNumber) : undefined;
-  const verifiedBlock = permit2?.blockNumber ?? moonwell?.blockNumber ?? morpho?.blockNumber;
+  const avantis = intent.protocol === "avantis" && options.rpcUrl
+    ? await preflightAvantis(transaction, intent, options.rpcUrl, blockNumber) : undefined;
+  const verifiedBlock = permit2?.blockNumber ?? moonwell?.blockNumber ?? morpho?.blockNumber ?? avantis?.blockNumber;
   const simulation = options.rpcUrl
     ? await simulateTransaction(transaction, options.rpcUrl,
       verifiedBlock ? BigInt(verifiedBlock) : blockNumber)
@@ -78,5 +85,6 @@ export async function analyzeTransaction(
     ...(permit2 ? { permit2 } : {}),
     ...(moonwell ? { moonwell } : {}),
     ...(morpho ? { morpho } : {}),
+    ...(avantis ? { avantis } : {}),
   });
 }

@@ -51,6 +51,7 @@ function successfulSimulation(): SimulationResult {
 function retryableReport(report: AuthorizationReport): boolean {
   return report.simulation.error === "RPC simulation failed, reverted, or returned data from the wrong chain." ||
     report.moonwell?.status === "unavailable" || report.morpho?.status === "unavailable" ||
+    report.avantis?.status === "unavailable" ||
     report.permit2?.checks.some((check) => check.status === "unavailable") === true;
 }
 
@@ -260,6 +261,8 @@ async function main(): Promise<void> {
   let v4Intent: IntentAnalysis | undefined;
   let aerodromeIntent: IntentAnalysis | undefined;
   let morphoIntent: IntentAnalysis | undefined;
+  let avantisIntent: IntentAnalysis | undefined;
+  const avantisChecks: string[] = [];
 
   for (const file of files) {
     const expectation = expectations.get(file);
@@ -305,6 +308,17 @@ async function main(): Promise<void> {
       }
       morphoIntent = report.intent;
     }
+    if (report.intent.protocol === "avantis") {
+      if (report.avantis?.status !== "ready" || !report.avantis.checks.length ||
+          report.avantis.checks.some((check) => check.status !== "valid") ||
+          report.avantis.blockHash !== report.simulation.blockHash) {
+        throw new Error(`${file} is missing valid Avantis signature, nonce, delegation or fixed-block simulation evidence`);
+      }
+      for (const check of report.avantis.checks) {
+        avantisChecks.push(`| ${file} | ${check.trader} | ${check.signer ?? "missing"} | ${check.delegated ? `yes, until ${check.delegationExpiry}` : "self"} | ${check.nonceUsed === false ? "unused" : "used"} | ${check.digest ?? "missing"} |`);
+      }
+      avantisIntent = report.intent;
+    }
     if (report.permit2 && (!report.permit2.checks.length ||
         report.permit2.checks.some((check) => check.status !== "valid"))) {
       throw new Error(`${file} did not pass independent Permit2 verification`);
@@ -330,8 +344,8 @@ async function main(): Promise<void> {
     if (file === "aerodrome-swap-usdc-aero.base.json") aerodromeIntent = report.intent;
   }
 
-  if (v4Intent === undefined || aerodromeIntent === undefined || morphoIntent === undefined) {
-    throw new Error("Missing Uniswap v4, Aerodrome or Morpho evidence vector");
+  if (v4Intent === undefined || aerodromeIntent === undefined || morphoIntent === undefined || avantisIntent === undefined) {
+    throw new Error("Missing Uniswap v4, Aerodrome, Morpho or Avantis evidence vector");
   }
   const rejections = rejectionEvidence(v4Intent, aerodromeIntent, morphoIntent, policy);
   const testFiles = (await readdir(resolve("tests"))).filter((file) => file.endsWith(".test.ts")).sort();
@@ -365,6 +379,8 @@ ${summaries.join("\n")}
 - Aerodrome routes must use configured factories; unsafe and fee-on-transfer selectors fail closed.
 - Moonwell borrowing is denied by the example policy.
 - Morpho markets must match an explicit market-ID allowlist and verified canonical parameters.
+- Avantis pair indexes, leverage, slippage and opening permissions are explicitly bounded.
+- Signed Avantis v2 intents require EIP-712 recovery, an unused unordered nonce and an active trader delegation when the signer differs from the trader.
 - Failed RPC simulation is a rejection.
 
 ## Operation coverage
@@ -398,6 +414,14 @@ The exact asset/share result comes from the historical call. Position shares and
 |---|---|---|---|---|---|---|
 ${morphoExposures.join("\n")}
 
+## Avantis fixed-block authorization evidence
+
+The signer is recovered from the exact v2 EIP-712 intent. Nonce bitmap and delegation state are read at the same historical block used for full-call simulation.
+
+| Fixture | Trader | Recovered signer | Delegation | Nonce | Digest |
+|---|---|---|---|---|---|
+${avantisChecks.join("\n")}
+
 ## Limitations
 
 - The cash-rejection vector is marked successful by the explorer at EVM level, but preceding-block simulation returns Moonwell error 14 (insufficient cash). It is intentionally rejected; its conditional exposure calculation must not be interpreted as executed movement. Explorer status alone is not protocol-success evidence.
@@ -412,6 +436,8 @@ ${morphoExposures.join("\n")}
 - Arbitrary Uniswap v4 hooks are outside the supported trust boundary.
 - Aerodrome support covers the three standard exact-input methods. Fee-on-transfer and unsafe methods are deliberately unsupported.
 - Morpho liquidation, flash loans and authorization mutation are outside the supported operation set. Market totals are recorded as stored at the checked block; operation asset/share deltas come from full call simulation after Morpho interest accrual.
+- Avantis support covers direct open, close, increase, margin and limit-order management plus signed v2 market open, close and increase intents. Keeper-only execution, TP/SL, TWAP and RFQ paths fail closed.
+- Avantis closing proceeds remain unknown before execution because realized PnL, fees and oracle fill determine the final USDC credit. Opening and size-increase collateral are exact calldata amounts.
 - RPC simulation verifies call success at a fixed historical state; it does not guarantee execution against a later state.
 - This project does not sign or broadcast transactions and is not production risk control without an independent audit.
 `;
@@ -435,6 +461,7 @@ This directory contains reproducible evidence for the Passport DeFi authorizatio
 - Permit2 scope and reproducible real-transaction audit: [../docs/permit2.md](../docs/permit2.md)
 - Aerodrome selectors, routing and failure boundaries: [../docs/aerodrome.md](../docs/aerodrome.md)
 - Morpho market identity and exposure verification: [../docs/morpho.md](../docs/morpho.md)
+- Avantis v2 intent and delegation verification: [../docs/avantis.md](../docs/avantis.md)
 
 ## Reproduce
 

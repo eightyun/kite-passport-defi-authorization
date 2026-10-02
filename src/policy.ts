@@ -1,6 +1,8 @@
 import { ZERO_ADDRESS, findMoonwellMarket } from "./contracts.js";
 import { moonwellStateMatches, resolveMoonwellIntent } from "./moonwell.js";
 import { morphoStateMatches, resolveMorpho } from "./morpho.js";
+import { avantisStateMatches } from "./avantis.js";
+import { BASE_USDC } from "./contracts.js";
 import type {
   Address,
   IntentAction,
@@ -12,6 +14,7 @@ import type {
   Permit2Verification,
   MoonwellPreflight,
   MorphoPreflight,
+  AvantisPreflight,
 } from "./domain.js";
 
 export interface PolicyContext {
@@ -20,6 +23,7 @@ export interface PolicyContext {
   readonly permit2?: Permit2Verification;
   readonly moonwell?: MoonwellPreflight;
   readonly morpho?: MorphoPreflight;
+  readonly avantis?: AvantisPreflight;
 }
 
 function addressSet(values: readonly Address[]): ReadonlySet<string> {
@@ -47,6 +51,7 @@ function actionTokens(action: IntentAction): readonly Address[] {
   if (action.kind === "morpho") {
     return [action.marketParams.loanToken, action.marketParams.collateralToken];
   }
+  if (action.kind === "avantis") return [BASE_USDC];
   return [];
 }
 
@@ -93,6 +98,9 @@ function findAmountLimitFinding(
     token = action.operation.includes("collateral")
       ? action.marketParams.collateralToken : action.marketParams.loanToken;
     value = action.assets.mode === "exact" ? action.assets.value : undefined;
+  } else if (action.kind === "avantis") {
+    token = BASE_USDC;
+    value = action.collateral?.mode === "exact" ? action.collateral.value : undefined;
   }
   if (token === undefined || value === undefined) {
     return undefined;
@@ -128,11 +136,20 @@ export function evaluatePolicy(
   const permit2Transferred = new Map<string, bigint>();
   const missingMoonwellState = intent.protocol === "moonwell" && !moonwellStateMatches(intent, context.moonwell, context.simulation);
   const missingMorphoState = intent.protocol === "morpho" && !morphoStateMatches(intent, morpho, context.simulation);
+  const missingAvantisState = intent.protocol === "avantis" && !avantisStateMatches(intent, context.avantis, context.simulation);
   if (intent.protocol === "moonwell" && context.moonwell?.status === "invalid") {
     findings.push({ code: "MOONWELL_PRECHECK_FAILED", message: context.moonwell.error ?? "Moonwell preflight failed." });
   }
   if (intent.protocol === "morpho" && morpho?.status === "invalid") {
     findings.push({ code: "MORPHO_PRECHECK_FAILED", message: morpho.error ?? "Morpho preflight failed." });
+  }
+  if (intent.protocol === "avantis" && context.avantis?.status === "invalid") {
+    const error = context.avantis.error ?? "Avantis preflight failed.";
+    const code = error.includes("nonce") ? "AVANTIS_NONCE_USED"
+      : error.includes("delegation") ? "AVANTIS_DELEGATION_INVALID"
+      : error.includes("signature") || error.includes("encoding") ? "AVANTIS_SIGNATURE_INVALID"
+      : "AVANTIS_PRECHECK_FAILED";
+    findings.push({ code, message: error });
   }
 
   if (!config.allowedChainIds.includes(intent.chainId)) {
@@ -343,6 +360,26 @@ export function evaluatePolicy(
         actionIndex: action.index,
       });
     }
+    if (action.kind === "avantis") {
+      if (!(config.allowedAvantisPairIndexes ?? []).includes(action.pairIndex)) {
+        findings.push({ code: "AVANTIS_PAIR_NOT_ALLOWED", message: `Avantis pair ${action.pairIndex} is not allowed by policy.`, actionIndex: action.index, evidence: { pairIndex: action.pairIndex } });
+      }
+      if (!action.signedIntent && action.trader.toLowerCase() !== intent.sender.toLowerCase()) {
+        findings.push({ code: "AVANTIS_TRADER_MISMATCH", message: "A direct Avantis call must act for the transaction sender.", actionIndex: action.index });
+      }
+      if (action.operation === "open" && !(config.allowAvantisOpen ?? false)) {
+        findings.push({ code: "AVANTIS_OPEN_NOT_ALLOWED", message: "Opening Avantis positions is disabled by policy.", actionIndex: action.index });
+      }
+      if (action.leverage && BigInt(action.leverage) > BigInt(config.maximumAvantisLeverage ?? "0")) {
+        findings.push({ code: "AVANTIS_LEVERAGE_LIMIT_EXCEEDED", message: `Avantis leverage ${action.leverage} exceeds the configured limit.`, actionIndex: action.index });
+      }
+      if (action.maximumLeverage && BigInt(action.maximumLeverage) > BigInt(config.maximumAvantisLeverage ?? "0")) {
+        findings.push({ code: "AVANTIS_LEVERAGE_LIMIT_EXCEEDED", message: `Avantis maximum leverage ${action.maximumLeverage} exceeds the configured limit.`, actionIndex: action.index });
+      }
+      if (action.slippageP && BigInt(action.slippageP) > BigInt(config.maximumAvantisSlippageP ?? "0")) {
+        findings.push({ code: "AVANTIS_SLIPPAGE_LIMIT_EXCEEDED", message: `Avantis slippage ${action.slippageP} exceeds the configured limit.`, actionIndex: action.index });
+      }
+    }
     if (action.kind === "lending" && (!findMoonwellMarket(action.market) || !targets.has(action.market.toLowerCase()))) {
       findings.push({ code: "UNAUTHORIZED_TARGET", message: "Moonwell market is unregistered or excluded by policy.", actionIndex: action.index, evidence: { market: action.market } });
     }
@@ -365,6 +402,10 @@ export function evaluatePolicy(
   if (missingMorphoState) return {
     outcome: "review", findings: [{ code: "MORPHO_STATE_REQUIRED", message: morpho?.error ??
       "Morpho requires canonical market and account state plus successful simulation bound to the same transaction and block." }],
+  };
+  if (missingAvantisState) return {
+    outcome: "review", findings: [{ code: "AVANTIS_STATE_REQUIRED", message: context.avantis?.error ??
+      "Signed Avantis intents require a valid signature, unused nonce, active delegation and successful simulation at the same fixed block." }],
   };
   if (config.requireSimulation && !context.simulation.attempted) {
     return {
