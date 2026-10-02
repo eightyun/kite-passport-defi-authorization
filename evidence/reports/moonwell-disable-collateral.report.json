@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2025-11-11T05:54:33.000Z",
+  "transaction": {
+    "chainId": 8453,
+    "from": "0x2cB1B0D5d7d33254a980aEaF614861e2Ad4Fe391",
+    "to": "0xfBb21d0380beE3312B33c4353c8936a0F13EF26C",
+    "data": "0xede4edd0000000000000000000000000628ff693426583d9a7fb391e54366292f509d457",
+    "value": "0",
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0xfa41cb14ff31739c4ba213a29d956408efb4f49a5794497d042c871bc25f8e57",
+      "explorerUrl": "https://base.blockscout.com/tx/0xfa41cb14ff31739c4ba213a29d956408efb4f49a5794497d042c871bc25f8e57",
+      "blockNumber": 38025563,
+      "timestamp": "2025-11-11T05:54:33.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "intent": {
+    "schemaVersion": "1.0",
+    "protocol": "moonwell",
+    "adapter": "moonwell-core-v2",
+    "chainId": 8453,
+    "sender": "0x2cB1B0D5d7d33254a980aEaF614861e2Ad4Fe391",
+    "target": "0xfBb21d0380beE3312B33c4353c8936a0F13EF26C",
+    "nativeValue": "0",
+    "transactionFingerprint": "0x984b20d6331df884e7550492215f244cb6df57383f5f76beef906454ef428765",
+    "actions": [
+      {
+        "kind": "lending",
+        "index": 0,
+        "operation": "disable-collateral",
+        "market": "0x628ff693426583D9a7FB391E54366292F509D457",
+        "asset": "0x4200000000000000000000000000000000000006",
+        "assetSymbol": "WETH",
+        "beneficiary": "sender",
+        "underlyingAmount": {
+          "value": "0",
+          "mode": "exact"
+        },
+        "receiptAmount": {
+          "value": "0",
+          "mode": "exact"
+        }
+      }
+    ],
+    "expectedBalanceChanges": [],
+    "warnings": [
+      "Moonwell amounts are conditional predictions at the checked block using the accrued exchange rate; later state and rounding can change results."
+    ],
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0xfa41cb14ff31739c4ba213a29d956408efb4f49a5794497d042c871bc25f8e57",
+      "explorerUrl": "https://base.blockscout.com/tx/0xfa41cb14ff31739c4ba213a29d956408efb4f49a5794497d042c871bc25f8e57",
+      "blockNumber": 38025563,
+      "timestamp": "2025-11-11T05:54:33.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "policy": {
+    "outcome": "pass",
+    "findings": []
+  },
+  "simulation": {
+    "attempted": true,
+    "success": true,
+    "transactionFingerprint": "0x984b20d6331df884e7550492215f244cb6df57383f5f76beef906454ef428765",
+    "blockHash": "0x9e1abb9c80df5c28927de88ec87233e68dc7e2e5da3fa26eb06ac2766d1dade2",
+    "rpcUrl": "https://mainnet.base.org",
+    "blockNumber": "38025562",
+    "returnData": "0x0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "finalDecision": "pass",
+  "moonwell": {
+    "transactionFingerprint": "0x984b20d6331df884e7550492215f244cb6df57383f5f76beef906454ef428765",
+    "status": "ready",
+    "blockNumber": "38025562",
+    "blockHash": "0x9e1abb9c80df5c28927de88ec87233e68dc7e2e5da3fa26eb06ac2766d1dade2",
+    "blockTimestamp": 1762840471,
+    "exposures": [
+      {
+        "actionIndex": 0,
+        "market": "0x628ff693426583D9a7FB391E54366292F509D457",
+        "account": "0x2cB1B0D5d7d33254a980aEaF614861e2Ad4Fe391",
+        "underlying": "0x4200000000000000000000000000000000000006",
+        "exchangeRateMantissa": "205925553374205882131490198",
+        "underlyingAmount": "0",
+        "receiptAmount": "0",
+        "receiptBalanceBefore": "49714860",
+        "receiptBalanceAfter": "49714860",
+        "suppliedUnderlyingBefore": "10237560056421173",
+        "suppliedUnderlyingAfter": "10237560056421173",
+        "debtBefore": "0",
+        "debtAfter": "0",
+        "collateralEnabledBefore": false,
+        "collateralEnabledAfter": false,
+        "collateralUnderlyingBefore": "0",
+        "collateralUnderlyingAfter": "0"
+      }
+    ]
+  }
+}

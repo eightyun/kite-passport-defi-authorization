@@ -1,8 +1,9 @@
-import { mkdir, readdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 import type {
   Address,
+  AuthorizationReport,
   IntentAnalysis,
   PolicyConfig,
   PolicyDecision,
@@ -27,8 +28,43 @@ interface RejectionEvidence {
   readonly messages: readonly string[];
 }
 
+interface CoverageManifest {
+  readonly schemaVersion: "1.0";
+  readonly chainId: number;
+  readonly vectors: readonly {
+    readonly fixture: string;
+    readonly operations: readonly string[];
+    readonly expectedDecision: PolicyDecision["outcome"];
+    readonly expectedSimulation: "pass" | "reject";
+  }[];
+  readonly deterministicOnly: readonly {
+    readonly operation: string;
+    readonly test: string;
+    readonly reason: string;
+  }[];
+}
+
 function successfulSimulation(): SimulationResult {
   return { attempted: true, success: true };
+}
+
+function retryableReport(report: AuthorizationReport): boolean {
+  return report.simulation.error === "RPC simulation failed, reverted, or returned data from the wrong chain." ||
+    report.moonwell?.status === "unavailable" || report.morpho?.status === "unavailable" ||
+    report.permit2?.checks.some((check) => check.status === "unavailable") === true;
+}
+
+async function analyzeWithRetry(
+  transaction: Parameters<typeof analyzeTransaction>[0],
+  policy: PolicyConfig,
+  options: Parameters<typeof analyzeTransaction>[2],
+): Promise<AuthorizationReport> {
+  let report = await analyzeTransaction(transaction, policy, options);
+  for (let attempt = 1; attempt < 3 && retryableReport(report); attempt += 1) {
+    await new Promise((resolveDelay) => setTimeout(resolveDelay, attempt * 1_000));
+    report = await analyzeTransaction(transaction, policy, options);
+  }
+  return report;
 }
 
 function rejectionEvidence(
@@ -210,6 +246,14 @@ async function main(): Promise<void> {
   await mkdir(reportDirectory, { recursive: true });
   const policy = await loadPolicy(resolve("config/policy.example.json"));
   const files = (await readdir(fixtureDirectory)).filter((file) => file.endsWith(".json")).sort();
+  const coverage = JSON.parse(
+    await readFile(resolve("fixtures/operation-coverage.json"), "utf8"),
+  ) as CoverageManifest;
+  const expectations = new Map(coverage.vectors.map((vector) => [vector.fixture, vector]));
+  if (coverage.chainId !== 8453 || coverage.schemaVersion !== "1.0" ||
+      files.some((file) => !expectations.has(file)) || expectations.size !== files.length) {
+    throw new Error("Operation coverage manifest does not match the real transaction fixtures");
+  }
   const summaries: string[] = [];
   const moonwellExposures: string[] = [];
   const morphoExposures: string[] = [];
@@ -218,17 +262,23 @@ async function main(): Promise<void> {
   let morphoIntent: IntentAnalysis | undefined;
 
   for (const file of files) {
+    const expectation = expectations.get(file);
+    if (expectation === undefined) {
+      throw new Error(`${file} is missing from the operation coverage manifest`);
+    }
     const transaction = await loadTransaction(resolve(fixtureDirectory, file));
+    process.stdout.write(`Replaying ${file}\n`);
     const evaluationTime = transaction.source?.timestamp ?? new Date().toISOString();
-    const report = await analyzeTransaction(transaction, policy, {
+    const report = await analyzeWithRetry(transaction, policy, {
       generatedAt: evaluationTime,
       nowSeconds: Math.floor(Date.parse(evaluationTime) / 1000),
       rpcUrl,
     });
     const cashRejection = file === "moonwell-redeem-cash-rejection.base.json";
-    const expectedDecision = cashRejection || file === "uniswap-permit2-usdc.base.json" ? "reject" : "pass";
-    if (report.simulation.success !== !cashRejection || report.finalDecision !== expectedDecision) {
-      throw new Error(`${file}: expected ${expectedDecision}, got ${report.finalDecision}; simulation=${report.simulation.error ?? report.simulation.success}; Moonwell=${report.moonwell?.status ?? "n/a"}; reasons=${report.policy.findings.map((finding) => finding.code).join(",")}`);
+    const expectedSimulation = expectation.expectedSimulation === "pass";
+    if (report.simulation.success !== expectedSimulation ||
+        report.finalDecision !== expectation.expectedDecision) {
+      throw new Error(`${file}: expected ${expectation.expectedDecision}, got ${report.finalDecision}; simulation=${report.simulation.error ?? report.simulation.success}; Moonwell=${report.moonwell?.status ?? "n/a"}; reasons=${report.policy.findings.map((finding) => finding.code).join(",")}`);
     }
     if (cashRejection && (report.simulation.returnData === undefined || BigInt(report.simulation.returnData) !== 14n ||
         !report.policy.findings.some((finding) => finding.code === "SIMULATION_FAILED"))) {
@@ -238,7 +288,7 @@ async function main(): Promise<void> {
       if (report.moonwell?.status !== "ready" || !report.moonwell.exposures.length ||
           report.moonwell.blockHash !== report.simulation.blockHash ||
           (!cashRejection && report.intent.expectedBalanceChanges.some((change) => change.amount.mode !== "exact"))) {
-        throw new Error(`${file} is missing concrete Moonwell exposure evidence`);
+        throw new Error(`${file} is missing concrete Moonwell exposure evidence: status=${report.moonwell?.status ?? "missing"}; exposures=${report.moonwell?.exposures.length ?? 0}; moonwellBlock=${report.moonwell?.blockHash ?? "missing"}; simulationBlock=${report.simulation.blockHash ?? "missing"}; modes=${report.intent.expectedBalanceChanges.map((change) => change.amount.mode).join(",")}`);
       }
       for (const exposure of report.moonwell.exposures) {
         moonwellExposures.push(`| ${file} | ${exposure.underlyingAmount} | ${exposure.receiptAmount} | ${exposure.receiptBalanceBefore} → ${exposure.receiptBalanceAfter} | ${exposure.debtBefore} → ${exposure.debtAfter} | ${exposure.collateralUnderlyingBefore} → ${exposure.collateralUnderlyingAfter} | ${cashRejection ? "not executable" : "simulation passed"} |`);
@@ -270,17 +320,14 @@ async function main(): Promise<void> {
       `${JSON.stringify(report, null, 2)}\n`,
       "utf8",
     );
-    const operation = report.intent.actions
-      .filter((action) => action.kind === "swap" || action.kind === "lending" || action.kind === "morpho")
-      .map((action) => (action.kind === "swap" ? `${action.protocolVersion} ${action.mode}` : action.operation))
-      .join(", ");
+    const operation = expectation.operations.join(", ");
     summaries.push(
       `| ${file} | ${report.intent.protocol} | ${operation} | ${transaction.source?.transactionHash ?? "n/a"} | ${report.finalDecision} | ${report.simulation.success ? "pass" : "expected protocol rejection (14)"} |`,
     );
-    if (file.startsWith("uniswap-v4")) {
+    if (file === "uniswap-v4-exact-input.base.json") {
       v4Intent = report.intent;
     }
-    if (file.startsWith("aerodrome-")) aerodromeIntent = report.intent;
+    if (file === "aerodrome-swap-usdc-aero.base.json") aerodromeIntent = report.intent;
   }
 
   if (v4Intent === undefined || aerodromeIntent === undefined || morphoIntent === undefined) {
@@ -319,6 +366,12 @@ ${summaries.join("\n")}
 - Moonwell borrowing is denied by the example policy.
 - Morpho markets must match an explicit market-ID allowlist and verified canonical parameters.
 - Failed RPC simulation is a rejection.
+
+## Operation coverage
+
+The machine-readable coverage manifest is [fixtures/operation-coverage.json](../fixtures/operation-coverage.json). It maps every committed Base transaction to the operations it proves and records the expected policy and simulation outcomes. Operations without an observed top-level transaction remain explicitly identified as deterministic-only coverage:
+
+${coverage.deterministicOnly.map((entry) => `- ${entry.operation}: ${entry.reason} Test: \`${entry.test}\`.`).join("\n")}
 
 ## Balance-change interpretation
 
@@ -371,6 +424,7 @@ This directory contains reproducible evidence for the Passport DeFi authorizatio
 ## Evidence map
 
 - Real transaction calldata: [../fixtures/transactions](../fixtures/transactions)
+- Operation-to-vector coverage and expected outcomes: [../fixtures/operation-coverage.json](../fixtures/operation-coverage.json)
 - Parsed intent, expected balance changes, policy decision and RPC result: [reports](./reports)
 - Policy configuration: [../config/policy.example.json](../config/policy.example.json)
 - Eighteen explicit rejection paths: [rejection-tests.json](./rejection-tests.json)

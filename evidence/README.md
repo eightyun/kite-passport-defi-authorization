@@ -5,6 +5,7 @@ This directory contains reproducible evidence for the Passport DeFi authorizatio
 ## Evidence map
 
 - Real transaction calldata: [../fixtures/transactions](../fixtures/transactions)
+- Operation-to-vector coverage and expected outcomes: [../fixtures/operation-coverage.json](../fixtures/operation-coverage.json)
 - Parsed intent, expected balance changes, policy decision and RPC result: [reports](./reports)
 - Policy configuration: [../config/policy.example.json](../config/policy.example.json)
 - Eighteen explicit rejection paths: [rejection-tests.json](./rejection-tests.json)

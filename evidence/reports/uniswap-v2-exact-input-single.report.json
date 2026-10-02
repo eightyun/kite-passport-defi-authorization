@@ -1,0 +1,138 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-10-01T17:11:21.000Z",
+  "transaction": {
+    "chainId": 8453,
+    "from": "0x8e40397eC87D43c6df5f1A6d10D456D76104AF1c",
+    "to": "0xd6145b2D3F379919E8CdEda7B97e37c4b2Ca9c40",
+    "data": "0x3593564c000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000006abe9abd0000000000000000000000000000000000000000000000000000000000000002080c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000001a0000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000009000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000d9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca0000000000000000000000004200000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000400000000000000000000000008e40397ec87d43c6df5f1a6d10d456d76104af1c00000000000000000000000000000000000000000000000000000000c4615b85756e6978000001a0f870f44d800086d60000000c0100",
+    "value": "0",
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0xc31836d1054bf7028109a6dbe13e89a938c65f3232583d08b938bf85b79b0764",
+      "explorerUrl": "https://base.blockscout.com/tx/0xc31836d1054bf7028109a6dbe13e89a938c65f3232583d08b938bf85b79b0764",
+      "blockNumber": 52042667,
+      "timestamp": "2026-10-01T17:11:21.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "intent": {
+    "schemaVersion": "1.0",
+    "protocol": "uniswap",
+    "adapter": "uniswap-universal-router-v2.1",
+    "chainId": 8453,
+    "sender": "0x8e40397eC87D43c6df5f1A6d10D456D76104AF1c",
+    "target": "0xd6145b2D3F379919E8CdEda7B97e37c4b2Ca9c40",
+    "nativeValue": "0",
+    "transactionFingerprint": "0x51bbb4c6de20204bb4468b52142b35ff8f1f0fe56a72bd7511e70729ef4244f1",
+    "deadline": "1790876349",
+    "actions": [
+      {
+        "kind": "swap",
+        "index": 0,
+        "protocolVersion": "v2",
+        "mode": "exact-input",
+        "recipient": "router",
+        "payerIsUser": true,
+        "route": [
+          {
+            "tokenIn": "0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA",
+            "tokenOut": "0x4200000000000000000000000000000000000006"
+          }
+        ],
+        "amountIn": {
+          "value": "9",
+          "mode": "exact"
+        },
+        "amountOut": {
+          "value": "0",
+          "mode": "minimum"
+        }
+      },
+      {
+        "kind": "transfer",
+        "index": 1,
+        "operation": "unwrap-native",
+        "recipient": "sender",
+        "amount": {
+          "value": "3294714757",
+          "mode": "minimum"
+        }
+      }
+    ],
+    "expectedBalanceChanges": [
+      {
+        "account": "sender",
+        "asset": "0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA",
+        "category": "asset",
+        "direction": "debit",
+        "amount": {
+          "value": "9",
+          "mode": "exact"
+        },
+        "reason": "v2 exact-input swap input"
+      },
+      {
+        "account": "router",
+        "asset": "0x4200000000000000000000000000000000000006",
+        "category": "asset",
+        "direction": "credit",
+        "amount": {
+          "value": "0",
+          "mode": "minimum"
+        },
+        "reason": "v2 exact-input swap output"
+      },
+      {
+        "account": "router",
+        "asset": "0x4200000000000000000000000000000000000006",
+        "category": "asset",
+        "direction": "debit",
+        "amount": {
+          "value": "3294714757",
+          "mode": "minimum"
+        },
+        "reason": "WETH unwrapped into native currency"
+      },
+      {
+        "account": "sender",
+        "asset": "0x0000000000000000000000000000000000000000",
+        "category": "asset",
+        "direction": "credit",
+        "amount": {
+          "value": "3294714757",
+          "mode": "minimum"
+        },
+        "reason": "Native currency received from WETH unwrapping"
+      }
+    ],
+    "warnings": [],
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0xc31836d1054bf7028109a6dbe13e89a938c65f3232583d08b938bf85b79b0764",
+      "explorerUrl": "https://base.blockscout.com/tx/0xc31836d1054bf7028109a6dbe13e89a938c65f3232583d08b938bf85b79b0764",
+      "blockNumber": 52042667,
+      "timestamp": "2026-10-01T17:11:21.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "policy": {
+    "outcome": "reject",
+    "findings": [
+      {
+        "code": "ZERO_MINIMUM_OUTPUT",
+        "message": "Exact-input swap has no minimum output protection.",
+        "actionIndex": 0
+      }
+    ]
+  },
+  "simulation": {
+    "attempted": true,
+    "success": true,
+    "transactionFingerprint": "0x51bbb4c6de20204bb4468b52142b35ff8f1f0fe56a72bd7511e70729ef4244f1",
+    "blockHash": "0x29e42c309832cd6955286f2d7f08244a88dc884f8237853b80014c4df90095bc",
+    "rpcUrl": "https://mainnet.base.org",
+    "blockNumber": "52042666"
+  },
+  "finalDecision": "reject"
+}

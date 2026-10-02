@@ -133,19 +133,16 @@ Implemented rejection reason codes include:
 
 ## Real transaction vectors
 
-The repository includes raw Base mainnet calldata and immutable explorer provenance:
+The repository includes 30 raw Base mainnet transaction envelopes with immutable explorer provenance. A transaction can prove several decoded actions.
 
-| Vector | Transaction |
-|---|---|
-| Uniswap v3 multi-hop exact input | [`0x4ae307…224c`](https://base.blockscout.com/tx/0x4ae30763adbc67dda8b268123961950390996252a8dade837358b5a35af7224c) |
-| Uniswap v4 exact input and settlement | [`0x05365b…6e28`](https://base.blockscout.com/tx/0x05365bdae052690a649ccb3499c41dc029f4aed119dbf76a30abbc42dfef6e28) |
-| Moonwell USDC supply | [`0x5aab69…4c73`](https://base.blockscout.com/tx/0x5aab6990eae508c972c1db9cf04cb2e2dd97c8ed3aa9c1e409e1c07ea3784c73) |
-| Moonwell mToken-denominated redemption | [`0x4cad47…16be`](https://base.blockscout.com/tx/0x4cad47b6aad60765ab73444797d8a5804147e9a0c0a4d209586a04b37cc516be) |
-| Moonwell redemption rejected by historical preflight (error 14) | [`0x83fe37…1311`](https://base.blockscout.com/tx/0x83fe375c66d58489f8b1f8917ec7b61f812a41a79567d9d3b75ee911efde1311) |
-| Moonwell USDC withdraw | [`0x169f9a…c690`](https://base.blockscout.com/tx/0x169f9aded536ee0df26f87af015f60a16d19d0004cb794c60a06cd4daf03c690) |
-| Permit2 USDC permit and Uniswap v3 swap | [`0x264113…4238c`](https://base.blockscout.com/tx/0x264113c7264f36e1029f24d1ced8461dbdd92975663fd1338a8378aed254238c) |
-| Aerodrome USDC to AERO exact input | [`0x4ae4c2…3a81`](https://base.blockscout.com/tx/0x4ae4c26c79314c635cde20f42371ef5621ec2f543281508a3d84665eff0b3a81) |
-| Morpho USDC repayment | [`0xd84c24…ca2d`](https://base.blockscout.com/tx/0xd84c249552ff34dc2af15e63858473415b5098dee37ec3b84ab608792d15ca2d) |
+| Protocol | Real-vector coverage | Vector count |
+|---|---|---:|
+| Uniswap and Universal Router | v2/v3/v4 exact input and output, single-hop and multi-hop routes, v4 settle/take/sweep, Permit2 single permit/transfer, Router wrap/unwrap/sweep/transfer | 12 |
+| Aerodrome | token-to-token, native-to-token and token-to-native exact-input swaps | 3 |
+| Moonwell | supply, underlying withdrawal, receipt redemption, borrow, direct repay, repay on behalf, collateral enable/disable and a protocol-level rejection | 9 |
+| Morpho | supply, withdraw, borrow, repay and collateral supply/withdraw | 6 |
+
+[`fixtures/operation-coverage.json`](fixtures/operation-coverage.json) maps every operation to its fixture and records the expected policy and historical simulation outcomes. Permit2 batch permit/transfer and Uniswap v4 action-level wrap/unwrap remain deterministic test vectors because no matching top-level call to the registered Base Router is included in the observed transaction sample; they are not presented as real transactions.
 
 Each evidence simulation replays the call against the block immediately before the observed transaction. Set `BASE_RPC_URL` to an archive-capable Base endpoint when regenerating evidence.
 
@@ -159,7 +156,7 @@ Morpho requires canonical market/account state and a matching successful fixed-b
 
 The committed acceptance package is available in [`evidence`](evidence/README.md).
 
-The Permit2 vector has a valid EOA signature, a matching historical nonce and a successful historical simulation. Its unlimited allowance and approximately 30-day lifetime exceed the example policy, so the expected decision is `reject`. [Permit2 verification and evidence](docs/permit2.md) explains how to reproduce this result.
+The Permit2 permit vector has a valid EOA signature, a matching historical nonce and a successful historical simulation. Its unlimited allowance and approximately 30-day lifetime exceed the example policy, so the expected decision is `reject`. A separate real vector verifies an explicit Permit2 transfer against historical allowance state. [Permit2 verification and evidence](docs/permit2.md) explains how to reproduce these results.
 
 ## Acceptance evidence
 
@@ -167,6 +164,7 @@ The Permit2 vector has a valid EOA signature, a matching historical nonce and a 
 |---|---|
 | Correct intent parsing for main operations | adapter tests and generated reports |
 | Real transaction test vectors | `fixtures/transactions/*.json` with explorer hashes |
+| Per-operation vector coverage | `fixtures/operation-coverage.json` |
 | At least eight rejection paths | eighteen cases in `evidence/rejection-tests.json` |
 | Exact rejection reasons | policy findings include code, message and supporting fields |
 | Expected result and balance changes | `expectedBalanceChanges`, Permit2 allowance exposure, `moonwell.exposures` and `morpho.exposures` with fixed-block before/after quantities |

@@ -98,6 +98,50 @@
           "mode": "minimum"
         },
         "reason": "v4 exact-input swap output"
+      },
+      {
+        "account": "sender",
+        "asset": "0x0000000000000000000000000000000000000000",
+        "category": "asset",
+        "direction": "debit",
+        "amount": {
+          "value": "all",
+          "mode": "all"
+        },
+        "reason": "settle source balance"
+      },
+      {
+        "account": "settlement",
+        "asset": "0x0000000000000000000000000000000000000000",
+        "category": "asset",
+        "direction": "credit",
+        "amount": {
+          "value": "all",
+          "mode": "all"
+        },
+        "reason": "settle destination balance"
+      },
+      {
+        "account": "settlement",
+        "asset": "0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA",
+        "category": "asset",
+        "direction": "debit",
+        "amount": {
+          "value": "all",
+          "mode": "all"
+        },
+        "reason": "take source balance"
+      },
+      {
+        "account": "sender",
+        "asset": "0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA",
+        "category": "asset",
+        "direction": "credit",
+        "amount": {
+          "value": "all",
+          "mode": "all"
+        },
+        "reason": "take destination balance"
       }
     ],
     "warnings": [

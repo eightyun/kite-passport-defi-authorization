@@ -43,7 +43,7 @@ Older policy files remain readable. When omitted, maximumPermit2ExpirationSecond
 
 The synchronous createAuthorizationReport API remains available. It rejects Permit2 when verified evidence is absent. Use analyzeTransaction or the CLI for RPC-backed verification; supplied verification/simulation objects in the synchronous API are trusted library inputs, not an externally authenticated attestation format.
 
-## Reproduce the real transaction audit
+## Reproduce the real transaction audits
 
 The unmodified Base transaction is [0x264113c7264f36e1029f24d1ced8461dbdd92975663fd1338a8378aed254238c](https://base.blockscout.com/tx/0x264113c7264f36e1029f24d1ced8461dbdd92975663fd1338a8378aed254238c).
 
@@ -58,6 +58,18 @@ npx tsx src/cli.ts analyze \
 
 Expected result: valid EOA signature, nonce 0 matching historical allowance state, successful simulation at block 52023012, and policy reject with AMOUNT_LIMIT_EXCEEDED and PERMIT2_EXPIRATION_TOO_FAR. CLI exit code 2 is expected. The original transaction succeeded on chain; the stricter example policy rejects its unlimited allowance and approximately 30-day authorization.
 
+The explicit-transfer vector is [0x112820be97fd5cbd253d7774a39d8db8f7ee128de15c18c79913e58bc1723753](https://base.blockscout.com/tx/0x112820be97fd5cbd253d7774a39d8db8f7ee128de15c18c79913e58bc1723753).
+
+```bash
+npx tsx src/cli.ts analyze \
+  --transaction fixtures/transactions/uniswap-permit2-transfer.base.json \
+  --policy config/policy.example.json \
+  --rpc-url https://mainnet.base.org \
+  --now 1790796271
+```
+
+Expected result: the transfer is decoded, the historical Router allowance is checked, the complete call simulates successfully and the example recipient policy rejects the destination. The report still proves that authorization verification completed independently of the policy rejection.
+
 ```bash
 npm run evidence
 ```
@@ -66,7 +78,7 @@ This regenerates the historical audit reports, general rejection evidence and TA
 
 ## Coverage and boundaries
 
-The real Permit2 vector proves EOA decoding, digest recovery, historical nonce checking and full-call replay. Deterministic tests additionally cover PermitBatch, EIP-2098, EIP-1271, explicit single/batch transfers, repeated nonces, expired authorizations, wrong spender, amount caps, unknown tokens, recipient/owner restrictions, missing RPC state and simulation failure.
+The real Permit2 vectors prove EOA decoding, digest recovery, historical nonce checking, an explicit single transfer and full-call replay. Deterministic tests additionally cover PermitBatch, EIP-2098, EIP-1271, explicit batch transfers, repeated nonces, expired authorizations, wrong spender, amount caps, unknown tokens, recipient/owner restrictions, missing RPC state and simulation failure. No matching top-level batch command to the registered Base Universal Router is included in the observed transaction sample, so batch coverage is not claimed as a real transaction vector.
 
 EIP-1271 behavior is tested with a controlled RPC fixture; no live smart-wallet transaction is claimed. Direct SignatureTransfer/witness entrypoints and nested Router subplans are not supported. Unknown commands fail closed. External security auditing is still required before using this project as production risk control.
 

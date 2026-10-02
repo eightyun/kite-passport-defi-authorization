@@ -12,7 +12,7 @@ Native input and output are reported as the zero address while the encoded route
 
 `UNSAFE_swapExactTokensForTokens`, fee-on-transfer variants and unknown selectors fail closed. They are excluded because their execution or balance semantics do not provide the same pre-execution amount guarantees as the supported methods.
 
-The committed real transaction vector contains the original Base calldata and Blockscout provenance. Evidence generation replays it against the block immediately before execution.
+The three committed real transaction vectors cover token-to-token, native-to-token and token-to-native calls with original Base calldata and Blockscout provenance. Evidence generation replays each one against the block immediately before execution. The native vectors intentionally demonstrate policy rejection for tokens outside the example allowlist while retaining successful historical simulation evidence.
 
 ## References
 

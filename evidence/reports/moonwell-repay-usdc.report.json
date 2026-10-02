@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-10-01T17:09:59.000Z",
+  "transaction": {
+    "chainId": 8453,
+    "from": "0x183b8707dA911445B02f18e693EA112071F7a28f",
+    "to": "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22",
+    "data": "0x0e7527020000000000000000000000000000000000000000000000000000000001154363",
+    "value": "0",
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0x3abd0a6b5c62d480018f5574271d0211e1af180455f2791595950d52ca2004cc",
+      "explorerUrl": "https://base.blockscout.com/tx/0x3abd0a6b5c62d480018f5574271d0211e1af180455f2791595950d52ca2004cc",
+      "blockNumber": 52042626,
+      "timestamp": "2026-10-01T17:09:59.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "intent": {
+    "schemaVersion": "1.0",
+    "protocol": "moonwell",
+    "adapter": "moonwell-core-v2",
+    "chainId": 8453,
+    "sender": "0x183b8707dA911445B02f18e693EA112071F7a28f",
+    "target": "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22",
+    "nativeValue": "0",
+    "transactionFingerprint": "0x231d737169a9e4a2d078bbdb78adfc0f2a3394043ff09290fd7649cc025c9916",
+    "actions": [
+      {
+        "kind": "lending",
+        "index": 0,
+        "operation": "repay",
+        "market": "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "assetSymbol": "USDC",
+        "amount": {
+          "value": "18170723",
+          "mode": "exact"
+        },
+        "amountAsset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "beneficiary": "sender",
+        "underlyingAmount": {
+          "value": "18170723",
+          "mode": "exact"
+        },
+        "receiptAmount": {
+          "value": "0",
+          "mode": "exact"
+        }
+      }
+    ],
+    "expectedBalanceChanges": [
+      {
+        "account": "sender",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "assetSymbol": "USDC",
+        "category": "asset",
+        "direction": "debit",
+        "amount": {
+          "value": "18170723",
+          "mode": "exact"
+        },
+        "reason": "Underlying is transferred to Moonwell for repayment"
+      },
+      {
+        "account": "sender",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "assetSymbol": "USDC",
+        "category": "debt",
+        "direction": "debit",
+        "amount": {
+          "value": "18170723",
+          "mode": "exact"
+        },
+        "reason": "Moonwell borrow balance decreases"
+      }
+    ],
+    "warnings": [
+      "Moonwell amounts are conditional predictions at the checked block using the accrued exchange rate; later state and rounding can change results."
+    ],
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0x3abd0a6b5c62d480018f5574271d0211e1af180455f2791595950d52ca2004cc",
+      "explorerUrl": "https://base.blockscout.com/tx/0x3abd0a6b5c62d480018f5574271d0211e1af180455f2791595950d52ca2004cc",
+      "blockNumber": 52042626,
+      "timestamp": "2026-10-01T17:09:59.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "policy": {
+    "outcome": "pass",
+    "findings": []
+  },
+  "simulation": {
+    "attempted": true,
+    "success": true,
+    "transactionFingerprint": "0x231d737169a9e4a2d078bbdb78adfc0f2a3394043ff09290fd7649cc025c9916",
+    "blockHash": "0x116311dc1ba5942f62e601e022b14abadbb24dc75b18632bac8819ce18ba0041",
+    "rpcUrl": "https://mainnet.base.org",
+    "blockNumber": "52042625",
+    "returnData": "0x0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "finalDecision": "pass",
+  "moonwell": {
+    "transactionFingerprint": "0x231d737169a9e4a2d078bbdb78adfc0f2a3394043ff09290fd7649cc025c9916",
+    "status": "ready",
+    "blockNumber": "52042625",
+    "blockHash": "0x116311dc1ba5942f62e601e022b14abadbb24dc75b18632bac8819ce18ba0041",
+    "blockTimestamp": 1790874597,
+    "exposures": [
+      {
+        "actionIndex": 0,
+        "market": "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22",
+        "account": "0x183b8707dA911445B02f18e693EA112071F7a28f",
+        "underlying": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "exchangeRateMantissa": "239939568782008",
+        "underlyingAmount": "18170723",
+        "receiptAmount": "0",
+        "receiptBalanceBefore": "0",
+        "receiptBalanceAfter": "0",
+        "suppliedUnderlyingBefore": "0",
+        "suppliedUnderlyingAfter": "0",
+        "debtBefore": "935435111",
+        "debtAfter": "917264388",
+        "collateralEnabledBefore": true,
+        "collateralEnabledAfter": true,
+        "collateralUnderlyingBefore": "0",
+        "collateralUnderlyingAfter": "0"
+      }
+    ]
+  }
+}

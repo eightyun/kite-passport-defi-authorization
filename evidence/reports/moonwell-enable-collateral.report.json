@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-10-01T11:47:25.000Z",
+  "transaction": {
+    "chainId": 8453,
+    "from": "0x10Dc1C6A17199C7A2A93050A6e696d5d994F0ab1",
+    "to": "0xfBb21d0380beE3312B33c4353c8936a0F13EF26C",
+    "data": "0xc299823800000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000001000000000000000000000000edc817a28e8b93b03976fbd4a3ddbc9f7d176c2262635f706a33667a3477370b0080218021802180218021802180218021",
+    "value": "0",
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0x3ffebe8b41bf8d40b5bf8faa7d82ce16ba7a677eae49c9f4772f821442005549",
+      "explorerUrl": "https://base.blockscout.com/tx/0x3ffebe8b41bf8d40b5bf8faa7d82ce16ba7a677eae49c9f4772f821442005549",
+      "blockNumber": 52032949,
+      "timestamp": "2026-10-01T11:47:25.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "intent": {
+    "schemaVersion": "1.0",
+    "protocol": "moonwell",
+    "adapter": "moonwell-core-v2",
+    "chainId": 8453,
+    "sender": "0x10Dc1C6A17199C7A2A93050A6e696d5d994F0ab1",
+    "target": "0xfBb21d0380beE3312B33c4353c8936a0F13EF26C",
+    "nativeValue": "0",
+    "transactionFingerprint": "0xe6fe24ddbef437828f45467cfde8963a262e4c3c25ec157752ee6887d9afa232",
+    "actions": [
+      {
+        "kind": "lending",
+        "index": 0,
+        "operation": "enable-collateral",
+        "market": "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "assetSymbol": "USDC",
+        "beneficiary": "sender",
+        "underlyingAmount": {
+          "value": "0",
+          "mode": "exact"
+        },
+        "receiptAmount": {
+          "value": "0",
+          "mode": "exact"
+        }
+      }
+    ],
+    "expectedBalanceChanges": [],
+    "warnings": [
+      "Moonwell amounts are conditional predictions at the checked block using the accrued exchange rate; later state and rounding can change results."
+    ],
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0x3ffebe8b41bf8d40b5bf8faa7d82ce16ba7a677eae49c9f4772f821442005549",
+      "explorerUrl": "https://base.blockscout.com/tx/0x3ffebe8b41bf8d40b5bf8faa7d82ce16ba7a677eae49c9f4772f821442005549",
+      "blockNumber": 52032949,
+      "timestamp": "2026-10-01T11:47:25.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "policy": {
+    "outcome": "pass",
+    "findings": []
+  },
+  "simulation": {
+    "attempted": true,
+    "success": true,
+    "transactionFingerprint": "0xe6fe24ddbef437828f45467cfde8963a262e4c3c25ec157752ee6887d9afa232",
+    "blockHash": "0x542bf10231f2b2addc06bc57b18fdf9d692fdf4943988ad2312a32967a23eca2",
+    "rpcUrl": "https://mainnet.base.org",
+    "blockNumber": "52032948",
+    "returnData": "0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "finalDecision": "pass",
+  "moonwell": {
+    "transactionFingerprint": "0xe6fe24ddbef437828f45467cfde8963a262e4c3c25ec157752ee6887d9afa232",
+    "status": "ready",
+    "blockNumber": "52032948",
+    "blockHash": "0x542bf10231f2b2addc06bc57b18fdf9d692fdf4943988ad2312a32967a23eca2",
+    "blockTimestamp": 1790855243,
+    "exposures": [
+      {
+        "actionIndex": 0,
+        "market": "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22",
+        "account": "0x10Dc1C6A17199C7A2A93050A6e696d5d994F0ab1",
+        "underlying": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "exchangeRateMantissa": "239917901528357",
+        "underlyingAmount": "0",
+        "receiptAmount": "0",
+        "receiptBalanceBefore": "0",
+        "receiptBalanceAfter": "0",
+        "suppliedUnderlyingBefore": "0",
+        "suppliedUnderlyingAfter": "0",
+        "debtBefore": "0",
+        "debtAfter": "0",
+        "collateralEnabledBefore": false,
+        "collateralEnabledAfter": true,
+        "collateralUnderlyingBefore": "0",
+        "collateralUnderlyingAfter": "0"
+      }
+    ]
+  }
+}

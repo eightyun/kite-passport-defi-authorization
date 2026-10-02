@@ -6,6 +6,7 @@ import {
   sliceHex,
 } from "viem";
 import {
+  BASE_WETH,
   MSG_SENDER_RECIPIENT,
   ROUTER_RECIPIENT,
   ZERO_ADDRESS,
@@ -61,6 +62,7 @@ const V4_ACTION = {
 } as const;
 
 const DYNAMIC_FEE_FLAG = 0x800000;
+const CONTRACT_BALANCE = 1n << 255n;
 
 function amount(value: bigint, mode: Amount["mode"]): Amount {
   return { value: value.toString(), mode };
@@ -444,7 +446,9 @@ function decodeTransferCommand(
       index,
       operation: command === COMMAND.WRAP_ETH ? "wrap-native" : "unwrap-native",
       recipient: recipientLabel(recipient, transaction),
-      amount: amount(value, "minimum"),
+      amount: command === COMMAND.WRAP_ETH
+        ? value === CONTRACT_BALANCE ? unknownAmount("all") : amount(value, "exact")
+        : amount(value, "minimum"),
     };
   }
   if (command === COMMAND.SWEEP || command === COMMAND.TRANSFER) {
@@ -538,6 +542,62 @@ function buildBalanceChanges(actions: readonly IntentAction[]): readonly Balance
         }, {
           account: transfer.to, asset: transfer.token, category: "asset", direction: "credit",
           amount: amount(BigInt(transfer.amount), "exact"), reason: "Explicit Permit2 transfer credit",
+        });
+      }
+    }
+    if (action.kind === "transfer") {
+      const recipient = action.recipient ?? "settlement";
+      if (action.operation === "wrap-native") {
+        changes.push({
+          account: action.recipient === undefined ? "settlement" : "router",
+          asset: ZERO_ADDRESS,
+          category: "asset",
+          direction: "debit",
+          amount: action.amount,
+          reason: "Native currency wrapped into WETH",
+        }, {
+          account: recipient,
+          asset: BASE_WETH,
+          category: "asset",
+          direction: "credit",
+          amount: action.amount,
+          reason: "WETH received from native wrapping",
+        });
+      } else if (action.operation === "unwrap-native") {
+        changes.push({
+          account: action.recipient === undefined ? "settlement" : "router",
+          asset: BASE_WETH,
+          category: "asset",
+          direction: "debit",
+          amount: action.amount,
+          reason: "WETH unwrapped into native currency",
+        }, {
+          account: recipient,
+          asset: ZERO_ADDRESS,
+          category: "asset",
+          direction: "credit",
+          amount: action.amount,
+          reason: "Native currency received from WETH unwrapping",
+        });
+      } else if (action.asset !== undefined) {
+        const source = action.operation === "settle"
+          ? recipient
+          : action.operation === "take" ? "settlement" : "router";
+        const destination = action.operation === "settle" ? "settlement" : recipient;
+        changes.push({
+          account: source,
+          asset: action.asset,
+          category: "asset",
+          direction: "debit",
+          amount: action.amount,
+          reason: `${action.operation} source balance`,
+        }, {
+          account: destination,
+          asset: action.asset,
+          category: "asset",
+          direction: "credit",
+          amount: action.amount,
+          reason: `${action.operation} destination balance`,
         });
       }
     }

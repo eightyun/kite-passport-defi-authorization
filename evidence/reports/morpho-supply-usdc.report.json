@@ -1,0 +1,121 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-09-30T20:38:51.000Z",
+  "transaction": {
+    "chainId": 8453,
+    "from": "0xad17304d5bd2788cb610AB87507ebaaBe1307E08",
+    "to": "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
+    "data": "0xa99aad89000000000000000000000000833589fcd6edb6e08f4c7c32d4f71b54bda029130000000000000000000000004200000000000000000000000000000000000006000000000000000000000000fea2d58cefcb9fcb597723c6bae66ffe4193afe400000000000000000000000046415998764c29ab2a25cbea6254146d50d226870000000000000000000000000000000000000000000000000bef55718ad60000000000000000000000000000000000000000000000000000000000000007a1200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ad17304d5bd2788cb610ab87507ebaabe1307e0800000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000000000000000",
+    "value": "0",
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0xac1c679de0a782d61de0a0d8d047921158b01d1be19bfb8e48fc0870f40dbcb6",
+      "explorerUrl": "https://base.blockscout.com/tx/0xac1c679de0a782d61de0a0d8d047921158b01d1be19bfb8e48fc0870f40dbcb6",
+      "blockNumber": 52005692,
+      "timestamp": "2026-09-30T20:38:51.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "intent": {
+    "schemaVersion": "1.0",
+    "protocol": "morpho",
+    "adapter": "morpho-blue-v1",
+    "chainId": 8453,
+    "sender": "0xad17304d5bd2788cb610AB87507ebaaBe1307E08",
+    "target": "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
+    "nativeValue": "0",
+    "transactionFingerprint": "0x39b9a9b00df93ea131ba188def10f4f9f1da28b23960e2099173fcdb0e15f8f0",
+    "actions": [
+      {
+        "kind": "morpho",
+        "index": 0,
+        "operation": "supply",
+        "marketId": "0x8793cf302b8ffd655ab97bd1c695dbd967807e8367a65cb2f4edaf1380ba1bda",
+        "marketParams": {
+          "loanToken": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "collateralToken": "0x4200000000000000000000000000000000000006",
+          "oracle": "0xFEa2D58cEfCb9fcb597723c6bAE66fFE4193aFE4",
+          "irm": "0x46415998764C29aB2a25CbeA6254146D50D22687",
+          "lltv": "860000000000000000"
+        },
+        "beneficiary": "0xad17304d5bd2788cb610AB87507ebaaBe1307E08",
+        "assets": {
+          "value": "500000",
+          "mode": "exact"
+        },
+        "shares": {
+          "value": "447469270447",
+          "mode": "exact"
+        },
+        "callbackData": "0x"
+      }
+    ],
+    "expectedBalanceChanges": [
+      {
+        "account": "sender",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "category": "asset",
+        "direction": "debit",
+        "amount": {
+          "value": "500000",
+          "mode": "exact"
+        },
+        "reason": "Morpho supply asset transfer"
+      }
+    ],
+    "warnings": [
+      "Morpho asset and share deltas are conditional on successful simulation at the verified fixed block."
+    ],
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0xac1c679de0a782d61de0a0d8d047921158b01d1be19bfb8e48fc0870f40dbcb6",
+      "explorerUrl": "https://base.blockscout.com/tx/0xac1c679de0a782d61de0a0d8d047921158b01d1be19bfb8e48fc0870f40dbcb6",
+      "blockNumber": 52005692,
+      "timestamp": "2026-09-30T20:38:51.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "policy": {
+    "outcome": "pass",
+    "findings": []
+  },
+  "simulation": {
+    "attempted": true,
+    "success": true,
+    "transactionFingerprint": "0x39b9a9b00df93ea131ba188def10f4f9f1da28b23960e2099173fcdb0e15f8f0",
+    "blockHash": "0x0762e071a6581607c5fe90fb69a681273e8f3a7a2eb77d63747fd05c64bc7124",
+    "rpcUrl": "https://mainnet.base.org",
+    "blockNumber": "52005691",
+    "returnData": "0x000000000000000000000000000000000000000000000000000000000007a120000000000000000000000000000000000000000000000000000000682f3f35af"
+  },
+  "finalDecision": "pass",
+  "morpho": {
+    "transactionFingerprint": "0x39b9a9b00df93ea131ba188def10f4f9f1da28b23960e2099173fcdb0e15f8f0",
+    "status": "ready",
+    "blockNumber": "52005691",
+    "blockHash": "0x0762e071a6581607c5fe90fb69a681273e8f3a7a2eb77d63747fd05c64bc7124",
+    "blockTimestamp": 1790800729,
+    "exposures": [
+      {
+        "actionIndex": 0,
+        "marketId": "0x8793cf302b8ffd655ab97bd1c695dbd967807e8367a65cb2f4edaf1380ba1bda",
+        "account": "0xad17304d5bd2788cb610AB87507ebaaBe1307E08",
+        "loanToken": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "collateralToken": "0x4200000000000000000000000000000000000006",
+        "operation": "supply",
+        "assets": "500000",
+        "shares": "447469270447",
+        "supplySharesBefore": "0",
+        "supplySharesAfter": "447469270447",
+        "borrowSharesBefore": "0",
+        "borrowSharesAfter": "0",
+        "collateralBefore": "0",
+        "collateralAfter": "0",
+        "totalSupplyAssets": "101800546452013",
+        "totalSupplyShares": "91105239294701226853",
+        "totalBorrowAssets": "91678135933772",
+        "totalBorrowShares": "80812438763056528773"
+      }
+    ]
+  }
+}

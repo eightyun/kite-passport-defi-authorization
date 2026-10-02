@@ -72,6 +72,102 @@ test("reverses a Uniswap v3 exact-output path into execution order", () => {
   assert.deepEqual(swap.amountOut, { value: "100", mode: "exact" });
 });
 
+test("reports Universal Router wrap, sweep and transfer balance bounds", () => {
+  const wrapInput = encodeAbiParameters(
+    parseAbiParameters("address recipient, uint256 amount"),
+    [sender, 100n],
+  );
+  const wrap = decodeTransaction(universalRouterTransaction("0x0b", wrapInput));
+  assert.deepEqual(wrap.actions[0], {
+    kind: "transfer",
+    index: 0,
+    operation: "wrap-native",
+    recipient: "sender",
+    amount: { value: "100", mode: "exact" },
+  });
+  assert.deepEqual(
+    wrap.expectedBalanceChanges.map((change) => [change.account, change.asset, change.direction, change.amount]),
+    [
+      ["router", ZERO_ADDRESS, "debit", { value: "100", mode: "exact" }],
+      ["sender", BASE_WETH, "credit", { value: "100", mode: "exact" }],
+    ],
+  );
+
+  const sweepInput = encodeAbiParameters(
+    parseAbiParameters("address asset, address recipient, uint256 amountMinimum"),
+    [BASE_USDC, sender, 75n],
+  );
+  const sweep = decodeTransaction(universalRouterTransaction("0x04", sweepInput));
+  assert.deepEqual(
+    sweep.expectedBalanceChanges.map((change) => [change.account, change.direction, change.amount]),
+    [
+      ["router", "debit", { value: "75", mode: "minimum" }],
+      ["sender", "credit", { value: "75", mode: "minimum" }],
+    ],
+  );
+
+  const transferInput = encodeAbiParameters(
+    parseAbiParameters("address asset, address recipient, uint256 amount"),
+    [BASE_USDC, sender, 50n],
+  );
+  const transfer = decodeTransaction(universalRouterTransaction("0x05", transferInput));
+  assert.deepEqual(
+    transfer.expectedBalanceChanges.map((change) => [change.account, change.direction, change.amount]),
+    [
+      ["router", "debit", { value: "50", mode: "exact" }],
+      ["sender", "credit", { value: "50", mode: "exact" }],
+    ],
+  );
+});
+
+test("reports Uniswap v4 settlement and take balance bounds", () => {
+  const settle = encodeAbiParameters(
+    parseAbiParameters("address asset, uint256 amount, bool payerIsUser"),
+    [BASE_USDC, 100n, true],
+  );
+  const take = encodeAbiParameters(
+    parseAbiParameters("address asset, address recipient, uint256 amount"),
+    [BASE_WETH, sender, 25n],
+  );
+  const v4Input = encodeAbiParameters(
+    parseAbiParameters("bytes actions, bytes[] params"),
+    ["0x0b0e", [settle, take]],
+  );
+  const analysis = decodeTransaction(universalRouterTransaction("0x10", v4Input));
+  assert.deepEqual(
+    analysis.expectedBalanceChanges.map((change) => [change.account, change.asset, change.direction]),
+    [
+      ["sender", BASE_USDC, "debit"],
+      ["settlement", BASE_USDC, "credit"],
+      ["settlement", BASE_WETH, "debit"],
+      ["sender", BASE_WETH, "credit"],
+    ],
+  );
+});
+
+test("decodes Uniswap v4 wrap and unwrap actions", () => {
+  const wrap = encodeAbiParameters(parseAbiParameters("uint256 amount"), [100n]);
+  const unwrap = encodeAbiParameters(parseAbiParameters("uint256 amount"), [50n]);
+  const v4Input = encodeAbiParameters(
+    parseAbiParameters("bytes actions, bytes[] params"),
+    ["0x1516", [wrap, unwrap]],
+  );
+  const analysis = decodeTransaction(universalRouterTransaction("0x10", v4Input));
+  assert.deepEqual(
+    analysis.actions.map((action) => action.kind === "transfer" ? action.operation : action.kind),
+    ["wrap-native", "unwrap-native"],
+  );
+  assert.deepEqual(
+    analysis.expectedBalanceChanges.map((change) => [change.account, change.asset, change.direction]),
+    [
+      ["settlement", ZERO_ADDRESS, "debit"],
+      ["settlement", BASE_WETH, "credit"],
+      ["settlement", BASE_WETH, "debit"],
+      ["settlement", ZERO_ADDRESS, "credit"],
+    ],
+  );
+});
+
 test("decodes a vanilla Uniswap v4 exact-output single-pool swap", () => {
   const swapParams = encodeAbiParameters(
     parseAbiParameters(

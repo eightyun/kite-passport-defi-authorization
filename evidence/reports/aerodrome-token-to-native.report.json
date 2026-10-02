@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-10-01T16:44:25.000Z",
+  "transaction": {
+    "chainId": 8453,
+    "from": "0x6C5079874deb3c5526c1Df4BC0226d4cA5c652F1",
+    "to": "0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43",
+    "data": "0xc6b7f1b6000000000000000000000000000000000000000000000012afadc026de23134d0000000000000000000000000000000000000000000000000002530f162b24eb00000000000000000000000000000000000000000000000000000000000000a00000000000000000000000006c5079874deb3c5526c1df4bc0226d4ca5c652f1000000000000000000000000000000000000000000000000000000006abe903f0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000cd8b83e5a3f27d6bb9c0ea51b25896b8266efa2500000000000000000000000042000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000000000000000000000000000420dd381b31aef6683db6b902084cb0ffece40da",
+    "value": "0",
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0x81e4244c39b24e142355e197a709a88ee7dd84a77539fb8b9b7bba3739c7d2fc",
+      "explorerUrl": "https://base.blockscout.com/tx/0x81e4244c39b24e142355e197a709a88ee7dd84a77539fb8b9b7bba3739c7d2fc",
+      "blockNumber": 52041859,
+      "timestamp": "2026-10-01T16:44:25.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "intent": {
+    "schemaVersion": "1.0",
+    "protocol": "aerodrome",
+    "adapter": "aerodrome-router-v1",
+    "chainId": 8453,
+    "sender": "0x6C5079874deb3c5526c1Df4BC0226d4cA5c652F1",
+    "target": "0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43",
+    "nativeValue": "0",
+    "deadline": "1790873663",
+    "transactionFingerprint": "0xeeb3c2c77adb0a7fa8bab57656b758dd9d5ad712ea2feeec272225e7434f601f",
+    "actions": [
+      {
+        "kind": "swap",
+        "index": 0,
+        "protocolVersion": "aerodrome",
+        "mode": "exact-input",
+        "recipient": "0x6C5079874deb3c5526c1Df4BC0226d4cA5c652F1",
+        "payerIsUser": true,
+        "route": [
+          {
+            "tokenIn": "0xCd8b83E5A3f27d6bB9C0EA51B25896B8266eFA25",
+            "tokenOut": "0x4200000000000000000000000000000000000006",
+            "stable": false,
+            "factory": "0x420DD381b31aEf6683db6B902084cB0FFECe40Da"
+          }
+        ],
+        "amountIn": {
+          "value": "344700378727548392269",
+          "mode": "exact"
+        },
+        "amountOut": {
+          "value": "654274214962411",
+          "mode": "minimum"
+        },
+        "inputAsset": "0xCd8b83E5A3f27d6bB9C0EA51B25896B8266eFA25",
+        "outputAsset": "0x0000000000000000000000000000000000000000"
+      }
+    ],
+    "expectedBalanceChanges": [
+      {
+        "account": "sender",
+        "asset": "0xCd8b83E5A3f27d6bB9C0EA51B25896B8266eFA25",
+        "category": "asset",
+        "direction": "debit",
+        "amount": {
+          "value": "344700378727548392269",
+          "mode": "exact"
+        },
+        "reason": "Aerodrome exact-input amount"
+      },
+      {
+        "account": "0x6C5079874deb3c5526c1Df4BC0226d4cA5c652F1",
+        "asset": "0x0000000000000000000000000000000000000000",
+        "category": "asset",
+        "direction": "credit",
+        "amount": {
+          "value": "654274214962411",
+          "mode": "minimum"
+        },
+        "reason": "Aerodrome minimum output guarantee"
+      }
+    ],
+    "warnings": [
+      "Output is a calldata minimum; realized output depends on pool state."
+    ],
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0x81e4244c39b24e142355e197a709a88ee7dd84a77539fb8b9b7bba3739c7d2fc",
+      "explorerUrl": "https://base.blockscout.com/tx/0x81e4244c39b24e142355e197a709a88ee7dd84a77539fb8b9b7bba3739c7d2fc",
+      "blockNumber": 52041859,
+      "timestamp": "2026-10-01T16:44:25.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "policy": {
+    "outcome": "reject",
+    "findings": [
+      {
+        "code": "UNAPPROVED_TOKEN",
+        "message": "Token 0xCd8b83E5A3f27d6bB9C0EA51B25896B8266eFA25 is not allowed by policy.",
+        "actionIndex": 0,
+        "evidence": {
+          "token": "0xCd8b83E5A3f27d6bB9C0EA51B25896B8266eFA25"
+        }
+      },
+      {
+        "code": "UNAPPROVED_TOKEN",
+        "message": "Token 0xCd8b83E5A3f27d6bB9C0EA51B25896B8266eFA25 is not allowed by policy.",
+        "actionIndex": 0,
+        "evidence": {
+          "token": "0xCd8b83E5A3f27d6bB9C0EA51B25896B8266eFA25"
+        }
+      }
+    ]
+  },
+  "simulation": {
+    "attempted": true,
+    "success": true,
+    "transactionFingerprint": "0xeeb3c2c77adb0a7fa8bab57656b758dd9d5ad712ea2feeec272225e7434f601f",
+    "blockHash": "0x511139c9f90400338263ec5a2f490344ddff9dff18cca9df253b48c6eba0f25b",
+    "rpcUrl": "https://mainnet.base.org",
+    "blockNumber": "52041858",
+    "returnData": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000012afadc026de23134d00000000000000000000000000000000000000000000000000027260b904fe71"
+  },
+  "finalDecision": "reject"
+}
