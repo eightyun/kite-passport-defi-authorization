@@ -4,6 +4,8 @@ An auditable TypeScript authorization layer for decoding DeFi calldata, evaluati
 
 It supports Uniswap, Aerodrome, Moonwell, Morpho and Avantis/Veranta on Base and never signs or broadcasts transactions.
 
+All committed tests, real transaction vectors and historical simulations currently target Base mainnet only (chain ID `8453`). No other network is claimed as tested or supported by this repository.
+
 ## Supported protocols
 
 | Protocol | Supported operations |
@@ -211,6 +213,7 @@ schemas/          report contract
 
 ## Security boundary
 
+- The tested network scope is limited to Base mainnet (chain ID `8453`); contract addresses, protocol behavior and evidence must be independently validated before use on another network.
 - The tool performs read-only analysis and RPC calls.
 - It does not hold private keys, sign messages, submit transactions or approve spending.
 - Permit2 PermitSingle and PermitBatch signatures are independently verified; contract-wallet checks require an EIP-1271 RPC response. Missing verification fails closed.
