@@ -133,7 +133,7 @@ export function decodePermit2Command(
     ),
     input,
   );
-  // 批量 transferFrom 的接收地址按原值传入，Router 不替换 0x01/0x02 占位地址。
+  // Batch transferFrom recipients are literal; the Router does not resolve the 0x01/0x02 placeholders.
   return {
     kind: "authorization",
     index,
@@ -172,7 +172,7 @@ export function permit2Digest(permit: Permit2Permit, chainId: number): Hex {
   }));
   if (permit.type === "PermitSingle" && details.length !== 1)
     throw new Error("PermitSingle needs exactly one detail");
-  // Permit2 的 EIP-712 domain 没有 version 字段。
+  // The Permit2 EIP-712 domain does not include a version field.
   return hashTypedData({
     domain: { name: "Permit2", chainId, verifyingContract: BASE_PERMIT2 },
     types,
@@ -317,7 +317,7 @@ export async function verifyPermit2(
         let valid = false;
         if (code && code !== "0x") {
           signatureMethod = "eip1271";
-          // 显式使用 Permit2 作为 caller，与链上验签调用上下文保持一致。
+          // Use Permit2 as the caller to match the on-chain signature verification context.
           try {
             valid =
               (await client.readContract({
@@ -449,7 +449,7 @@ export async function verifyPermit2(
       ...(signatureMethod ? { signatureMethod } : {}),
       ...(recoveredSigner ? { recoveredSigner } : {}),
     });
-    // 失败命令不会提供可供后续命令使用的新授权。
+    // A failed command cannot provide a new authorization to later commands.
     if (findings.length) state.clear();
   }
   try {

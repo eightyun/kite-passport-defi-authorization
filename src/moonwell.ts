@@ -78,7 +78,7 @@ export async function preflightMoonwell(
           ? transaction.from
           : (action.beneficiary as Address);
       const params = { address: action.market, abi: marketAbi, ...atBlock };
-      // 逐项读取，避免向公共 RPC 瞬间发送多次状态查询。
+      // Read entries sequentially to avoid bursting concurrent state queries at public RPC endpoints.
       const { result: rate } = await client.simulateContract({
         ...params,
         functionName: "exchangeRateCurrent",
@@ -114,7 +114,7 @@ export async function preflightMoonwell(
         controller.toLowerCase() !== BASE_MOONWELL_COMPTROLLER.toLowerCase()
       )
         throw new Error("Invalid market metadata");
-      // 同一市场可能在 enterMarkets 中重复出现，后续记录沿用先前的成员状态。
+      // A market may appear more than once in enterMarkets; later entries reuse the previous membership state.
       const previous = [...exposures]
         .reverse()
         .find(
@@ -132,7 +132,7 @@ export async function preflightMoonwell(
           : action.amount === undefined
             ? 0n
             : BigInt(action.amount.value);
-      // 按合约的 1e18 定点数与向下取整规则计算，不能用人类可读的小数单位直接相除。
+      // Match the contract's 1e18 fixed-point arithmetic and floor rounding instead of dividing display units.
       if (action.operation === "supply") {
         if (raw === undefined)
           throw new Error("Mint does not support an all sentinel");

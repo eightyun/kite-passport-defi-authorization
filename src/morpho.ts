@@ -54,7 +54,7 @@ export async function preflightMorpho(
       if (candidate.kind !== "morpho") continue;
       const action = candidate;
       const args = { address: BASE_MORPHO, abi: morphoStateAbi, blockNumber: block.number } as const;
-      // 所有读取固定在同一区块，避免账户状态与市场状态来自不同高度。
+      // Pin every read to one block so account and market state cannot come from different heights.
       const actualParams = await client.readContract({ ...args, functionName: "idToMarketParams", args: [action.marketId] });
       if (!paramsMatch(action, actualParams)) {
         return { transactionFingerprint: fingerprint, status: "invalid", exposures: [], error: "Morpho market parameters do not match the canonical market ID." };

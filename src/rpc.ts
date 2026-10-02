@@ -8,7 +8,7 @@ export function rpcTransport(url: string) {
         try {
           return await upstream.request(args);
         } catch (error) {
-          // 部分 Base RPC 使用非标准限流码；只将明确的限流错误映射为可退避重试的错误。
+          // Some Base RPC providers use non-standard rate-limit codes; retry only explicit throttling errors.
           if (
             error instanceof RpcRequestError &&
             error.code === -32016 &&
