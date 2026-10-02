@@ -133,16 +133,16 @@ Implemented rejection reason codes include:
 
 ## Real transaction vectors
 
-The repository includes 30 raw Base mainnet transaction envelopes with immutable explorer provenance. A transaction can prove several decoded actions.
+The repository includes 31 raw Base mainnet transaction envelopes with immutable explorer provenance. A transaction can prove several decoded actions.
 
 | Protocol | Real-vector coverage | Vector count |
 |---|---|---:|
-| Uniswap and Universal Router | v2/v3/v4 exact input and output, single-hop and multi-hop routes, v4 settle/take/sweep, Permit2 single permit/transfer, Router wrap/unwrap/sweep/transfer | 12 |
+| Uniswap and Universal Router | v2/v3/v4 exact input and output, single-hop and multi-hop routes, native-input and native-output v4 swaps, v4 settle/take/sweep, Permit2 single permit/transfer, Router wrap/unwrap/sweep/transfer | 13 |
 | Aerodrome | token-to-token, native-to-token and token-to-native exact-input swaps | 3 |
 | Moonwell | supply, underlying withdrawal, receipt redemption, borrow, direct repay, repay on behalf, collateral enable/disable and a protocol-level rejection | 9 |
 | Morpho | supply, withdraw, borrow, repay and collateral supply/withdraw | 6 |
 
-[`fixtures/operation-coverage.json`](fixtures/operation-coverage.json) maps every operation to its fixture and records the expected policy and historical simulation outcomes. Permit2 batch permit/transfer and Uniswap v4 action-level wrap/unwrap remain deterministic test vectors because no matching top-level call to the registered Base Router is included in the observed transaction sample; they are not presented as real transactions.
+[`fixtures/operation-coverage.json`](fixtures/operation-coverage.json) maps every operation to its fixture and records the expected policy and historical simulation outcomes. Uniswap v4 native-currency swaps are represented directly by the zero address and have real vectors in both directions; they do not require wrapping. Permit2 batch permit/transfer and the separate v4 action-level WRAP/UNWRAP commands remain deterministic test vectors because no matching top-level call to the registered Base Router is included in the observed transaction sample; they are not presented as real transactions.
 
 Each evidence simulation replays the call against the block immediately before the observed transaction. Set `BASE_RPC_URL` to an archive-capable Base endpoint when regenerating evidence.
 

@@ -34,7 +34,13 @@
     },
     {
       "fixture": "uniswap-v4-exact-input.base.json",
-      "operations": ["uniswap-v4-exact-input-single", "uniswap-v4-settle", "uniswap-v4-take"],
+      "operations": ["uniswap-v4-exact-input-single", "uniswap-v4-native-input", "uniswap-v4-settle", "uniswap-v4-take"],
+      "expectedDecision": "pass",
+      "expectedSimulation": "pass"
+    },
+    {
+      "fixture": "uniswap-v4-native-output.base.json",
+      "operations": ["uniswap-v4-exact-input-single", "uniswap-v4-native-output", "uniswap-v4-settle", "uniswap-v4-take"],
       "expectedDecision": "pass",
       "expectedSimulation": "pass"
     },
@@ -46,7 +52,7 @@
     },
     {
       "fixture": "uniswap-v4-exact-output-single.base.json",
-      "operations": ["uniswap-v4-exact-output-single", "uniswap-v4-settle", "uniswap-v4-take", "uniswap-v4-sweep"],
+      "operations": ["uniswap-v4-exact-output-single", "uniswap-v4-native-input", "uniswap-v4-settle", "uniswap-v4-take", "uniswap-v4-sweep"],
       "expectedDecision": "pass",
       "expectedSimulation": "pass"
     },
@@ -195,9 +201,9 @@
       "reason": "No matching top-level call to the registered Base Universal Router is included in the observed transaction sample."
     },
     {
-      "operation": "uniswap-v4-wrap-unwrap",
+      "operation": "uniswap-v4-explicit-wrap-unwrap-actions",
       "test": "tests/operations.test.ts",
-      "reason": "No matching top-level call to the registered Base Universal Router is included in the observed transaction sample."
+      "reason": "Native-input and native-output swaps have real vectors, but no matching v4 action-level WRAP or UNWRAP command is included in the observed transaction sample."
     }
   ]
 }

@@ -2,543 +2,543 @@ TAP version 13
 # Subtest: decodes a real Aerodrome route with factory and slippage bounds
 ok 1 - decodes a real Aerodrome route with factory and slippage bounds
   ---
-  duration_ms: 5.147375
+  duration_ms: 19.972292
   type: 'test'
   ...
 # Subtest: rejects Aerodrome unsafe swaps and unapproved factories
 ok 2 - rejects Aerodrome unsafe swaps and unapproved factories
   ---
-  duration_ms: 3.49775
+  duration_ms: 5.24425
   type: 'test'
   ...
 # Subtest: normalizes Aerodrome native input and output routes
 ok 3 - normalizes Aerodrome native input and output routes
   ---
-  duration_ms: 2.537083
+  duration_ms: 0.95175
   type: 'test'
   ...
 # Subtest: decodes all supported Morpho Blue position operations
 ok 4 - decodes all supported Morpho Blue position operations
   ---
-  duration_ms: 1.692167
+  duration_ms: 1.288708
   type: 'test'
   ...
 # Subtest: resolves Morpho share deltas from fixed-block simulation return data
 ok 5 - resolves Morpho share deltas from fixed-block simulation return data
   ---
-  duration_ms: 3.158375
+  duration_ms: 3.38625
   type: 'test'
   ...
 # Subtest: decodes a real Morpho market and rejects a market outside the allowlist
 ok 6 - decodes a real Morpho market and rejects a market outside the allowlist
   ---
-  duration_ms: 1.971792
+  duration_ms: 4.07475
   type: 'test'
   ...
 # Subtest: decodes a real Uniswap v3 multi-hop exact-input transaction
 ok 7 - decodes a real Uniswap v3 multi-hop exact-input transaction
   ---
-  duration_ms: 12.812125
+  duration_ms: 20.263375
   type: 'test'
   ...
 # Subtest: decodes a real Uniswap v4 swap and its settlement actions
 ok 8 - decodes a real Uniswap v4 swap and its settlement actions
   ---
-  duration_ms: 3.691209
+  duration_ms: 6.5685
   type: 'test'
   ...
 # Subtest: decodes real Moonwell supply and withdraw transactions
 ok 9 - decodes real Moonwell supply and withdraw transactions
   ---
-  duration_ms: 1.718959
+  duration_ms: 1.591417
   type: 'test'
   ...
 # Subtest: retains verifiable provenance for every real transaction vector
 ok 10 - retains verifiable provenance for every real transaction vector
   ---
-  duration_ms: 18.706833
+  duration_ms: 22.025833
   type: 'test'
   ...
 # Subtest: maps every real vector to an auditable operation coverage entry
 ok 11 - maps every real vector to an auditable operation coverage entry
   ---
-  duration_ms: 19.258291
+  duration_ms: 19.518792
   type: 'test'
   ...
 # Subtest: Moonwell distinguishes receipt units, underlying units and method-specific all sentinels
 ok 12 - Moonwell distinguishes receipt units, underlying units and method-specific all sentinels
   ---
-  duration_ms: 5.614375
+  duration_ms: 2.305542
   type: 'test'
   ...
 # Subtest: Moonwell compares converted underlying, not receipt units, with policy limits
 ok 13 - Moonwell compares converted underlying, not receipt units, with policy limits
   ---
-  duration_ms: 92.844125
+  duration_ms: 110.769208
   type: 'test'
   ...
 # Subtest: Moonwell also rejects small receipt quantities representing large underlying amounts
 ok 14 - Moonwell also rejects small receipt quantities representing large underlying amounts
   ---
-  duration_ms: 27.282625
+  duration_ms: 24.302292
   type: 'test'
   ...
 # Subtest: Moonwell mint and redeemUnderlying follow contract floor rounding
 ok 15 - Moonwell mint and redeemUnderlying follow contract floor rounding
   ---
-  duration_ms: 69.662125
+  duration_ms: 71.057333
   type: 'test'
   ...
 # Subtest: Moonwell all withdrawals and repayments resolve balances before applying caps
 ok 16 - Moonwell all withdrawals and repayments resolve balances before applying caps
   ---
-  duration_ms: 93.957459
+  duration_ms: 84.921583
   type: 'test'
   ...
 # Subtest: Moonwell rejects excess repayment or redemption instead of clamping amounts
 ok 17 - Moonwell rejects excess repayment or redemption instead of clamping amounts
   ---
-  duration_ms: 41.87225
+  duration_ms: 39.37325
   type: 'test'
   ...
 # Subtest: Moonwell tracks borrow and repayment-on-behalf debt accounts
 ok 18 - Moonwell tracks borrow and repayment-on-behalf debt accounts
   ---
-  duration_ms: 46.971083
+  duration_ms: 41.730459
   type: 'test'
   ...
 # Subtest: Moonwell collateral changes report exposure without claiming token movement
 ok 19 - Moonwell collateral changes report exposure without claiming token movement
   ---
-  duration_ms: 43.614125
+  duration_ms: 42.288166
   type: 'test'
   ...
 # Subtest: Moonwell requires verified state even when general simulation is optional
 ok 20 - Moonwell requires verified state even when general simulation is optional
   ---
-  duration_ms: 19.761375
+  duration_ms: 20.287
   type: 'test'
   ...
 # Subtest: Moonwell rejects state reuse for another transaction or block
 ok 21 - Moonwell rejects state reuse for another transaction or block
   ---
-  duration_ms: 22.956
+  duration_ms: 20.21725
   type: 'test'
   ...
 # Subtest: Moonwell treats mint protocol error/malformed return 0x00000000000000 as failure
 ok 22 - Moonwell treats mint protocol error/malformed return 0x00000000000000 as failure
   ---
-  duration_ms: 4.939792
+  duration_ms: 4.691042
   type: 'test'
   ...
 # Subtest: Moonwell treats exitMarket protocol error/malformed return 0x00000000000000 as failure
 ok 23 - Moonwell treats exitMarket protocol error/malformed return 0x00000000000000 as failure
   ---
-  duration_ms: 5.177666
+  duration_ms: 4.514333
   type: 'test'
   ...
 # Subtest: Moonwell treats enterMarkets protocol error/malformed return 0x00000000000000 as failure
 ok 24 - Moonwell treats enterMarkets protocol error/malformed return 0x00000000000000 as failure
   ---
-  duration_ms: 4.995375
+  duration_ms: 4.270667
   type: 'test'
   ...
 # Subtest: Moonwell treats enterMarkets protocol error/malformed return 0x00000000000000 as failure
 ok 25 - Moonwell treats enterMarkets protocol error/malformed return 0x00000000000000 as failure
   ---
-  duration_ms: 4.773292
+  duration_ms: 4.644
   type: 'test'
   ...
 # Subtest: Moonwell treats mint protocol error/malformed return 0x as failure
 ok 26 - Moonwell treats mint protocol error/malformed return 0x as failure
   ---
-  duration_ms: 4.945208
+  duration_ms: 5.074
   type: 'test'
   ...
 # Subtest: Moonwell treats exitMarket protocol error/malformed return 0x01 as failure
 ok 27 - Moonwell treats exitMarket protocol error/malformed return 0x01 as failure
   ---
-  duration_ms: 5.389125
+  duration_ms: 5.001958
   type: 'test'
   ...
 # Subtest: Moonwell treats enterMarkets protocol error/malformed return 0x as failure
 ok 28 - Moonwell treats enterMarkets protocol error/malformed return 0x as failure
   ---
-  duration_ms: 6.024708
+  duration_ms: 5.455708
   type: 'test'
   ...
 # Subtest: Moonwell collateral markets must be registered and explicitly allowed
 ok 29 - Moonwell collateral markets must be registered and explicitly allowed
   ---
-  duration_ms: 0.661417
+  duration_ms: 0.679667
   type: 'test'
   ...
 # Subtest: direct policy callers apply the same Moonwell conversion and caps
 ok 30 - direct policy callers apply the same Moonwell conversion and caps
   ---
-  duration_ms: 21.035875
+  duration_ms: 22.392667
   type: 'test'
   ...
 # Subtest: decodes Uniswap v2 exact-output amounts in semantic order
 ok 31 - decodes Uniswap v2 exact-output amounts in semantic order
   ---
-  duration_ms: 11.612333
+  duration_ms: 5.195125
   type: 'test'
   ...
 # Subtest: reverses a Uniswap v3 exact-output path into execution order
 ok 32 - reverses a Uniswap v3 exact-output path into execution order
   ---
-  duration_ms: 2.252375
+  duration_ms: 0.98475
   type: 'test'
   ...
 # Subtest: reports Universal Router wrap, sweep and transfer balance bounds
 ok 33 - reports Universal Router wrap, sweep and transfer balance bounds
   ---
-  duration_ms: 0.983708
+  duration_ms: 1.129417
   type: 'test'
   ...
 # Subtest: reports Uniswap v4 settlement and take balance bounds
 ok 34 - reports Uniswap v4 settlement and take balance bounds
   ---
-  duration_ms: 1.935583
+  duration_ms: 0.584125
   type: 'test'
   ...
 # Subtest: decodes Uniswap v4 wrap and unwrap actions
 ok 35 - decodes Uniswap v4 wrap and unwrap actions
   ---
-  duration_ms: 1.329584
+  duration_ms: 0.307291
   type: 'test'
   ...
 # Subtest: decodes a vanilla Uniswap v4 exact-output single-pool swap
 ok 36 - decodes a vanilla Uniswap v4 exact-output single-pool swap
   ---
-  duration_ms: 0.830666
+  duration_ms: 3.46575
   type: 'test'
   ...
 # Subtest: decodes Moonwell borrow and repay-on-behalf operations
 ok 37 - decodes Moonwell borrow and repay-on-behalf operations
   ---
-  duration_ms: 0.484917
+  duration_ms: 1.219125
   type: 'test'
   ...
 # Subtest: decodes Moonwell collateral enablement for every requested market
 ok 38 - decodes Moonwell collateral enablement for every requested market
   ---
-  duration_ms: 0.339875
+  duration_ms: 0.392459
   type: 'test'
   ...
 # Subtest: returns a rejectable intent for an unregistered target
 ok 39 - returns a rejectable intent for an unregistered target
   ---
-  duration_ms: 0.0955
+  duration_ms: 0.092958
   type: 'test'
   ...
 # Subtest: marks Universal Router allow-revert commands as unsupported
 ok 40 - marks Universal Router allow-revert commands as unsupported
   ---
-  duration_ms: 0.347458
+  duration_ms: 0.348916
   type: 'test'
   ...
 # Subtest: independently recovers the signer from an unmodified real Base Permit2 transaction
 ok 41 - independently recovers the signer from an unmodified real Base Permit2 transaction
   ---
-  duration_ms: 11.289416
+  duration_ms: 12.792542
   type: 'test'
   ...
 # Subtest: accepts an EOA permit only with nonce verification and matching full-transaction simulation
 ok 42 - accepts an EOA permit only with nonce verification and matching full-transaction simulation
   ---
-  duration_ms: 56.468291
+  duration_ms: 49.298209
   type: 'test'
   ...
 # Subtest: validates EIP-2098 compact signatures with the Permit2 domain
 ok 43 - validates EIP-2098 compact signatures with the Permit2 domain
   ---
-  duration_ms: 2.149875
+  duration_ms: 2.457375
   type: 'test'
   ...
 # Subtest: verifies PermitBatch and rejects a tampered batch member
 ok 44 - verifies PermitBatch and rejects a tampered batch member
   ---
-  duration_ms: 48.725667
+  duration_ms: 46.633291
   type: 'test'
   ...
 # Subtest: checks contract-wallet EIP-1271 magic value at the same block and caller as Permit2
 ok 45 - checks contract-wallet EIP-1271 magic value at the same block and caller as Permit2
   ---
-  duration_ms: 39.07975
+  duration_ms: 33.640875
   type: 'test'
   ...
 # Subtest: applies earlier permits and cumulative transfer consumption in Router order
 ok 46 - applies earlier permits and cumulative transfer consumption in Router order
   ---
-  duration_ms: 63.197208
+  duration_ms: 59.882583
   type: 'test'
   ...
 # Subtest: batch transfers retain literal recipients, validate owners and report balance changes
 ok 47 - batch transfers retain literal recipients, validate owners and report balance changes
   ---
-  duration_ms: 17.238625
+  duration_ms: 15.937958
   type: 'test'
   ...
 # Subtest: Permit2 rejection paths cover authorization constraints and missing state
     # Subtest: wrong spender
     ok 1 - wrong spender
       ---
-      duration_ms: 18.524417
+      duration_ms: 18.591166
       type: 'test'
       ...
     # Subtest: expired signature
     ok 2 - expired signature
       ---
-      duration_ms: 19.884042
+      duration_ms: 16.989125
       type: 'test'
       ...
     # Subtest: excessive signature lifetime
     ok 3 - excessive signature lifetime
       ---
-      duration_ms: 17.078083
+      duration_ms: 17.601875
       type: 'test'
       ...
     # Subtest: expired allowance
     ok 4 - expired allowance
       ---
-      duration_ms: 20.291417
+      duration_ms: 17.346166
       type: 'test'
       ...
     # Subtest: excessive allowance lifetime
     ok 5 - excessive allowance lifetime
       ---
-      duration_ms: 16.6745
+      duration_ms: 16.1125
       type: 'test'
       ...
     # Subtest: unknown token
     ok 6 - unknown token
       ---
-      duration_ms: 18.952375
+      duration_ms: 16.986542
       type: 'test'
       ...
     # Subtest: missing cap
     ok 7 - missing cap
       ---
-      duration_ms: 18.420125
+      duration_ms: 17.149833
       type: 'test'
       ...
     # Subtest: unlimited grant
     ok 8 - unlimited grant
       ---
-      duration_ms: 18.738333
+      duration_ms: 17.729375
       type: 'test'
       ...
     # Subtest: used nonce
     ok 9 - used nonce
       ---
-      duration_ms: 17.755667
+      duration_ms: 16.822625
       type: 'test'
       ...
     # Subtest: wrong chain
     ok 10 - wrong chain
       ---
-      duration_ms: 3.192125
+      duration_ms: 3.341583
       type: 'test'
       ...
     # Subtest: unavailable state
     ok 11 - unavailable state
       ---
-      duration_ms: 18.979958
+      duration_ms: 18.057708
       type: 'test'
       ...
     # Subtest: full call reverted
     ok 12 - full call reverted
       ---
-      duration_ms: 17.753583
+      duration_ms: 15.363625
       type: 'test'
       ...
     # Subtest: empty permit batch
     ok 13 - empty permit batch
       ---
-      duration_ms: 14.910042
+      duration_ms: 14.833333
       type: 'test'
       ...
     # Subtest: transfer exceeds allowance
     ok 14 - transfer exceeds allowance
       ---
-      duration_ms: 13.271625
+      duration_ms: 17.1535
       type: 'test'
       ...
     # Subtest: transfer allowance expired
     ok 15 - transfer allowance expired
       ---
-      duration_ms: 15.11075
+      duration_ms: 14.077791
       type: 'test'
       ...
     # Subtest: transfer to stranger
     ok 16 - transfer to stranger
       ---
-      duration_ms: 12.813916
+      duration_ms: 13.411166
       type: 'test'
       ...
     1..16
 ok 48 - Permit2 rejection paths cover authorization constraints and missing state
   ---
-  duration_ms: 264.290375
+  duration_ms: 253.559458
   type: 'test'
   ...
 # Subtest: a decoded Permit2 action cannot pass the offline reporting API without verification
 ok 49 - a decoded Permit2 action cannot pass the offline reporting API without verification
   ---
-  duration_ms: 1.313166
+  duration_ms: 1.05425
   type: 'test'
   ...
 # Subtest: rejects a split-transfer attempt to bypass the per-transaction amount limit
 ok 50 - rejects a split-transfer attempt to bypass the per-transaction amount limit
   ---
-  duration_ms: 14.059167
+  duration_ms: 13.158375
   type: 'test'
   ...
 # Subtest: zero expiration takes the block timestamp and repeated batch nonces cannot pass
 ok 51 - zero expiration takes the block timestamp and repeated batch nonces cannot pass
   ---
-  duration_ms: 36.7125
+  duration_ms: 36.212083
   type: 'test'
   ...
 # Subtest: invalid EOA signature bytes and a mismatched EIP-712 domain fail closed
 ok 52 - invalid EOA signature bytes and a mismatched EIP-712 domain fail closed
   ---
-  duration_ms: 35.302583
+  duration_ms: 31.141458
   type: 'test'
   ...
 # Subtest: successfully decodes and checks a batch transfer using existing allowances
 ok 53 - successfully decodes and checks a batch transfer using existing allowances
   ---
-  duration_ms: 14.147333
+  duration_ms: 12.8645
   type: 'test'
   ...
 # Subtest: passes an allowed vanilla Uniswap v4 transaction
 ok 54 - passes an allowed vanilla Uniswap v4 transaction
   ---
-  duration_ms: 17.164916
+  duration_ms: 26.874084
   type: 'test'
   ...
 # Subtest: covers explicit policy rejection paths
     # Subtest: unsupported chain
     ok 1 - unsupported chain
       ---
-      duration_ms: 0.563041
+      duration_ms: 0.724208
       type: 'test'
       ...
     # Subtest: unauthorized target
     ok 2 - unauthorized target
       ---
-      duration_ms: 0.117584
+      duration_ms: 0.512
       type: 'test'
       ...
     # Subtest: unknown action
     ok 3 - unknown action
       ---
-      duration_ms: 0.548083
+      duration_ms: 0.103334
       type: 'test'
       ...
     # Subtest: unapproved token
     ok 4 - unapproved token
       ---
-      duration_ms: 1.393917
+      duration_ms: 0.084583
       type: 'test'
       ...
     # Subtest: unapproved recipient
     ok 5 - unapproved recipient
       ---
-      duration_ms: 0.12475
+      duration_ms: 0.075834
       type: 'test'
       ...
     # Subtest: amount limit
     ok 6 - amount limit
       ---
-      duration_ms: 0.1
+      duration_ms: 0.081542
       type: 'test'
       ...
     # Subtest: native value limit
     ok 7 - native value limit
       ---
-      duration_ms: 0.08425
+      duration_ms: 0.061625
       type: 'test'
       ...
     # Subtest: expired deadline
     ok 8 - expired deadline
       ---
-      duration_ms: 0.086791
+      duration_ms: 0.086292
       type: 'test'
       ...
     # Subtest: deadline too far
     ok 9 - deadline too far
       ---
-      duration_ms: 0.898791
+      duration_ms: 0.089459
       type: 'test'
       ...
     # Subtest: zero minimum output
     ok 10 - zero minimum output
       ---
-      duration_ms: 0.099541
+      duration_ms: 0.059125
       type: 'test'
       ...
     # Subtest: unapproved v4 hook
     ok 11 - unapproved v4 hook
       ---
-      duration_ms: 0.066125
+      duration_ms: 0.062
       type: 'test'
       ...
     # Subtest: dynamic v4 fee
     ok 12 - dynamic v4 fee
       ---
-      duration_ms: 0.04125
+      duration_ms: 0.045667
       type: 'test'
       ...
     # Subtest: borrow disabled
     ok 13 - borrow disabled
       ---
-      duration_ms: 0.102292
+      duration_ms: 0.145791
       type: 'test'
       ...
     # Subtest: unverified Permit2 authorization
     ok 14 - unverified Permit2 authorization
       ---
-      duration_ms: 0.050708
+      duration_ms: 0.563875
       type: 'test'
       ...
     # Subtest: failed simulation
     ok 15 - failed simulation
       ---
-      duration_ms: 0.036542
+      duration_ms: 0.058416
       type: 'test'
       ...
     1..15
 ok 55 - covers explicit policy rejection paths
   ---
-  duration_ms: 8.511917
+  duration_ms: 18.254541
   type: 'test'
   ...
 # Subtest: requires review when mandatory simulation was not attempted
 ok 56 - requires review when mandatory simulation was not attempted
   ---
-  duration_ms: 4.763708
+  duration_ms: 4.397292
   type: 'test'
   ...
 # Subtest: RPC recover: retries only rate limits with a bounded budget
 ok 57 - RPC recover: retries only rate limits with a bounded budget
   ---
-  duration_ms: 1045.621417
+  duration_ms: 1048.530708
   type: 'test'
   ...
 # Subtest: RPC exhaust: retries only rate limits with a bounded budget
 ok 58 - RPC exhaust: retries only rate limits with a bounded budget
   ---
-  duration_ms: 7038.181708
+  duration_ms: 7037.400583
   type: 'test'
   ...
 # Subtest: RPC business-error: retries only rate limits with a bounded budget
 ok 59 - RPC business-error: retries only rate limits with a bounded budget
   ---
-  duration_ms: 7.152708
+  duration_ms: 7.969917
   type: 'test'
   ...
 1..59
@@ -549,4 +549,4 @@ ok 59 - RPC business-error: retries only rate limits with a bounded budget
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 8676.464541
+# duration_ms 8685.018875

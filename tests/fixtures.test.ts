@@ -25,6 +25,16 @@ function operationLabels(
           : nativeOutput ? "aerodrome-token-to-native" : "aerodrome-token-to-token");
       } else {
         labels.add(`uniswap-${action.protocolVersion}-${action.mode}-${action.route.length > 1 ? "multihop" : "single"}`);
+        if (action.protocolVersion === "v4") {
+          const first = action.route[0];
+          const last = action.route.at(-1);
+          if (first?.tokenIn === "0x0000000000000000000000000000000000000000") {
+            labels.add("uniswap-v4-native-input");
+          }
+          if (last?.tokenOut === "0x0000000000000000000000000000000000000000") {
+            labels.add("uniswap-v4-native-output");
+          }
+        }
       }
     } else if (action.kind === "authorization") {
       if (action.permit) {
@@ -182,6 +192,8 @@ test("maps every real vector to an auditable operation coverage entry", async ()
     "uniswap-v4-exact-input-multihop",
     "uniswap-v4-exact-output-single",
     "uniswap-v4-exact-output-multihop",
+    "uniswap-v4-native-input",
+    "uniswap-v4-native-output",
     "permit2-single-permit",
     "permit2-single-transfer",
     "universal-router-wrap",

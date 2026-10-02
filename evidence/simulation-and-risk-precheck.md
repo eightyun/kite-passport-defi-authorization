@@ -31,9 +31,10 @@ Generated from Base mainnet transaction vectors. Each RPC simulation replays the
 | uniswap-v3-exact-input.base.json | uniswap | uniswap-v3-exact-input-multihop | 0x4ae30763adbc67dda8b268123961950390996252a8dade837358b5a35af7224c | pass | pass |
 | uniswap-v3-exact-output-single-multihop.base.json | uniswap | uniswap-v3-exact-output-single, uniswap-v3-exact-output-multihop, universal-router-wrap, universal-router-unwrap | 0x846797907326f4de54c5c829f1d30008d666b7246079449aeb1786a3aafb89c4 | pass | pass |
 | uniswap-v4-exact-input-multihop.base.json | uniswap | uniswap-v4-exact-input-multihop, uniswap-v4-settle, uniswap-v4-take | 0x1b0fa17a11b3af83549e255ba5d8a2b202b022b03cf9fa99f1b71348cd7da7d4 | reject | pass |
-| uniswap-v4-exact-input.base.json | uniswap | uniswap-v4-exact-input-single, uniswap-v4-settle, uniswap-v4-take | 0x05365bdae052690a649ccb3499c41dc029f4aed119dbf76a30abbc42dfef6e28 | pass | pass |
+| uniswap-v4-exact-input.base.json | uniswap | uniswap-v4-exact-input-single, uniswap-v4-native-input, uniswap-v4-settle, uniswap-v4-take | 0x05365bdae052690a649ccb3499c41dc029f4aed119dbf76a30abbc42dfef6e28 | pass | pass |
 | uniswap-v4-exact-output-multihop.base.json | uniswap | uniswap-v4-exact-output-multihop, uniswap-v4-settle, uniswap-v4-take | 0x910314f070ebdab4d4dfe593fe53a4ed23918d13f4d8eb7bbe81b02347895a9b | reject | pass |
-| uniswap-v4-exact-output-single.base.json | uniswap | uniswap-v4-exact-output-single, uniswap-v4-settle, uniswap-v4-take, uniswap-v4-sweep | 0x6b5a13a439a2c59dfc388980305159b849147a216d33c3fd091eb827c068654c | pass | pass |
+| uniswap-v4-exact-output-single.base.json | uniswap | uniswap-v4-exact-output-single, uniswap-v4-native-input, uniswap-v4-settle, uniswap-v4-take, uniswap-v4-sweep | 0x6b5a13a439a2c59dfc388980305159b849147a216d33c3fd091eb827c068654c | pass | pass |
+| uniswap-v4-native-output.base.json | uniswap | uniswap-v4-exact-input-single, uniswap-v4-native-output, uniswap-v4-settle, uniswap-v4-take | 0x5e9b223330444ba31a1dd820d069caa823c993b9144333f58db66f6db0210ab4 | pass | pass |
 
 ## Enforced controls
 
@@ -55,7 +56,7 @@ The machine-readable coverage manifest is [fixtures/operation-coverage.json](../
 
 - permit2-batch-permit: No matching top-level call to the registered Base Universal Router is included in the observed transaction sample. Test: `tests/permit2.test.ts`.
 - permit2-batch-transfer: No matching top-level call to the registered Base Universal Router is included in the observed transaction sample. Test: `tests/permit2.test.ts`.
-- uniswap-v4-wrap-unwrap: No matching top-level call to the registered Base Universal Router is included in the observed transaction sample. Test: `tests/operations.test.ts`.
+- uniswap-v4-explicit-wrap-unwrap-actions: Native-input and native-output swaps have real vectors, but no matching v4 action-level WRAP or UNWRAP command is included in the observed transaction sample. Test: `tests/operations.test.ts`.
 
 ## Balance-change interpretation
 
