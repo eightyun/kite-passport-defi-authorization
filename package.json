@@ -1,50 +1,53 @@
 {
-  "name": "@eightyun/kite-passport-defi-authorization",
-  "version": "0.1.0",
-  "description": "Auditable DeFi intent decoding and authorization policy checks for Kite Passport",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/eightyun/kite-passport-defi-authorization.git"
-  },
-  "homepage": "https://github.com/eightyun/kite-passport-defi-authorization#readme",
-  "bugs": {
-    "url": "https://github.com/eightyun/kite-passport-defi-authorization/issues"
-  },
-  "type": "module",
-  "license": "MIT",
-  "engines": {
-    "node": ">=20"
-  },
-  "bin": {
-    "kite-defi-auth": "dist/src/cli.js"
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/src/index.d.ts",
-      "import": "./dist/src/index.js"
+    "name": "@eightyun/kite-passport-defi-authorization",
+    "version": "0.1.0",
+    "description": "Auditable DeFi intent decoding and authorization policy checks for Kite Passport",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/eightyun/kite-passport-defi-authorization.git"
+    },
+    "homepage": "https://github.com/eightyun/kite-passport-defi-authorization#readme",
+    "bugs": {
+        "url": "https://github.com/eightyun/kite-passport-defi-authorization/issues"
+    },
+    "type": "module",
+    "license": "MIT",
+    "engines": {
+        "node": ">=20"
+    },
+    "bin": {
+        "kite-defi-auth": "dist/src/cli.js"
+    },
+    "exports": {
+        ".": {
+            "types": "./dist/src/index.d.ts",
+            "import": "./dist/src/index.js"
+        }
+    },
+    "files": [
+        "dist",
+        "schemas",
+        "config",
+        "README.md",
+        "LICENSE"
+    ],
+    "scripts": {
+        "build": "tsc -p tsconfig.build.json",
+        "check": "tsc -p tsconfig.json --noEmit",
+        "format": "prettier --write .",
+        "format:check": "prettier --check .",
+        "test": "tsx --test tests/**/*.test.ts",
+        "test:policy": "tsx --test tests/policy.test.ts",
+        "evidence": "tsx scripts/generate-evidence.ts",
+        "prepack": "npm run check && npm run build"
+    },
+    "dependencies": {
+        "viem": "^2.37.9"
+    },
+    "devDependencies": {
+        "@types/node": "^24.7.2",
+        "prettier": "^3.9.9",
+        "tsx": "^4.20.6",
+        "typescript": "^5.9.3"
     }
-  },
-  "files": [
-    "dist",
-    "schemas",
-    "config",
-    "README.md",
-    "LICENSE"
-  ],
-  "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "check": "tsc -p tsconfig.json --noEmit",
-    "test": "tsx --test tests/**/*.test.ts",
-    "test:policy": "tsx --test tests/policy.test.ts",
-    "evidence": "tsx scripts/generate-evidence.ts",
-    "prepack": "npm run check && npm run build"
-  },
-  "dependencies": {
-    "viem": "^2.37.9"
-  },
-  "devDependencies": {
-    "@types/node": "^24.7.2",
-    "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
-  }
 }

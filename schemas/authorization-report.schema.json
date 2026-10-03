@@ -1,342 +1,367 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/eightyun/kite-passport-defi-authorization/schemas/authorization-report.schema.json",
-  "title": "Kite Passport DeFi authorization report",
-  "type": "object",
-  "additionalProperties": false,
-  "required": [
-    "schemaVersion",
-    "generatedAt",
-    "transaction",
-    "intent",
-    "policy",
-    "simulation",
-    "finalDecision"
-  ],
-  "properties": {
-    "schemaVersion": { "const": "1.0" },
-    "generatedAt": { "type": "string", "format": "date-time" },
-    "transaction": { "type": "object" },
-    "intent": {
-      "type": "object",
-      "required": ["protocol", "actions", "expectedBalanceChanges", "warnings"]
-    },
-    "policy": {
-      "type": "object",
-      "required": ["outcome", "findings"],
-      "properties": {
-        "outcome": { "enum": ["pass", "reject", "review"] },
-        "findings": { "type": "array" }
-      }
-    },
-    "simulation": {
-      "type": "object",
-      "required": ["attempted", "success"]
-    },
-    "finalDecision": { "enum": ["pass", "reject", "review"] },
-    "moonwell": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "transactionFingerprint",
-        "status",
-        "exposures"
-      ],
-      "properties": {
-        "transactionFingerprint": {
-          "$ref": "#/$defs/hash"
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/eightyun/kite-passport-defi-authorization/schemas/authorization-report.schema.json",
+    "title": "Kite Passport DeFi authorization report",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["schemaVersion", "generatedAt", "transaction", "intent", "policy", "simulation", "finalDecision"],
+    "properties": {
+        "schemaVersion": { "const": "1.0" },
+        "generatedAt": { "type": "string", "format": "date-time" },
+        "transaction": { "type": "object" },
+        "intent": {
+            "type": "object",
+            "required": ["protocol", "actions", "expectedBalanceChanges", "warnings"]
         },
-        "status": {
-          "enum": [
-            "ready",
-            "unavailable",
-            "invalid"
-          ]
+        "policy": {
+            "type": "object",
+            "required": ["outcome", "findings"],
+            "properties": {
+                "outcome": { "enum": ["pass", "reject", "review"] },
+                "findings": { "type": "array" }
+            }
         },
-        "blockNumber": {
-          "type": "string",
-          "pattern": "^[0-9]+$"
+        "simulation": {
+            "type": "object",
+            "required": ["attempted", "success"]
         },
-        "blockHash": {
-          "$ref": "#/$defs/hash"
-        },
-        "blockTimestamp": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "error": {
-          "type": "string"
-        },
-        "exposures": {
-          "type": "array",
-          "items": {
+        "finalDecision": { "enum": ["pass", "reject", "review"] },
+        "moonwell": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "actionIndex",
-              "market",
-              "account",
-              "underlying",
-              "exchangeRateMantissa",
-              "underlyingAmount",
-              "receiptAmount",
-              "receiptBalanceBefore",
-              "receiptBalanceAfter",
-              "suppliedUnderlyingBefore",
-              "suppliedUnderlyingAfter",
-              "debtBefore",
-              "debtAfter",
-              "collateralUnderlyingBefore",
-              "collateralUnderlyingAfter",
-              "collateralEnabledBefore",
-              "collateralEnabledAfter"
-            ],
+            "required": ["transactionFingerprint", "status", "exposures"],
             "properties": {
-              "actionIndex": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "market": {
-                "$ref": "#/$defs/address"
-              },
-              "account": {
-                "$ref": "#/$defs/address"
-              },
-              "underlying": {
-                "$ref": "#/$defs/address"
-              },
-              "exchangeRateMantissa": {
-                "type": "string",
-                "pattern": "^[0-9]+$"
-              },
-              "underlyingAmount": {
-                "type": "string",
-                "pattern": "^[0-9]+$"
-              },
-              "receiptAmount": {
-                "type": "string",
-                "pattern": "^[0-9]+$"
-              },
-              "receiptBalanceBefore": {
-                "type": "string",
-                "pattern": "^[0-9]+$"
-              },
-              "receiptBalanceAfter": {
-                "type": "string",
-                "pattern": "^[0-9]+$"
-              },
-              "suppliedUnderlyingBefore": {
-                "type": "string",
-                "pattern": "^[0-9]+$"
-              },
-              "suppliedUnderlyingAfter": {
-                "type": "string",
-                "pattern": "^[0-9]+$"
-              },
-              "debtBefore": {
-                "type": "string",
-                "pattern": "^[0-9]+$"
-              },
-              "debtAfter": {
-                "type": "string",
-                "pattern": "^[0-9]+$"
-              },
-              "collateralUnderlyingBefore": {
-                "type": "string",
-                "pattern": "^[0-9]+$"
-              },
-              "collateralUnderlyingAfter": {
-                "type": "string",
-                "pattern": "^[0-9]+$"
-              },
-              "collateralEnabledBefore": {
-                "type": "boolean"
-              },
-              "collateralEnabledAfter": {
-                "type": "boolean"
-              }
-            }
-          }
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "status": {
-                "const": "ready"
-              }
-            }
-          },
-          "then": {
-            "required": [
-              "blockNumber",
-              "blockHash",
-              "blockTimestamp"
-            ],
-            "properties": {
-              "exposures": {
-                "type": "array",
-                "minItems": 1
-              }
-            }
-          }
-        }
-      ]
-    },
-    "morpho": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["transactionFingerprint", "status", "exposures"],
-      "properties": {
-        "transactionFingerprint": { "$ref": "#/$defs/hash" },
-        "status": { "enum": ["ready", "unavailable", "invalid"] },
-        "blockNumber": { "type": "string", "pattern": "^[0-9]+$" },
-        "blockHash": { "$ref": "#/$defs/hash" },
-        "blockTimestamp": { "type": "integer", "minimum": 0 },
-        "error": { "type": "string" },
-        "exposures": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "actionIndex", "marketId", "account", "loanToken", "collateralToken",
-              "operation", "assets", "shares", "supplySharesBefore", "supplySharesAfter",
-              "borrowSharesBefore", "borrowSharesAfter", "collateralBefore", "collateralAfter",
-              "totalSupplyAssets", "totalSupplyShares", "totalBorrowAssets", "totalBorrowShares"
-            ],
-            "properties": {
-              "actionIndex": { "type": "integer", "minimum": 0 },
-              "marketId": { "$ref": "#/$defs/hash" },
-              "account": { "$ref": "#/$defs/address" },
-              "loanToken": { "$ref": "#/$defs/address" },
-              "collateralToken": { "$ref": "#/$defs/address" },
-              "operation": { "enum": ["supply", "withdraw", "borrow", "repay", "supply-collateral", "withdraw-collateral"] },
-              "assets": { "$ref": "#/$defs/integerString" },
-              "shares": { "$ref": "#/$defs/integerString" },
-              "supplySharesBefore": { "$ref": "#/$defs/integerString" },
-              "supplySharesAfter": { "$ref": "#/$defs/integerString" },
-              "borrowSharesBefore": { "$ref": "#/$defs/integerString" },
-              "borrowSharesAfter": { "$ref": "#/$defs/integerString" },
-              "collateralBefore": { "$ref": "#/$defs/integerString" },
-              "collateralAfter": { "$ref": "#/$defs/integerString" },
-              "totalSupplyAssets": { "$ref": "#/$defs/integerString" },
-              "totalSupplyShares": { "$ref": "#/$defs/integerString" },
-              "totalBorrowAssets": { "$ref": "#/$defs/integerString" },
-              "totalBorrowShares": { "$ref": "#/$defs/integerString" }
-            }
-          }
-        }
-      },
-      "allOf": [{
-        "if": { "properties": { "status": { "const": "ready" } } },
-        "then": {
-          "required": ["blockNumber", "blockHash", "blockTimestamp"],
-          "properties": { "exposures": { "type": "array", "minItems": 1 } }
-        }
-      }]
-    },
-    "avantis": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["transactionFingerprint", "status", "checks"],
-      "properties": {
-        "transactionFingerprint": { "$ref": "#/$defs/hash" },
-        "status": { "enum": ["ready", "unavailable", "invalid"] },
-        "blockNumber": { "$ref": "#/$defs/integerString" },
-        "blockHash": { "$ref": "#/$defs/hash" },
-        "blockTimestamp": { "type": "integer", "minimum": 0 },
-        "error": { "type": "string" },
-        "checks": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["actionIndex", "status", "trader", "nonce"],
-            "properties": {
-              "actionIndex": { "type": "integer", "minimum": 0 },
-              "status": { "enum": ["valid", "invalid", "unavailable"] },
-              "trader": { "$ref": "#/$defs/address" },
-              "signer": { "$ref": "#/$defs/address" },
-              "digest": { "$ref": "#/$defs/hash" },
-              "nonce": { "$ref": "#/$defs/integerString" },
-              "nonceUsed": { "type": "boolean" },
-              "delegated": { "type": "boolean" },
-              "delegationExpiry": { "$ref": "#/$defs/integerString" },
-              "error": { "type": "string" }
-            }
-          }
-        }
-      },
-      "allOf": [{
-        "if": { "properties": { "status": { "const": "ready" } } },
-        "then": { "required": ["blockNumber", "blockHash", "blockTimestamp"] }
-      }]
-    },
-    "permit2": {
-      "type": "object",
-      "required": ["transactionFingerprint", "contract", "checks"],
-      "additionalProperties": false,
-      "properties": {
-        "transactionFingerprint": { "$ref": "#/$defs/hash" },
-        "contract": { "$ref": "#/$defs/address" },
-        "blockNumber": { "type": "string", "pattern": "^[0-9]+$" },
-        "blockHash": { "$ref": "#/$defs/hash" },
-        "blockTimestamp": { "type": "integer", "minimum": 0 },
-        "checks": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["actionIndex", "status", "allowances", "expectedAllowanceUpdates", "findings"],
-            "properties": {
-              "actionIndex": { "type": "integer", "minimum": 0 },
-              "status": { "enum": ["valid", "invalid", "unavailable"] },
-              "signatureMethod": { "enum": ["eoa", "eip1271"] },
-              "digest": { "$ref": "#/$defs/hash" },
-              "recoveredSigner": { "$ref": "#/$defs/address" },
-              "allowances": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "required": ["token", "owner", "spender", "amount", "expiration", "nonce", "source"],
-                  "properties": {
-                    "token": { "$ref": "#/$defs/address" },
-                    "owner": { "$ref": "#/$defs/address" },
-                    "spender": { "$ref": "#/$defs/address" },
-                    "amount": { "type": "string", "pattern": "^[0-9]+$" },
-                    "expiration": { "type": "integer", "minimum": 0 },
-                    "nonce": { "type": "integer", "minimum": 0 },
-                    "source": { "enum": ["chain", "earlier-command"] }
-                  }
+                "transactionFingerprint": {
+                    "$ref": "#/$defs/hash"
+                },
+                "status": {
+                    "enum": ["ready", "unavailable", "invalid"]
+                },
+                "blockNumber": {
+                    "type": "string",
+                    "pattern": "^[0-9]+$"
+                },
+                "blockHash": {
+                    "$ref": "#/$defs/hash"
+                },
+                "blockTimestamp": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "error": {
+                    "type": "string"
+                },
+                "exposures": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "actionIndex",
+                            "market",
+                            "account",
+                            "underlying",
+                            "exchangeRateMantissa",
+                            "underlyingAmount",
+                            "receiptAmount",
+                            "receiptBalanceBefore",
+                            "receiptBalanceAfter",
+                            "suppliedUnderlyingBefore",
+                            "suppliedUnderlyingAfter",
+                            "debtBefore",
+                            "debtAfter",
+                            "collateralUnderlyingBefore",
+                            "collateralUnderlyingAfter",
+                            "collateralEnabledBefore",
+                            "collateralEnabledAfter"
+                        ],
+                        "properties": {
+                            "actionIndex": {
+                                "type": "integer",
+                                "minimum": 0
+                            },
+                            "market": {
+                                "$ref": "#/$defs/address"
+                            },
+                            "account": {
+                                "$ref": "#/$defs/address"
+                            },
+                            "underlying": {
+                                "$ref": "#/$defs/address"
+                            },
+                            "exchangeRateMantissa": {
+                                "type": "string",
+                                "pattern": "^[0-9]+$"
+                            },
+                            "underlyingAmount": {
+                                "type": "string",
+                                "pattern": "^[0-9]+$"
+                            },
+                            "receiptAmount": {
+                                "type": "string",
+                                "pattern": "^[0-9]+$"
+                            },
+                            "receiptBalanceBefore": {
+                                "type": "string",
+                                "pattern": "^[0-9]+$"
+                            },
+                            "receiptBalanceAfter": {
+                                "type": "string",
+                                "pattern": "^[0-9]+$"
+                            },
+                            "suppliedUnderlyingBefore": {
+                                "type": "string",
+                                "pattern": "^[0-9]+$"
+                            },
+                            "suppliedUnderlyingAfter": {
+                                "type": "string",
+                                "pattern": "^[0-9]+$"
+                            },
+                            "debtBefore": {
+                                "type": "string",
+                                "pattern": "^[0-9]+$"
+                            },
+                            "debtAfter": {
+                                "type": "string",
+                                "pattern": "^[0-9]+$"
+                            },
+                            "collateralUnderlyingBefore": {
+                                "type": "string",
+                                "pattern": "^[0-9]+$"
+                            },
+                            "collateralUnderlyingAfter": {
+                                "type": "string",
+                                "pattern": "^[0-9]+$"
+                            },
+                            "collateralEnabledBefore": {
+                                "type": "boolean"
+                            },
+                            "collateralEnabledAfter": {
+                                "type": "boolean"
+                            }
+                        }
+                    }
                 }
-              },
-              "expectedAllowanceUpdates": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "required": ["token", "spender", "beforeAmount", "authorizedAmount", "maximumExposureChange", "expiration"],
-                  "properties": {
-                    "token": { "$ref": "#/$defs/address" },
-                    "spender": { "$ref": "#/$defs/address" },
-                    "beforeAmount": { "type": "string", "pattern": "^[0-9]+$" },
-                    "authorizedAmount": { "type": "string", "pattern": "^[0-9]+$" },
-                    "maximumExposureChange": { "type": "string", "pattern": "^-?[0-9]+$" },
-                    "expiration": { "type": "integer", "minimum": 0 }
-                  }
+            },
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "status": {
+                                "const": "ready"
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": ["blockNumber", "blockHash", "blockTimestamp"],
+                        "properties": {
+                            "exposures": {
+                                "type": "array",
+                                "minItems": 1
+                            }
+                        }
+                    }
                 }
-              },
-              "findings": { "type": "array", "items": { "type": "object", "required": ["code", "message"] } }
+            ]
+        },
+        "morpho": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["transactionFingerprint", "status", "exposures"],
+            "properties": {
+                "transactionFingerprint": { "$ref": "#/$defs/hash" },
+                "status": { "enum": ["ready", "unavailable", "invalid"] },
+                "blockNumber": { "type": "string", "pattern": "^[0-9]+$" },
+                "blockHash": { "$ref": "#/$defs/hash" },
+                "blockTimestamp": { "type": "integer", "minimum": 0 },
+                "error": { "type": "string" },
+                "exposures": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "actionIndex",
+                            "marketId",
+                            "account",
+                            "loanToken",
+                            "collateralToken",
+                            "operation",
+                            "assets",
+                            "shares",
+                            "supplySharesBefore",
+                            "supplySharesAfter",
+                            "borrowSharesBefore",
+                            "borrowSharesAfter",
+                            "collateralBefore",
+                            "collateralAfter",
+                            "totalSupplyAssets",
+                            "totalSupplyShares",
+                            "totalBorrowAssets",
+                            "totalBorrowShares"
+                        ],
+                        "properties": {
+                            "actionIndex": { "type": "integer", "minimum": 0 },
+                            "marketId": { "$ref": "#/$defs/hash" },
+                            "account": { "$ref": "#/$defs/address" },
+                            "loanToken": { "$ref": "#/$defs/address" },
+                            "collateralToken": { "$ref": "#/$defs/address" },
+                            "operation": {
+                                "enum": [
+                                    "supply",
+                                    "withdraw",
+                                    "borrow",
+                                    "repay",
+                                    "supply-collateral",
+                                    "withdraw-collateral"
+                                ]
+                            },
+                            "assets": { "$ref": "#/$defs/integerString" },
+                            "shares": { "$ref": "#/$defs/integerString" },
+                            "supplySharesBefore": { "$ref": "#/$defs/integerString" },
+                            "supplySharesAfter": { "$ref": "#/$defs/integerString" },
+                            "borrowSharesBefore": { "$ref": "#/$defs/integerString" },
+                            "borrowSharesAfter": { "$ref": "#/$defs/integerString" },
+                            "collateralBefore": { "$ref": "#/$defs/integerString" },
+                            "collateralAfter": { "$ref": "#/$defs/integerString" },
+                            "totalSupplyAssets": { "$ref": "#/$defs/integerString" },
+                            "totalSupplyShares": { "$ref": "#/$defs/integerString" },
+                            "totalBorrowAssets": { "$ref": "#/$defs/integerString" },
+                            "totalBorrowShares": { "$ref": "#/$defs/integerString" }
+                        }
+                    }
+                }
+            },
+            "allOf": [
+                {
+                    "if": { "properties": { "status": { "const": "ready" } } },
+                    "then": {
+                        "required": ["blockNumber", "blockHash", "blockTimestamp"],
+                        "properties": { "exposures": { "type": "array", "minItems": 1 } }
+                    }
+                }
+            ]
+        },
+        "avantis": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["transactionFingerprint", "status", "checks"],
+            "properties": {
+                "transactionFingerprint": { "$ref": "#/$defs/hash" },
+                "status": { "enum": ["ready", "unavailable", "invalid"] },
+                "blockNumber": { "$ref": "#/$defs/integerString" },
+                "blockHash": { "$ref": "#/$defs/hash" },
+                "blockTimestamp": { "type": "integer", "minimum": 0 },
+                "error": { "type": "string" },
+                "checks": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["actionIndex", "status", "trader", "nonce"],
+                        "properties": {
+                            "actionIndex": { "type": "integer", "minimum": 0 },
+                            "status": { "enum": ["valid", "invalid", "unavailable"] },
+                            "trader": { "$ref": "#/$defs/address" },
+                            "signer": { "$ref": "#/$defs/address" },
+                            "digest": { "$ref": "#/$defs/hash" },
+                            "nonce": { "$ref": "#/$defs/integerString" },
+                            "nonceUsed": { "type": "boolean" },
+                            "delegated": { "type": "boolean" },
+                            "delegationExpiry": { "$ref": "#/$defs/integerString" },
+                            "error": { "type": "string" }
+                        }
+                    }
+                }
+            },
+            "allOf": [
+                {
+                    "if": { "properties": { "status": { "const": "ready" } } },
+                    "then": { "required": ["blockNumber", "blockHash", "blockTimestamp"] }
+                }
+            ]
+        },
+        "permit2": {
+            "type": "object",
+            "required": ["transactionFingerprint", "contract", "checks"],
+            "additionalProperties": false,
+            "properties": {
+                "transactionFingerprint": { "$ref": "#/$defs/hash" },
+                "contract": { "$ref": "#/$defs/address" },
+                "blockNumber": { "type": "string", "pattern": "^[0-9]+$" },
+                "blockHash": { "$ref": "#/$defs/hash" },
+                "blockTimestamp": { "type": "integer", "minimum": 0 },
+                "checks": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["actionIndex", "status", "allowances", "expectedAllowanceUpdates", "findings"],
+                        "properties": {
+                            "actionIndex": { "type": "integer", "minimum": 0 },
+                            "status": { "enum": ["valid", "invalid", "unavailable"] },
+                            "signatureMethod": { "enum": ["eoa", "eip1271"] },
+                            "digest": { "$ref": "#/$defs/hash" },
+                            "recoveredSigner": { "$ref": "#/$defs/address" },
+                            "allowances": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "required": [
+                                        "token",
+                                        "owner",
+                                        "spender",
+                                        "amount",
+                                        "expiration",
+                                        "nonce",
+                                        "source"
+                                    ],
+                                    "properties": {
+                                        "token": { "$ref": "#/$defs/address" },
+                                        "owner": { "$ref": "#/$defs/address" },
+                                        "spender": { "$ref": "#/$defs/address" },
+                                        "amount": { "type": "string", "pattern": "^[0-9]+$" },
+                                        "expiration": { "type": "integer", "minimum": 0 },
+                                        "nonce": { "type": "integer", "minimum": 0 },
+                                        "source": { "enum": ["chain", "earlier-command"] }
+                                    }
+                                }
+                            },
+                            "expectedAllowanceUpdates": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "required": [
+                                        "token",
+                                        "spender",
+                                        "beforeAmount",
+                                        "authorizedAmount",
+                                        "maximumExposureChange",
+                                        "expiration"
+                                    ],
+                                    "properties": {
+                                        "token": { "$ref": "#/$defs/address" },
+                                        "spender": { "$ref": "#/$defs/address" },
+                                        "beforeAmount": { "type": "string", "pattern": "^[0-9]+$" },
+                                        "authorizedAmount": { "type": "string", "pattern": "^[0-9]+$" },
+                                        "maximumExposureChange": { "type": "string", "pattern": "^-?[0-9]+$" },
+                                        "expiration": { "type": "integer", "minimum": 0 }
+                                    }
+                                }
+                            },
+                            "findings": {
+                                "type": "array",
+                                "items": { "type": "object", "required": ["code", "message"] }
+                            }
+                        }
+                    }
+                }
             }
-          }
         }
-      }
+    },
+    "$defs": {
+        "hash": { "type": "string", "pattern": "^0x[0-9a-fA-F]{64}$" },
+        "address": { "type": "string", "pattern": "^0x[0-9a-fA-F]{40}$" },
+        "integerString": { "type": "string", "pattern": "^[0-9]+$" }
     }
-  },
-  "$defs": {
-    "hash": { "type": "string", "pattern": "^0x[0-9a-fA-F]{64}$" },
-    "address": { "type": "string", "pattern": "^0x[0-9a-fA-F]{40}$" },
-    "integerString": { "type": "string", "pattern": "^[0-9]+$" }
-  }
 }

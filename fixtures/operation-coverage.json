@@ -1,227 +1,253 @@
 {
-  "schemaVersion": "1.0",
-  "chainId": 8453,
-  "vectors": [
-    {
-      "fixture": "uniswap-v2-exact-input-single.base.json",
-      "operations": ["uniswap-v2-exact-input-single", "universal-router-unwrap"],
-      "expectedDecision": "reject",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "uniswap-v2-exact-output-single.base.json",
-      "operations": ["uniswap-v2-exact-output-single", "universal-router-wrap", "universal-router-sweep", "universal-router-unwrap"],
-      "expectedDecision": "pass",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "uniswap-v3-exact-input-single.base.json",
-      "operations": ["uniswap-v3-exact-input-single", "universal-router-wrap"],
-      "expectedDecision": "pass",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "uniswap-v3-exact-input.base.json",
-      "operations": ["uniswap-v3-exact-input-multihop"],
-      "expectedDecision": "pass",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "uniswap-v3-exact-output-single-multihop.base.json",
-      "operations": ["uniswap-v3-exact-output-single", "uniswap-v3-exact-output-multihop", "universal-router-wrap", "universal-router-unwrap"],
-      "expectedDecision": "pass",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "uniswap-v4-exact-input.base.json",
-      "operations": ["uniswap-v4-exact-input-single", "uniswap-v4-native-input", "uniswap-v4-settle", "uniswap-v4-take"],
-      "expectedDecision": "pass",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "uniswap-v4-native-output.base.json",
-      "operations": ["uniswap-v4-exact-input-single", "uniswap-v4-native-output", "uniswap-v4-settle", "uniswap-v4-take"],
-      "expectedDecision": "pass",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "uniswap-v4-exact-input-multihop.base.json",
-      "operations": ["uniswap-v4-exact-input-multihop", "uniswap-v4-settle", "uniswap-v4-take"],
-      "expectedDecision": "reject",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "uniswap-v4-exact-output-single.base.json",
-      "operations": ["uniswap-v4-exact-output-single", "uniswap-v4-native-input", "uniswap-v4-settle", "uniswap-v4-take", "uniswap-v4-sweep"],
-      "expectedDecision": "pass",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "uniswap-v4-exact-output-multihop.base.json",
-      "operations": ["uniswap-v4-exact-output-multihop", "uniswap-v4-settle", "uniswap-v4-take"],
-      "expectedDecision": "reject",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "uniswap-permit2-usdc.base.json",
-      "operations": ["permit2-single-permit"],
-      "expectedDecision": "reject",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "uniswap-permit2-transfer.base.json",
-      "operations": ["permit2-single-transfer"],
-      "expectedDecision": "reject",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "uniswap-router-transfer.base.json",
-      "operations": ["universal-router-transfer", "universal-router-wrap"],
-      "expectedDecision": "reject",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "aerodrome-swap-usdc-aero.base.json",
-      "operations": ["aerodrome-token-to-token"],
-      "expectedDecision": "pass",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "aerodrome-native-to-token.base.json",
-      "operations": ["aerodrome-native-to-token"],
-      "expectedDecision": "reject",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "aerodrome-token-to-native.base.json",
-      "operations": ["aerodrome-token-to-native"],
-      "expectedDecision": "reject",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "moonwell-supply-usdc.base.json",
-      "operations": ["moonwell-supply"],
-      "expectedDecision": "pass",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "moonwell-withdraw-usdc.base.json",
-      "operations": ["moonwell-withdraw-underlying"],
-      "expectedDecision": "pass",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "moonwell-redeem-mtokens.base.json",
-      "operations": ["moonwell-redeem-receipts"],
-      "expectedDecision": "pass",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "moonwell-redeem-cash-rejection.base.json",
-      "operations": ["moonwell-redeem-protocol-rejection"],
-      "expectedDecision": "reject",
-      "expectedSimulation": "reject"
-    },
-    {
-      "fixture": "moonwell-borrow-usdc.base.json",
-      "operations": ["moonwell-borrow"],
-      "expectedDecision": "reject",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "moonwell-repay-usdc.base.json",
-      "operations": ["moonwell-repay"],
-      "expectedDecision": "pass",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "moonwell-repay-on-behalf-usdc.base.json",
-      "operations": ["moonwell-repay-on-behalf"],
-      "expectedDecision": "reject",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "moonwell-enable-collateral.base.json",
-      "operations": ["moonwell-enable-collateral"],
-      "expectedDecision": "pass",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "moonwell-disable-collateral.base.json",
-      "operations": ["moonwell-disable-collateral"],
-      "expectedDecision": "pass",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "morpho-supply-usdc.base.json",
-      "operations": ["morpho-supply"],
-      "expectedDecision": "pass",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "morpho-withdraw-usdc.base.json",
-      "operations": ["morpho-withdraw"],
-      "expectedDecision": "pass",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "morpho-borrow-usdc.base.json",
-      "operations": ["morpho-borrow"],
-      "expectedDecision": "reject",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "morpho-repay-usdc.base.json",
-      "operations": ["morpho-repay"],
-      "expectedDecision": "pass",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "morpho-supply-collateral-weth.base.json",
-      "operations": ["morpho-supply-collateral"],
-      "expectedDecision": "pass",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "morpho-withdraw-collateral-weth.base.json",
-      "operations": ["morpho-withdraw-collateral"],
-      "expectedDecision": "pass",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "avantis-open-usdc.base.json",
-      "operations": ["avantis-signed-open-usdc"],
-      "expectedDecision": "pass",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "avantis-close-usdc.base.json",
-      "operations": ["avantis-signed-close-usdc"],
-      "expectedDecision": "pass",
-      "expectedSimulation": "pass"
-    },
-    {
-      "fixture": "avantis-increase-coin.base.json",
-      "operations": ["avantis-signed-increase-coin-exposure"],
-      "expectedDecision": "pass",
-      "expectedSimulation": "pass"
-    }
-  ],
-  "deterministicOnly": [
-    {
-      "operation": "permit2-batch-permit",
-      "test": "tests/permit2.test.ts",
-      "reason": "No matching top-level call to the registered Base Universal Router is included in the observed transaction sample."
-    },
-    {
-      "operation": "permit2-batch-transfer",
-      "test": "tests/permit2.test.ts",
-      "reason": "No matching top-level call to the registered Base Universal Router is included in the observed transaction sample."
-    },
-    {
-      "operation": "uniswap-v4-explicit-wrap-unwrap-actions",
-      "test": "tests/operations.test.ts",
-      "reason": "Native-input and native-output swaps have real vectors, but no matching v4 action-level WRAP or UNWRAP command is included in the observed transaction sample."
-    }
-  ]
+    "schemaVersion": "1.0",
+    "chainId": 8453,
+    "vectors": [
+        {
+            "fixture": "uniswap-v2-exact-input-single.base.json",
+            "operations": ["uniswap-v2-exact-input-single", "universal-router-unwrap"],
+            "expectedDecision": "reject",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "uniswap-v2-exact-output-single.base.json",
+            "operations": [
+                "uniswap-v2-exact-output-single",
+                "universal-router-wrap",
+                "universal-router-sweep",
+                "universal-router-unwrap"
+            ],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "uniswap-v3-exact-input-single.base.json",
+            "operations": ["uniswap-v3-exact-input-single", "universal-router-wrap"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "uniswap-v3-exact-input.base.json",
+            "operations": ["uniswap-v3-exact-input-multihop"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "uniswap-v3-exact-output-single-multihop.base.json",
+            "operations": [
+                "uniswap-v3-exact-output-single",
+                "uniswap-v3-exact-output-multihop",
+                "universal-router-wrap",
+                "universal-router-unwrap"
+            ],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "uniswap-v4-exact-input.base.json",
+            "operations": [
+                "uniswap-v4-exact-input-single",
+                "uniswap-v4-native-input",
+                "uniswap-v4-settle",
+                "uniswap-v4-take"
+            ],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "uniswap-v4-native-output.base.json",
+            "operations": [
+                "uniswap-v4-exact-input-single",
+                "uniswap-v4-native-output",
+                "uniswap-v4-settle",
+                "uniswap-v4-take"
+            ],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "uniswap-v4-exact-input-multihop.base.json",
+            "operations": ["uniswap-v4-exact-input-multihop", "uniswap-v4-settle", "uniswap-v4-take"],
+            "expectedDecision": "reject",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "uniswap-v4-exact-output-single.base.json",
+            "operations": [
+                "uniswap-v4-exact-output-single",
+                "uniswap-v4-native-input",
+                "uniswap-v4-settle",
+                "uniswap-v4-take",
+                "uniswap-v4-sweep"
+            ],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "uniswap-v4-exact-output-multihop.base.json",
+            "operations": ["uniswap-v4-exact-output-multihop", "uniswap-v4-settle", "uniswap-v4-take"],
+            "expectedDecision": "reject",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "uniswap-permit2-usdc.base.json",
+            "operations": ["permit2-single-permit"],
+            "expectedDecision": "reject",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "uniswap-permit2-transfer.base.json",
+            "operations": ["permit2-single-transfer"],
+            "expectedDecision": "reject",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "uniswap-router-transfer.base.json",
+            "operations": ["universal-router-transfer", "universal-router-wrap"],
+            "expectedDecision": "reject",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "aerodrome-swap-usdc-aero.base.json",
+            "operations": ["aerodrome-token-to-token"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "aerodrome-native-to-token.base.json",
+            "operations": ["aerodrome-native-to-token"],
+            "expectedDecision": "reject",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "aerodrome-token-to-native.base.json",
+            "operations": ["aerodrome-token-to-native"],
+            "expectedDecision": "reject",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "moonwell-supply-usdc.base.json",
+            "operations": ["moonwell-supply"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "moonwell-withdraw-usdc.base.json",
+            "operations": ["moonwell-withdraw-underlying"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "moonwell-redeem-mtokens.base.json",
+            "operations": ["moonwell-redeem-receipts"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "moonwell-redeem-cash-rejection.base.json",
+            "operations": ["moonwell-redeem-protocol-rejection"],
+            "expectedDecision": "reject",
+            "expectedSimulation": "reject"
+        },
+        {
+            "fixture": "moonwell-borrow-usdc.base.json",
+            "operations": ["moonwell-borrow"],
+            "expectedDecision": "reject",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "moonwell-repay-usdc.base.json",
+            "operations": ["moonwell-repay"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "moonwell-repay-on-behalf-usdc.base.json",
+            "operations": ["moonwell-repay-on-behalf"],
+            "expectedDecision": "reject",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "moonwell-enable-collateral.base.json",
+            "operations": ["moonwell-enable-collateral"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "moonwell-disable-collateral.base.json",
+            "operations": ["moonwell-disable-collateral"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "morpho-supply-usdc.base.json",
+            "operations": ["morpho-supply"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "morpho-withdraw-usdc.base.json",
+            "operations": ["morpho-withdraw"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "morpho-borrow-usdc.base.json",
+            "operations": ["morpho-borrow"],
+            "expectedDecision": "reject",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "morpho-repay-usdc.base.json",
+            "operations": ["morpho-repay"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "morpho-supply-collateral-weth.base.json",
+            "operations": ["morpho-supply-collateral"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "morpho-withdraw-collateral-weth.base.json",
+            "operations": ["morpho-withdraw-collateral"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "avantis-open-usdc.base.json",
+            "operations": ["avantis-signed-open-usdc"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "avantis-close-usdc.base.json",
+            "operations": ["avantis-signed-close-usdc"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "avantis-increase-coin.base.json",
+            "operations": ["avantis-signed-increase-coin-exposure"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        }
+    ],
+    "deterministicOnly": [
+        {
+            "operation": "permit2-batch-permit",
+            "test": "tests/permit2.test.ts",
+            "reason": "No matching top-level call to the registered Base Universal Router is included in the observed transaction sample."
+        },
+        {
+            "operation": "permit2-batch-transfer",
+            "test": "tests/permit2.test.ts",
+            "reason": "No matching top-level call to the registered Base Universal Router is included in the observed transaction sample."
+        },
+        {
+            "operation": "uniswap-v4-explicit-wrap-unwrap-actions",
+            "test": "tests/operations.test.ts",
+            "reason": "Native-input and native-output swaps have real vectors, but no matching v4 action-level WRAP or UNWRAP command is included in the observed transaction sample."
+        }
+    ]
 }

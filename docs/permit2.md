@@ -2,12 +2,12 @@
 
 The Base Universal Router adapter decodes all four Permit2 AllowanceTransfer commands:
 
-| Command | Decoded intent |
-|---|---|
-| 0x0a PERMIT2_PERMIT | owner, token, amount, expiration, nonce, spender, signature deadline and signature |
-| 0x03 PERMIT2_PERMIT_BATCH | the same authorization fields for every token in the batch |
-| 0x02 PERMIT2_TRANSFER_FROM | token, owner, resolved recipient and amount |
-| 0x0d PERMIT2_TRANSFER_FROM_BATCH | every literal owner, recipient, token and amount |
+| Command                          | Decoded intent                                                                     |
+| -------------------------------- | ---------------------------------------------------------------------------------- |
+| 0x0a PERMIT2_PERMIT              | owner, token, amount, expiration, nonce, spender, signature deadline and signature |
+| 0x03 PERMIT2_PERMIT_BATCH        | the same authorization fields for every token in the batch                         |
+| 0x02 PERMIT2_TRANSFER_FROM       | token, owner, resolved recipient and amount                                        |
+| 0x0d PERMIT2_TRANSFER_FROM_BATCH | every literal owner, recipient, token and amount                                   |
 
 Single transfers resolve the Router's sender/router recipient placeholders. Batch transfers preserve literal addresses, matching the deployed command behavior. Every transfer owner must equal the Router sender.
 
