@@ -7,6 +7,7 @@ import type {
     Permit2Verification,
     MoonwellPreflight,
     MorphoPreflight,
+    AavePreflight,
     AvantisPreflight
 } from './domain.js';
 import { evaluatePolicy } from './policy.js';
@@ -15,6 +16,7 @@ import { simulateTransaction, skippedSimulation } from './simulation.js';
 import { preflightMoonwell, resolveMoonwellIntent } from './moonwell.js';
 import { preflightMorpho, resolveMorpho } from './morpho.js';
 import { preflightAvantis } from './avantis.js';
+import { preflightAave, resolveAaveIntent } from './aave.js';
 
 export interface ReportOptions {
     readonly generatedAt: string;
@@ -23,6 +25,7 @@ export interface ReportOptions {
     readonly permit2?: Permit2Verification;
     readonly moonwell?: MoonwellPreflight;
     readonly morpho?: MorphoPreflight;
+    readonly aave?: AavePreflight;
     readonly avantis?: AvantisPreflight;
 }
 
@@ -38,14 +41,16 @@ export function createAuthorizationReport(
     const morphoResolved = options.morpho
         ? resolveMorpho(moonwellIntent, options.morpho, options.simulation)
         : undefined;
-    const intent = morphoResolved?.intent ?? moonwellIntent;
+    const morphoIntent = morphoResolved?.intent ?? moonwellIntent;
     const morpho = morphoResolved?.state ?? options.morpho;
+    const intent = options.aave ? resolveAaveIntent(morphoIntent, options.aave, options.simulation) : morphoIntent;
     const policy = evaluatePolicy(intent, policyConfig, {
         nowSeconds: options.nowSeconds,
         simulation: options.simulation,
         ...(options.permit2 ? { permit2: options.permit2 } : {}),
         ...(options.moonwell ? { moonwell: options.moonwell } : {}),
         ...(morpho ? { morpho } : {}),
+        ...(options.aave ? { aave: options.aave } : {}),
         ...(options.avantis ? { avantis: options.avantis } : {})
     });
     return {
@@ -58,6 +63,7 @@ export function createAuthorizationReport(
         finalDecision: policy.outcome,
         ...(options.moonwell ? { moonwell: options.moonwell } : {}),
         ...(morpho ? { morpho } : {}),
+        ...(options.aave ? { aave: options.aave } : {}),
         ...(options.permit2 ? { permit2: options.permit2 } : {}),
         ...(options.avantis ? { avantis: options.avantis } : {})
     };
@@ -87,7 +93,16 @@ export async function analyzeTransaction(
         intent.protocol === 'avantis' && options.rpcUrl
             ? await preflightAvantis(transaction, intent, options.rpcUrl, blockNumber)
             : undefined;
-    const verifiedBlock = permit2?.blockNumber ?? moonwell?.blockNumber ?? morpho?.blockNumber ?? avantis?.blockNumber;
+    const aave =
+        intent.protocol === 'aave' && options.rpcUrl
+            ? await preflightAave(transaction, intent, options.rpcUrl, blockNumber)
+            : undefined;
+    const verifiedBlock =
+        permit2?.blockNumber ??
+        moonwell?.blockNumber ??
+        morpho?.blockNumber ??
+        avantis?.blockNumber ??
+        aave?.blockNumber;
     const simulation = options.rpcUrl
         ? await simulateTransaction(transaction, options.rpcUrl, verifiedBlock ? BigInt(verifiedBlock) : blockNumber)
         : skippedSimulation();
@@ -98,6 +113,7 @@ export async function analyzeTransaction(
         ...(permit2 ? { permit2 } : {}),
         ...(moonwell ? { moonwell } : {}),
         ...(morpho ? { morpho } : {}),
+        ...(aave ? { aave } : {}),
         ...(avantis ? { avantis } : {})
     });
 }

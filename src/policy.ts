@@ -2,6 +2,7 @@ import { ZERO_ADDRESS, findMoonwellMarket } from './contracts.js';
 import { moonwellStateMatches, resolveMoonwellIntent } from './moonwell.js';
 import { morphoStateMatches, resolveMorpho } from './morpho.js';
 import { avantisStateMatches } from './avantis.js';
+import { aaveStateMatches, resolveAaveIntent } from './aave.js';
 import { BASE_USDC } from './contracts.js';
 import type {
     Address,
@@ -14,6 +15,7 @@ import type {
     Permit2Verification,
     MoonwellPreflight,
     MorphoPreflight,
+    AavePreflight,
     AvantisPreflight
 } from './domain.js';
 
@@ -23,6 +25,7 @@ export interface PolicyContext {
     readonly permit2?: Permit2Verification;
     readonly moonwell?: MoonwellPreflight;
     readonly morpho?: MorphoPreflight;
+    readonly aave?: AavePreflight;
     readonly avantis?: AvantisPreflight;
 }
 
@@ -51,6 +54,7 @@ function actionTokens(action: IntentAction): readonly Address[] {
     if (action.kind === 'morpho') {
         return [action.marketParams.loanToken, action.marketParams.collateralToken];
     }
+    if (action.kind === 'aave') return [action.asset];
     if (action.kind === 'avantis') return [BASE_USDC];
     return [];
 }
@@ -68,6 +72,7 @@ function actionRecipient(action: IntentAction): string | undefined {
     if (action.kind === 'morpho') {
         return action.receiver ?? action.beneficiary;
     }
+    if (action.kind === 'aave') return action.operation === 'withdraw' ? action.recipient : undefined;
     return undefined;
 }
 
@@ -101,6 +106,9 @@ function findAmountLimitFinding(
     } else if (action.kind === 'avantis') {
         token = BASE_USDC;
         value = action.collateral?.mode === 'exact' ? action.collateral.value : undefined;
+    } else if (action.kind === 'aave') {
+        token = action.asset;
+        value = action.amount?.mode === 'exact' ? action.amount.value : undefined;
     }
     if (token === undefined || value === undefined) {
         return undefined;
@@ -124,8 +132,9 @@ export function evaluatePolicy(decoded: IntentAnalysis, config: PolicyConfig, co
     const morphoResolved = context.morpho
         ? resolveMorpho(moonwellIntent, context.morpho, context.simulation)
         : undefined;
-    const intent = morphoResolved?.intent ?? moonwellIntent;
+    const morphoIntent = morphoResolved?.intent ?? moonwellIntent;
     const morpho = morphoResolved?.state ?? context.morpho;
+    const intent = context.aave ? resolveAaveIntent(morphoIntent, context.aave, context.simulation) : morphoIntent;
     const findings: PolicyFinding[] = [];
     const targets = addressSet(config.allowedTargets);
     const tokens = addressSet(config.allowedTokens);
@@ -133,12 +142,14 @@ export function evaluatePolicy(decoded: IntentAnalysis, config: PolicyConfig, co
     const hooks = addressSet(config.allowedV4Hooks);
     const aerodromeFactories = addressSet(config.allowedAerodromeFactories ?? []);
     const morphoMarkets = new Set((config.allowedMorphoMarkets ?? []).map((value) => value.toLowerCase()));
+    const aaveReserves = addressSet(config.allowedAaveReserves ?? []);
     const permit2Transferred = new Map<string, bigint>();
     const missingMoonwellState =
         intent.protocol === 'moonwell' && !moonwellStateMatches(intent, context.moonwell, context.simulation);
     const missingMorphoState = intent.protocol === 'morpho' && !morphoStateMatches(intent, morpho, context.simulation);
     const missingAvantisState =
         intent.protocol === 'avantis' && !avantisStateMatches(intent, context.avantis, context.simulation);
+    const missingAaveState = intent.protocol === 'aave' && !aaveStateMatches(intent, context.aave, context.simulation);
     if (intent.protocol === 'moonwell' && context.moonwell?.status === 'invalid') {
         findings.push({
             code: 'MOONWELL_PRECHECK_FAILED',
@@ -158,6 +169,12 @@ export function evaluatePolicy(decoded: IntentAnalysis, config: PolicyConfig, co
                 ? 'AVANTIS_SIGNATURE_INVALID'
                 : 'AVANTIS_PRECHECK_FAILED';
         findings.push({ code, message: error });
+    }
+    if (intent.protocol === 'aave' && context.aave?.status === 'invalid') {
+        findings.push({
+            code: context.aave.errorCode ?? 'AAVE_PRECHECK_FAILED',
+            message: context.aave.error ?? 'Aave preflight failed.'
+        });
     }
 
     if (!config.allowedChainIds.includes(intent.chainId)) {
@@ -409,6 +426,51 @@ export function evaluatePolicy(decoded: IntentAnalysis, config: PolicyConfig, co
                 actionIndex: action.index
             });
         }
+        if (action.kind === 'aave') {
+            if (!aaveReserves.has(action.asset.toLowerCase())) {
+                findings.push({
+                    code: 'AAVE_RESERVE_NOT_ALLOWED',
+                    message: `Aave reserve ${action.asset} is not allowed by policy.`,
+                    actionIndex: action.index,
+                    evidence: { asset: action.asset }
+                });
+            }
+            if (
+                action.beneficiary.toLowerCase() !== intent.sender.toLowerCase() &&
+                !recipients.has(action.beneficiary.toLowerCase())
+            ) {
+                findings.push({
+                    code: 'AAVE_ACCOUNT_MISMATCH',
+                    message: `Aave beneficiary ${action.beneficiary} is not approved by policy.`,
+                    actionIndex: action.index,
+                    evidence: { beneficiary: action.beneficiary }
+                });
+            }
+            if (action.operation === 'borrow' && !config.allowBorrow) {
+                findings.push({
+                    code: 'BORROW_NOT_ALLOWED',
+                    message: 'Aave borrowing is disabled by policy.',
+                    actionIndex: action.index
+                });
+            }
+            const exposure = context.aave?.exposures.find((entry) => entry.actionIndex === action.index);
+            const minimumHealthFactor = config.minimumAaveHealthFactor;
+            if (
+                exposure &&
+                minimumHealthFactor !== undefined &&
+                BigInt(exposure.accountAfter.healthFactor) < BigInt(minimumHealthFactor)
+            ) {
+                findings.push({
+                    code: 'AAVE_HEALTH_FACTOR_TOO_LOW',
+                    message: `Projected Aave health factor ${exposure.accountAfter.healthFactor} is below ${minimumHealthFactor}.`,
+                    actionIndex: action.index,
+                    evidence: {
+                        healthFactor: exposure.accountAfter.healthFactor,
+                        minimumHealthFactor
+                    }
+                });
+            }
+        }
         if (action.kind === 'avantis') {
             if (!(config.allowedAvantisPairIndexes ?? []).includes(action.pairIndex)) {
                 findings.push({
@@ -513,6 +575,18 @@ export function evaluatePolicy(decoded: IntentAnalysis, config: PolicyConfig, co
                     message:
                         context.avantis?.error ??
                         'Signed Avantis intents require a valid signature, unused nonce, active delegation and successful simulation at the same fixed block.'
+                }
+            ]
+        };
+    if (missingAaveState)
+        return {
+            outcome: 'review',
+            findings: [
+                {
+                    code: 'AAVE_STATE_REQUIRED',
+                    message:
+                        context.aave?.error ??
+                        'Aave requires reserve and account state plus successful simulation bound to the same transaction and block.'
                 }
             ]
         };

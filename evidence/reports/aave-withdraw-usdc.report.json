@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-10-06T14:12:41.000Z",
+  "transaction": {
+    "chainId": 8453,
+    "from": "0xDaF4f7bc1BACAF32Aa4094Ca5F60bf232b327e3C",
+    "to": "0xA238Dd80C259a72e81d7e4664a9801593F98d1c5",
+    "data": "0x69328dec000000000000000000000000833589fcd6edb6e08f4c7c32d4f71b54bda02913000000000000000000000000000000000000000000000000000000003b9aca00000000000000000000000000daf4f7bc1bacaf32aa4094ca5f60bf232b327e3c",
+    "value": "0",
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0x47bb5dcc2ac66c520ba266238e13bfb63dbc243aa0877433f52eb7a14c776dc4",
+      "explorerUrl": "https://base.blockscout.com/tx/0x47bb5dcc2ac66c520ba266238e13bfb63dbc243aa0877433f52eb7a14c776dc4",
+      "blockNumber": 52253307,
+      "timestamp": "2026-10-06T14:12:41.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "intent": {
+    "schemaVersion": "1.0",
+    "protocol": "aave",
+    "adapter": "aave-v3-base",
+    "chainId": 8453,
+    "sender": "0xDaF4f7bc1BACAF32Aa4094Ca5F60bf232b327e3C",
+    "target": "0xA238Dd80C259a72e81d7e4664a9801593F98d1c5",
+    "nativeValue": "0",
+    "transactionFingerprint": "0x1b9c0317f3a58d9f3a3620753dde41b9391cedf08d68b3544d4c3895d0d8e7da",
+    "actions": [
+      {
+        "kind": "aave",
+        "index": 0,
+        "operation": "withdraw",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "amount": {
+          "value": "1000000000",
+          "mode": "exact"
+        },
+        "beneficiary": "0xDaF4f7bc1BACAF32Aa4094Ca5F60bf232b327e3C",
+        "recipient": "0xDaF4f7bc1BACAF32Aa4094Ca5F60bf232b327e3C",
+        "receiptToken": "0x4e65fE4DbA92790696d040ac24Aa414708F5c0AB",
+        "variableDebtToken": "0x59dca05b6c26dbd64b5381374aAaC5CD05644C28"
+      }
+    ],
+    "expectedBalanceChanges": [
+      {
+        "account": "0xDaF4f7bc1BACAF32Aa4094Ca5F60bf232b327e3C",
+        "asset": "0x4e65fE4DbA92790696d040ac24Aa414708F5c0AB",
+        "category": "receipt",
+        "direction": "debit",
+        "amount": {
+          "value": "1000000001",
+          "mode": "exact"
+        },
+        "reason": "Aave withdrawal burns aTokens after liquidity-index ceiling rounding"
+      },
+      {
+        "account": "0xDaF4f7bc1BACAF32Aa4094Ca5F60bf232b327e3C",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "category": "asset",
+        "direction": "credit",
+        "amount": {
+          "value": "1000000000",
+          "mode": "exact"
+        },
+        "reason": "Aave withdrawal transfers underlying to the recipient"
+      }
+    ],
+    "warnings": [
+      "Aave balance and health-factor changes are conditional projections at the verified fixed block.",
+      "aToken and variable-debt changes apply the Pool revision 11 floor and ceiling rules at the verified indexes."
+    ],
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0x47bb5dcc2ac66c520ba266238e13bfb63dbc243aa0877433f52eb7a14c776dc4",
+      "explorerUrl": "https://base.blockscout.com/tx/0x47bb5dcc2ac66c520ba266238e13bfb63dbc243aa0877433f52eb7a14c776dc4",
+      "blockNumber": 52253307,
+      "timestamp": "2026-10-06T14:12:41.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "policy": {
+    "outcome": "pass",
+    "findings": []
+  },
+  "simulation": {
+    "attempted": true,
+    "success": true,
+    "transactionFingerprint": "0x1b9c0317f3a58d9f3a3620753dde41b9391cedf08d68b3544d4c3895d0d8e7da",
+    "blockHash": "0x4579c28ee9e0976a415c7733ab730234e9d5383c941636aa5dd539d1761a27f3",
+    "rpcUrl": "https://mainnet.base.org",
+    "blockNumber": "52253306",
+    "returnData": "0x000000000000000000000000000000000000000000000000000000003b9aca00"
+  },
+  "finalDecision": "pass",
+  "aave": {
+    "transactionFingerprint": "0x1b9c0317f3a58d9f3a3620753dde41b9391cedf08d68b3544d4c3895d0d8e7da",
+    "status": "ready",
+    "blockNumber": "52253306",
+    "blockHash": "0x4579c28ee9e0976a415c7733ab730234e9d5383c941636aa5dd539d1761a27f3",
+    "blockTimestamp": 1791295959,
+    "exposures": [
+      {
+        "actionIndex": 0,
+        "operation": "withdraw",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "account": "0xDaF4f7bc1BACAF32Aa4094Ca5F60bf232b327e3C",
+        "recipient": "0xDaF4f7bc1BACAF32Aa4094Ca5F60bf232b327e3C",
+        "amount": "1000000000",
+        "aToken": "0x4e65fE4DbA92790696d040ac24Aa414708F5c0AB",
+        "variableDebtToken": "0x59dca05b6c26dbd64b5381374aAaC5CD05644C28",
+        "liquidityIndex": "1148336077496355902457846799",
+        "variableBorrowIndex": "1206144144268741734851373347",
+        "scaledATokenBalanceBefore": "4891539505",
+        "scaledATokenBalanceAfter": "4020714300",
+        "scaledVariableDebtBefore": "0",
+        "scaledVariableDebtAfter": "0",
+        "aTokenBalanceBefore": "5617131288",
+        "aTokenBalanceAfter": "4617131287",
+        "variableDebtBefore": "0",
+        "variableDebtAfter": "0",
+        "totalATokenBefore": "181913157327331",
+        "totalStableDebtBefore": "0",
+        "totalVariableDebtBefore": "163327665555684",
+        "collateralEnabledBefore": true,
+        "collateralEnabledAfter": true,
+        "reserve": {
+          "decimals": 6,
+          "ltv": "7500",
+          "liquidationThreshold": "7800",
+          "usageAsCollateralEnabled": true,
+          "borrowingEnabled": true,
+          "active": true,
+          "frozen": false,
+          "paused": false,
+          "borrowCap": "207000000",
+          "supplyCap": "230000000",
+          "debtCeiling": "0",
+          "siloedBorrowing": false
+        },
+        "accountBefore": {
+          "totalCollateralBase": "561652003177",
+          "totalDebtBase": "0",
+          "availableBorrowsBase": "421239002382",
+          "currentLiquidationThreshold": "7800",
+          "ltv": "7500",
+          "healthFactor": "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+        },
+        "accountAfter": {
+          "totalCollateralBase": "461662885077",
+          "totalDebtBase": "0",
+          "availableBorrowsBase": "346247163807",
+          "currentLiquidationThreshold": "7800",
+          "ltv": "7500",
+          "healthFactor": "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+        }
+      }
+    ]
+  }
+}

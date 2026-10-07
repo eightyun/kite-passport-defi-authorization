@@ -163,6 +163,7 @@ export function parsePolicy(value: unknown): PolicyConfig {
     };
     const maximumAvantisLeverage = optionalIntegerString('maximumAvantisLeverage');
     const maximumAvantisSlippageP = optionalIntegerString('maximumAvantisSlippageP');
+    const minimumAaveHealthFactor = optionalIntegerString('minimumAaveHealthFactor');
     const allowAvantisOpen =
         value.allowAvantisOpen === undefined ? undefined : requiredBoolean(value, 'allowAvantisOpen');
     return {
@@ -175,6 +176,7 @@ export function parsePolicy(value: unknown): PolicyConfig {
         allowedAerodromeFactories:
             value.allowedAerodromeFactories === undefined ? [] : addressArray(value, 'allowedAerodromeFactories'),
         allowedMorphoMarkets: value.allowedMorphoMarkets === undefined ? [] : hexArray(value, 'allowedMorphoMarkets'),
+        allowedAaveReserves: value.allowedAaveReserves === undefined ? [] : addressArray(value, 'allowedAaveReserves'),
         maximumAmountByToken: limits,
         maximumNativeValue,
         maximumDeadlineSeconds: requiredNumber(value, 'maximumDeadlineSeconds'),
@@ -185,6 +187,7 @@ export function parsePolicy(value: unknown): PolicyConfig {
         ...(allowedAvantisPairIndexes === undefined ? {} : { allowedAvantisPairIndexes }),
         ...(maximumAvantisLeverage === undefined ? {} : { maximumAvantisLeverage }),
         ...(maximumAvantisSlippageP === undefined ? {} : { maximumAvantisSlippageP }),
+        ...(minimumAaveHealthFactor === undefined ? {} : { minimumAaveHealthFactor }),
         ...(allowAvantisOpen === undefined ? {} : { allowAvantisOpen })
     };
 }

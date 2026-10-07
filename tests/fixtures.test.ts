@@ -76,6 +76,8 @@ function operationLabels(
             labels.add(
                 `avantis-${action.signedIntent ? 'signed-' : ''}${action.operation}-${action.sizing === 'coin' ? 'coin-exposure' : 'usdc'}`
             );
+        } else if (action.kind === 'aave') {
+            labels.add(`aave-${action.operation}`);
         }
     }
     if (fixture === 'moonwell-redeem-cash-rejection.base.json') {
@@ -237,7 +239,13 @@ test('maps every real vector to an auditable operation coverage entry', async ()
         'morpho-withdraw-collateral',
         'avantis-signed-open-usdc',
         'avantis-signed-close-usdc',
-        'avantis-signed-increase-coin-exposure'
+        'avantis-signed-increase-coin-exposure',
+        'aave-supply',
+        'aave-withdraw',
+        'aave-borrow',
+        'aave-repay',
+        'aave-enable-collateral',
+        'aave-disable-collateral'
     ];
     for (const operation of requiredOperations) {
         assert.ok(coveredOperations.has(operation), `${operation} lacks a real transaction vector`);

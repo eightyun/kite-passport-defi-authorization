@@ -231,6 +231,42 @@
             "operations": ["avantis-signed-increase-coin-exposure"],
             "expectedDecision": "pass",
             "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "aave-supply-usdc.base.json",
+            "operations": ["aave-supply"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "aave-withdraw-usdc.base.json",
+            "operations": ["aave-withdraw"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "aave-borrow-usdc.base.json",
+            "operations": ["aave-borrow"],
+            "expectedDecision": "reject",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "aave-repay-usdc.base.json",
+            "operations": ["aave-repay"],
+            "expectedDecision": "reject",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "aave-enable-collateral-usdc.base.json",
+            "operations": ["aave-enable-collateral"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "aave-disable-collateral-usdc.base.json",
+            "operations": ["aave-disable-collateral"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
         }
     ],
     "deterministicOnly": [

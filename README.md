@@ -2,7 +2,7 @@
 
 An auditable TypeScript authorization layer for decoding DeFi calldata, evaluating transaction policy, simulating execution, and reporting expected balance changes before a Kite Passport agent submits a transaction.
 
-It supports Uniswap, Aerodrome, Moonwell, Morpho and Avantis/Veranta on Base and never signs or broadcasts transactions.
+It supports Uniswap, Aerodrome, Moonwell, Morpho, Aave V3 and Avantis/Veranta on Base and never signs or broadcasts transactions.
 
 All committed tests, real transaction vectors and historical simulations currently target Base mainnet only (chain ID `8453`). No other network is claimed as tested or supported by this repository.
 
@@ -17,6 +17,7 @@ All committed tests, real transaction vectors and historical simulations current
 | Aerodrome Router   | token/token, native/token and token/native exact-input swaps                                     |
 | Moonwell Core      | supply, withdraw, borrow, repay and collateral enable/disable                                    |
 | Morpho Blue        | supply, withdraw, borrow, repay and collateral supply/withdraw                                   |
+| Aave V3 Pool       | supply, withdraw, variable-rate borrow/repay and collateral enable/disable                       |
 | Avantis/Veranta v2 | direct and signed market open/close, position increase, margin update and limit-order management |
 
 Uniswap v4 hooks and dynamic-fee pools are rejected by the example policy unless explicitly allowed. Unknown commands and actions are always rejected.
@@ -55,7 +56,7 @@ npm test
 npm run build
 ```
 
-The test suite covers real calldata vectors, protocol operation decoding, eighteen general policy rejection paths and additional Permit2 signature, allowance and policy rejection cases.
+The test suite covers real calldata vectors, protocol operation decoding, twenty-seven documented policy rejection paths and additional Permit2 signature, allowance and policy rejection cases.
 
 ## Analyze a transaction
 
@@ -77,6 +78,7 @@ The command emits JSON containing:
 - Permit2 signature verification, checked allowances and expected authorization exposure changes when applicable.
 - Moonwell resolved underlying/receipt amounts and account-level supplied, debt and collateral exposures at the checked block.
 - Morpho fixed-block market identity, exact simulated asset/share amounts and account exposure changes.
+- Aave fixed-block reserve configuration, aToken and variable-debt exposure, cap checks and projected health factor.
 - Avantis v2 EIP-712 signer recovery, unordered nonce status, delegation expiry and same-block simulation.
 
 Exit code `2` means the policy rejected the transaction. Invalid input or an internal error returns exit code `1`.
@@ -92,6 +94,7 @@ Exit code `2` means the policy rejected the transaction. Invalid input or an int
 - Uniswap v4 hook and dynamic-fee controls;
 - Aerodrome factory allowlist;
 - Morpho market-ID allowlist and canonical market verification;
+- Aave reserve allowlist, borrow control and minimum projected health factor;
 - Avantis pair allowlist, open-position switch, leverage and slippage limits;
 - Moonwell borrowing control;
 - optional mandatory RPC simulation.
@@ -99,55 +102,69 @@ Exit code `2` means the policy rejected the transaction. Invalid input or an int
 
 Implemented rejection reason codes include:
 
-| Code                                 | Condition                                                                        |
-| ------------------------------------ | -------------------------------------------------------------------------------- |
-| `UNSUPPORTED_CHAIN`                  | chain is outside the policy                                                      |
-| `UNAUTHORIZED_TARGET`                | target contract is not allowed                                                   |
-| `UNKNOWN_ACTION`                     | selector, router command or v4 action is unsupported                             |
-| `UNAPPROVED_TOKEN`                   | a route or lending asset is not allowed                                          |
-| `UNAPPROVED_RECIPIENT`               | funds would be sent to an unapproved address                                     |
-| `AMOUNT_LIMIT_EXCEEDED`              | input or lending amount exceeds its token cap                                    |
-| `NATIVE_VALUE_LIMIT_EXCEEDED`        | transaction value exceeds the native-token cap                                   |
-| `DEADLINE_EXPIRED`                   | deadline is in the past                                                          |
-| `DEADLINE_TOO_FAR`                   | deadline exceeds the permitted horizon                                           |
-| `ZERO_MINIMUM_OUTPUT`                | exact-input swap lacks output protection                                         |
-| `V4_HOOK_NOT_ALLOWED`                | v4 pool uses an unapproved hook                                                  |
-| `DYNAMIC_V4_FEE_NOT_ALLOWED`         | v4 dynamic fee is disabled                                                       |
-| `BORROW_NOT_ALLOWED`                 | lending borrow is disabled                                                       |
-| `AERODROME_FACTORY_NOT_ALLOWED`      | route uses an unapproved Aerodrome factory                                       |
-| `MORPHO_MARKET_NOT_ALLOWED`          | Morpho market ID is not explicitly allowed                                       |
-| `MORPHO_CALLBACK_NOT_ALLOWED`        | supply or repay callback data is non-empty                                       |
-| `MORPHO_STATE_REQUIRED`              | verified Morpho position state or matching simulation is missing                 |
-| `MORPHO_PRECHECK_FAILED`             | market identity, delegation or expected position change is invalid               |
-| `AVANTIS_STATE_REQUIRED`             | signed intent verification or same-block simulation is missing                   |
-| `AVANTIS_PRECHECK_FAILED`            | signed intent preflight is invalid                                               |
-| `AVANTIS_PAIR_NOT_ALLOWED`           | pair index is outside the configured allowlist                                   |
-| `AVANTIS_SIGNATURE_INVALID`          | EIP-712 signature or encoded intent is invalid                                   |
-| `AVANTIS_NONCE_USED`                 | unordered intent nonce is already consumed                                       |
-| `AVANTIS_DELEGATION_INVALID`         | recovered signer lacks an active trader delegation                               |
-| `AVANTIS_OPEN_NOT_ALLOWED`           | policy disables new positions                                                    |
-| `AVANTIS_LEVERAGE_LIMIT_EXCEEDED`    | requested leverage exceeds policy                                                |
-| `AVANTIS_SLIPPAGE_LIMIT_EXCEEDED`    | requested slippage exceeds policy                                                |
-| `UNVERIFIED_AUTHORIZATION`           | Permit2 details were not independently verified                                  |
-| `PERMIT2_SIGNATURE_INVALID`          | EOA signature or EIP-1271 result is invalid                                      |
-| `PERMIT2_SPENDER_NOT_ALLOWED`        | signed spender differs from the approved Router                                  |
-| `PERMIT2_OWNER_MISMATCH`             | transfer owner differs from the Router sender                                    |
-| `PERMIT2_SIGNATURE_EXPIRED`          | signature deadline has passed                                                    |
-| `PERMIT2_SIGNATURE_DEADLINE_TOO_FAR` | signature validity exceeds the configured horizon                                |
-| `PERMIT2_ALLOWANCE_EXPIRED`          | allowance is expired                                                             |
-| `PERMIT2_EXPIRATION_TOO_FAR`         | allowance lifetime exceeds the configured horizon                                |
-| `PERMIT2_NONCE_MISMATCH`             | signed nonce is already used or incorrect                                        |
-| `PERMIT2_ALLOWANCE_INSUFFICIENT`     | explicit transfers exceed remaining allowance                                    |
-| `PERMIT2_LIMIT_MISSING`              | token has no explicit authorization amount cap                                   |
-| `PERMIT2_STATE_UNAVAILABLE`          | required chain or contract state could not be verified                           |
-| `PERMIT2_EMPTY_BATCH`                | a permit or transfer batch has no entries                                        |
-| `MOONWELL_STATE_REQUIRED`            | review required because verified account state or matching simulation is missing |
-| `MOONWELL_PRECHECK_FAILED`           | redemption exceeds receipts or repayment exceeds accrued debt                    |
-| `SIMULATION_FAILED`                  | pre-execution RPC call reverted or failed                                        |
+| Code                                  | Condition                                                                        |
+| ------------------------------------- | -------------------------------------------------------------------------------- |
+| `UNSUPPORTED_CHAIN`                   | chain is outside the policy                                                      |
+| `UNAUTHORIZED_TARGET`                 | target contract is not allowed                                                   |
+| `UNKNOWN_ACTION`                      | selector, router command or v4 action is unsupported                             |
+| `UNAPPROVED_TOKEN`                    | a route or lending asset is not allowed                                          |
+| `UNAPPROVED_RECIPIENT`                | funds would be sent to an unapproved address                                     |
+| `AMOUNT_LIMIT_EXCEEDED`               | input or lending amount exceeds its token cap                                    |
+| `NATIVE_VALUE_LIMIT_EXCEEDED`         | transaction value exceeds the native-token cap                                   |
+| `DEADLINE_EXPIRED`                    | deadline is in the past                                                          |
+| `DEADLINE_TOO_FAR`                    | deadline exceeds the permitted horizon                                           |
+| `ZERO_MINIMUM_OUTPUT`                 | exact-input swap lacks output protection                                         |
+| `V4_HOOK_NOT_ALLOWED`                 | v4 pool uses an unapproved hook                                                  |
+| `DYNAMIC_V4_FEE_NOT_ALLOWED`          | v4 dynamic fee is disabled                                                       |
+| `BORROW_NOT_ALLOWED`                  | lending borrow is disabled                                                       |
+| `AERODROME_FACTORY_NOT_ALLOWED`       | route uses an unapproved Aerodrome factory                                       |
+| `MORPHO_MARKET_NOT_ALLOWED`           | Morpho market ID is not explicitly allowed                                       |
+| `MORPHO_CALLBACK_NOT_ALLOWED`         | supply or repay callback data is non-empty                                       |
+| `MORPHO_STATE_REQUIRED`               | verified Morpho position state or matching simulation is missing                 |
+| `MORPHO_PRECHECK_FAILED`              | market identity, delegation or expected position change is invalid               |
+| `AAVE_STATE_REQUIRED`                 | matching Aave fixed-block state and simulation evidence is missing               |
+| `AAVE_PRECHECK_FAILED`                | Pool identity or projected account state is invalid                              |
+| `AAVE_RESERVE_NOT_ALLOWED`            | reserve is outside the configured Aave allowlist                                 |
+| `AAVE_RESERVE_INACTIVE`               | reserve is inactive                                                              |
+| `AAVE_RESERVE_PAUSED`                 | reserve is paused                                                                |
+| `AAVE_RESERVE_FROZEN`                 | reserve is frozen for new supply or borrowing                                    |
+| `AAVE_BORROWING_DISABLED`             | reserve does not permit borrowing                                                |
+| `AAVE_COLLATERAL_DISABLED`            | reserve does not permit collateral usage                                         |
+| `AAVE_SUPPLY_CAP_EXCEEDED`            | projected reserve supply exceeds its cap                                         |
+| `AAVE_BORROW_CAP_EXCEEDED`            | projected reserve debt exceeds its cap                                           |
+| `AAVE_ACCOUNT_MISMATCH`               | calldata beneficiary conflicts with verified account state                       |
+| `AAVE_INTEREST_RATE_MODE_NOT_ALLOWED` | debt operation is not variable-rate mode `2`                                     |
+| `AAVE_EMODE_NOT_SUPPORTED`            | collateral-changing operation targets an eMode account                           |
+| `AAVE_HEALTH_FACTOR_TOO_LOW`          | projected health factor is below policy                                          |
+| `AVANTIS_STATE_REQUIRED`              | signed intent verification or same-block simulation is missing                   |
+| `AVANTIS_PRECHECK_FAILED`             | signed intent preflight is invalid                                               |
+| `AVANTIS_PAIR_NOT_ALLOWED`            | pair index is outside the configured allowlist                                   |
+| `AVANTIS_SIGNATURE_INVALID`           | EIP-712 signature or encoded intent is invalid                                   |
+| `AVANTIS_NONCE_USED`                  | unordered intent nonce is already consumed                                       |
+| `AVANTIS_DELEGATION_INVALID`          | recovered signer lacks an active trader delegation                               |
+| `AVANTIS_OPEN_NOT_ALLOWED`            | policy disables new positions                                                    |
+| `AVANTIS_LEVERAGE_LIMIT_EXCEEDED`     | requested leverage exceeds policy                                                |
+| `AVANTIS_SLIPPAGE_LIMIT_EXCEEDED`     | requested slippage exceeds policy                                                |
+| `UNVERIFIED_AUTHORIZATION`            | Permit2 details were not independently verified                                  |
+| `PERMIT2_SIGNATURE_INVALID`           | EOA signature or EIP-1271 result is invalid                                      |
+| `PERMIT2_SPENDER_NOT_ALLOWED`         | signed spender differs from the approved Router                                  |
+| `PERMIT2_OWNER_MISMATCH`              | transfer owner differs from the Router sender                                    |
+| `PERMIT2_SIGNATURE_EXPIRED`           | signature deadline has passed                                                    |
+| `PERMIT2_SIGNATURE_DEADLINE_TOO_FAR`  | signature validity exceeds the configured horizon                                |
+| `PERMIT2_ALLOWANCE_EXPIRED`           | allowance is expired                                                             |
+| `PERMIT2_EXPIRATION_TOO_FAR`          | allowance lifetime exceeds the configured horizon                                |
+| `PERMIT2_NONCE_MISMATCH`              | signed nonce is already used or incorrect                                        |
+| `PERMIT2_ALLOWANCE_INSUFFICIENT`      | explicit transfers exceed remaining allowance                                    |
+| `PERMIT2_LIMIT_MISSING`               | token has no explicit authorization amount cap                                   |
+| `PERMIT2_STATE_UNAVAILABLE`           | required chain or contract state could not be verified                           |
+| `PERMIT2_EMPTY_BATCH`                 | a permit or transfer batch has no entries                                        |
+| `MOONWELL_STATE_REQUIRED`             | review required because verified account state or matching simulation is missing |
+| `MOONWELL_PRECHECK_FAILED`            | redemption exceeds receipts or repayment exceeds accrued debt                    |
+| `SIMULATION_FAILED`                   | pre-execution RPC call reverted or failed                                        |
 
 ## Real transaction vectors
 
-The repository includes 34 raw Base mainnet transaction envelopes with immutable explorer provenance. A transaction can prove several decoded actions.
+The repository includes 40 raw Base mainnet transaction envelopes with immutable explorer provenance. A transaction can prove several decoded actions.
 
 | Protocol                     | Real-vector coverage                                                                                                                                                                               | Vector count |
 | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -----------: |
@@ -155,6 +172,7 @@ The repository includes 34 raw Base mainnet transaction envelopes with immutable
 | Aerodrome                    | token-to-token, native-to-token and token-to-native exact-input swaps                                                                                                                              |            3 |
 | Moonwell                     | supply, underlying withdrawal, receipt redemption, borrow, direct repay, repay on behalf, collateral enable/disable and a protocol-level rejection                                                 |            9 |
 | Morpho                       | supply, withdraw, borrow, repay and collateral supply/withdraw                                                                                                                                     |            6 |
+| Aave V3                      | supply, withdraw, variable-rate borrow, variable-rate repay and collateral enable/disable                                                                                                          |            6 |
 | Avantis/Veranta v2           | delegated EIP-712 market open, market close and coin-exposure position increase                                                                                                                    |            3 |
 
 [`fixtures/operation-coverage.json`](fixtures/operation-coverage.json) maps every operation to its fixture and records the expected policy and historical simulation outcomes. Uniswap v4 native-currency swaps are represented directly by the zero address and have real vectors in both directions; they do not require wrapping. Permit2 batch permit/transfer and the separate v4 action-level WRAP/UNWRAP commands remain deterministic test vectors because no matching top-level call to the registered Base Router is included in the observed transaction sample; they are not presented as real transactions.
@@ -169,6 +187,8 @@ Moonwell always requires verified fixed-block account state and matching success
 
 Morpho requires canonical market/account state and a matching successful fixed-block simulation before `pass`. [Morpho exposure verification](docs/morpho.md) documents this boundary. [Aerodrome authorization scope](docs/aerodrome.md) documents supported selectors and factory controls.
 
+Aave requires canonical reserve/account state and a matching successful fixed-block simulation before `pass`. [Aave V3 authorization and exposure verification](docs/aave.md) documents supported calls, cap checks, projected health and failure boundaries.
+
 Signed Avantis v2 operations require signature recovery, an unused bitmap nonce, an active delegation when applicable and a matching successful fixed-block simulation. [Avantis v2 authorization](docs/avantis.md) documents units, supported calls and failure boundaries.
 
 The committed acceptance package is available in [`evidence`](evidence/README.md).
@@ -182,7 +202,7 @@ The Permit2 permit vector has a valid EOA signature, a matching historical nonce
 | Correct intent parsing for main operations    | adapter tests and generated reports                                                                                  |
 | Real transaction test vectors                 | `fixtures/transactions/*.json` with explorer hashes                                                                  |
 | Per-operation vector coverage                 | `fixtures/operation-coverage.json`                                                                                   |
-| At least eight rejection paths                | eighteen cases in `evidence/rejection-tests.json`                                                                    |
+| At least eight rejection paths                | twenty-seven cases in `evidence/rejection-tests.json`                                                                |
 | Exact rejection reasons                       | policy findings include code, message and supporting fields                                                          |
 | Expected result and balance changes           | `expectedBalanceChanges`, Permit2 allowance exposure, fixed-block lending exposures and Avantis authorization checks |
 | Transaction calldata                          | included in each fixture and generated report                                                                        |
@@ -201,6 +221,7 @@ src/
   simulation.ts   read-only RPC preflight
   moonwell.ts     accrued rate, account state and exposure verification
   morpho.ts       market identity, account state and exposure verification
+  aave.ts         reserve, account, cap and health-factor verification
   avantis.ts      EIP-712 signature, unordered nonce and delegation verification
   permit2.ts      Permit2 decoding, signatures and allowance verification
   report.ts       versioned authorization report
@@ -223,6 +244,7 @@ schemas/          report contract
 - Aerodrome routes are restricted to approved factories and protected exact-input methods.
 - Moonwell health, liquidity, caps, interest and exchange rates remain state-dependent.
 - Morpho markets are restricted by their full parameter hash; exact share conversions require same-block simulation.
+- Aave operations require the canonical Base Pool, explicit reserve approval, fixed-block reserve/account checks and same-block simulation.
 - Avantis signed intents are bound to the v2 domain, nonce bitmap, delegation state and simulation block. Keeper-only paths fail closed.
 - A simulation is evidence for one chain state, not a guarantee for later execution.
 
@@ -237,6 +259,8 @@ This project has not received an external security audit and must not be treated
 - [Moonwell Core integration](https://docs.moonwell.fi/moonwell/developers/guides)
 - [Aerodrome contracts](https://github.com/aerodrome-finance/contracts)
 - [Morpho Blue contracts](https://github.com/morpho-org/morpho-blue)
+- [Aave V3 Pool](https://aave.com/docs/aave-v3/smart-contracts/pool)
+- [Aave Base address book](https://github.com/aave-dao/aave-address-book/blob/main/src/AaveV3Base.sol)
 - [Avantis/Veranta trader SDK](https://github.com/Avantis-Labs/avantis_trader_sdk)
 
 ## License

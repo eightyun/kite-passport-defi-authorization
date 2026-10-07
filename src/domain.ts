@@ -80,6 +80,20 @@ export interface MorphoAction {
     readonly callbackData: Hex;
 }
 
+export interface AaveAction {
+    readonly kind: 'aave';
+    readonly index: number;
+    readonly operation: 'supply' | 'withdraw' | 'borrow' | 'repay' | 'enable-collateral' | 'disable-collateral';
+    readonly asset: Address;
+    readonly amount?: Amount;
+    readonly beneficiary: Address;
+    readonly recipient?: Address;
+    readonly interestRateMode?: number;
+    readonly referralCode?: number;
+    readonly receiptToken?: Address;
+    readonly variableDebtToken?: Address;
+}
+
 export interface LendingAction {
     readonly kind: 'lending';
     readonly index: number;
@@ -219,11 +233,18 @@ export interface UnknownAction {
 }
 
 export type IntentAction =
-    SwapAction | LendingAction | MorphoAction | TransferAction | AuthorizationAction | AvantisAction | UnknownAction;
+    | SwapAction
+    | LendingAction
+    | MorphoAction
+    | AaveAction
+    | TransferAction
+    | AuthorizationAction
+    | AvantisAction
+    | UnknownAction;
 
 export interface IntentAnalysis {
     readonly schemaVersion: '1.0';
-    readonly protocol: 'uniswap' | 'aerodrome' | 'moonwell' | 'morpho' | 'avantis' | 'unknown';
+    readonly protocol: 'uniswap' | 'aerodrome' | 'moonwell' | 'morpho' | 'aave' | 'avantis' | 'unknown';
     readonly adapter: string;
     readonly chainId: number;
     readonly sender: Address;
@@ -246,6 +267,7 @@ export interface PolicyConfig {
     readonly allowedV4Hooks: readonly Address[];
     readonly allowedAerodromeFactories?: readonly Address[];
     readonly allowedMorphoMarkets?: readonly Hex[];
+    readonly allowedAaveReserves?: readonly Address[];
     readonly allowedAvantisPairIndexes?: readonly number[];
     readonly maximumAmountByToken: Readonly<Record<string, string>>;
     readonly maximumNativeValue: string;
@@ -258,6 +280,7 @@ export interface PolicyConfig {
     readonly maximumAvantisLeverage?: string;
     readonly maximumAvantisSlippageP?: string;
     readonly allowAvantisOpen?: boolean;
+    readonly minimumAaveHealthFactor?: string;
 }
 
 export type PolicyReasonCode =
@@ -267,6 +290,20 @@ export type PolicyReasonCode =
     | 'MORPHO_PRECHECK_FAILED'
     | 'MORPHO_MARKET_NOT_ALLOWED'
     | 'MORPHO_CALLBACK_NOT_ALLOWED'
+    | 'AAVE_STATE_REQUIRED'
+    | 'AAVE_PRECHECK_FAILED'
+    | 'AAVE_RESERVE_NOT_ALLOWED'
+    | 'AAVE_RESERVE_INACTIVE'
+    | 'AAVE_RESERVE_PAUSED'
+    | 'AAVE_RESERVE_FROZEN'
+    | 'AAVE_BORROWING_DISABLED'
+    | 'AAVE_COLLATERAL_DISABLED'
+    | 'AAVE_SUPPLY_CAP_EXCEEDED'
+    | 'AAVE_BORROW_CAP_EXCEEDED'
+    | 'AAVE_ACCOUNT_MISMATCH'
+    | 'AAVE_INTEREST_RATE_MODE_NOT_ALLOWED'
+    | 'AAVE_EMODE_NOT_SUPPORTED'
+    | 'AAVE_HEALTH_FACTOR_TOO_LOW'
     | 'AERODROME_FACTORY_NOT_ALLOWED'
     | 'AVANTIS_STATE_REQUIRED'
     | 'AVANTIS_PRECHECK_FAILED'
@@ -341,6 +378,7 @@ export interface AuthorizationReport {
     readonly permit2?: Permit2Verification;
     readonly moonwell?: MoonwellPreflight;
     readonly morpho?: MorphoPreflight;
+    readonly aave?: AavePreflight;
     readonly avantis?: AvantisPreflight;
 }
 
@@ -425,5 +463,69 @@ export interface MorphoPreflight {
     readonly blockHash?: Hex;
     readonly blockTimestamp?: number;
     readonly exposures: readonly MorphoExposure[];
+    readonly error?: string;
+}
+
+export interface AaveAccountData {
+    readonly totalCollateralBase: string;
+    readonly totalDebtBase: string;
+    readonly availableBorrowsBase: string;
+    readonly currentLiquidationThreshold: string;
+    readonly ltv: string;
+    readonly healthFactor: string;
+}
+
+export interface AaveReserveState {
+    readonly decimals: number;
+    readonly ltv: string;
+    readonly liquidationThreshold: string;
+    readonly usageAsCollateralEnabled: boolean;
+    readonly borrowingEnabled: boolean;
+    readonly active: boolean;
+    readonly frozen: boolean;
+    readonly paused: boolean;
+    readonly borrowCap: string;
+    readonly supplyCap: string;
+    readonly debtCeiling: string;
+    readonly siloedBorrowing: boolean;
+}
+
+export interface AaveExposure {
+    readonly actionIndex: number;
+    readonly operation: AaveAction['operation'];
+    readonly asset: Address;
+    readonly account: Address;
+    readonly recipient: Address;
+    readonly amount: string;
+    readonly aToken: Address;
+    readonly variableDebtToken: Address;
+    readonly liquidityIndex: string;
+    readonly variableBorrowIndex: string;
+    readonly scaledATokenBalanceBefore: string;
+    readonly scaledATokenBalanceAfter: string;
+    readonly scaledVariableDebtBefore: string;
+    readonly scaledVariableDebtAfter: string;
+    readonly aTokenBalanceBefore: string;
+    readonly aTokenBalanceAfter: string;
+    readonly variableDebtBefore: string;
+    readonly variableDebtAfter: string;
+    readonly totalATokenBefore: string;
+    readonly totalVariableDebtBefore: string;
+    readonly totalStableDebtBefore: string;
+    readonly collateralEnabledBefore: boolean;
+    readonly collateralEnabledAfter: boolean;
+    readonly reserve: AaveReserveState;
+    readonly accountBefore: AaveAccountData;
+    readonly accountAfter: AaveAccountData;
+}
+
+export interface AavePreflight {
+    readonly transactionFingerprint: Hex;
+    readonly status: 'ready' | 'unavailable' | 'invalid';
+    readonly blockNumber?: string;
+    readonly blockHash?: Hex;
+    readonly blockTimestamp?: number;
+    readonly exposures: readonly AaveExposure[];
+    readonly errorCode?: PolicyReasonCode;
     readonly error?: string;
 }

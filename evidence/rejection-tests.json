@@ -1,6 +1,6 @@
 {
   "generatedAt": "2026-09-30T17:20:45.000Z",
-  "count": 18,
+  "count": 27,
   "cases": [
     {
       "scenario": "unsupported chain",
@@ -202,6 +202,105 @@
       ],
       "messages": [
         "Morpho callback data is disabled because callback asset flows are outside this adapter's decoded intent."
+      ]
+    },
+    {
+      "scenario": "unapproved Aave reserve",
+      "expectedCode": "AAVE_RESERVE_NOT_ALLOWED",
+      "outcome": "reject",
+      "observedCodes": [
+        "AAVE_RESERVE_NOT_ALLOWED"
+      ],
+      "messages": [
+        "Aave reserve 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 is not allowed by policy."
+      ]
+    },
+    {
+      "scenario": "Aave aave reserve inactive",
+      "expectedCode": "AAVE_RESERVE_INACTIVE",
+      "outcome": "reject",
+      "observedCodes": [
+        "AAVE_RESERVE_INACTIVE"
+      ],
+      "messages": [
+        "AAVE_RESERVE_INACTIVE"
+      ]
+    },
+    {
+      "scenario": "Aave aave reserve paused",
+      "expectedCode": "AAVE_RESERVE_PAUSED",
+      "outcome": "reject",
+      "observedCodes": [
+        "AAVE_RESERVE_PAUSED"
+      ],
+      "messages": [
+        "AAVE_RESERVE_PAUSED"
+      ]
+    },
+    {
+      "scenario": "Aave aave reserve frozen",
+      "expectedCode": "AAVE_RESERVE_FROZEN",
+      "outcome": "reject",
+      "observedCodes": [
+        "AAVE_RESERVE_FROZEN"
+      ],
+      "messages": [
+        "AAVE_RESERVE_FROZEN"
+      ]
+    },
+    {
+      "scenario": "Aave aave borrowing disabled",
+      "expectedCode": "AAVE_BORROWING_DISABLED",
+      "outcome": "reject",
+      "observedCodes": [
+        "AAVE_BORROWING_DISABLED"
+      ],
+      "messages": [
+        "AAVE_BORROWING_DISABLED"
+      ]
+    },
+    {
+      "scenario": "Aave aave collateral disabled",
+      "expectedCode": "AAVE_COLLATERAL_DISABLED",
+      "outcome": "reject",
+      "observedCodes": [
+        "AAVE_COLLATERAL_DISABLED"
+      ],
+      "messages": [
+        "AAVE_COLLATERAL_DISABLED"
+      ]
+    },
+    {
+      "scenario": "Aave aave supply cap exceeded",
+      "expectedCode": "AAVE_SUPPLY_CAP_EXCEEDED",
+      "outcome": "reject",
+      "observedCodes": [
+        "AAVE_SUPPLY_CAP_EXCEEDED"
+      ],
+      "messages": [
+        "AAVE_SUPPLY_CAP_EXCEEDED"
+      ]
+    },
+    {
+      "scenario": "Aave aave borrow cap exceeded",
+      "expectedCode": "AAVE_BORROW_CAP_EXCEEDED",
+      "outcome": "reject",
+      "observedCodes": [
+        "AAVE_BORROW_CAP_EXCEEDED"
+      ],
+      "messages": [
+        "AAVE_BORROW_CAP_EXCEEDED"
+      ]
+    },
+    {
+      "scenario": "Aave aave interest rate mode not allowed",
+      "expectedCode": "AAVE_INTEREST_RATE_MODE_NOT_ALLOWED",
+      "outcome": "reject",
+      "observedCodes": [
+        "AAVE_INTEREST_RATE_MODE_NOT_ALLOWED"
+      ],
+      "messages": [
+        "AAVE_INTEREST_RATE_MODE_NOT_ALLOWED"
       ]
     }
   ]

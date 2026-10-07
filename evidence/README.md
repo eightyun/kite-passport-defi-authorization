@@ -8,7 +8,7 @@ This directory contains reproducible evidence for the Passport DeFi authorizatio
 - Operation-to-vector coverage and expected outcomes: [../fixtures/operation-coverage.json](../fixtures/operation-coverage.json)
 - Parsed intent, expected balance changes, policy decision and RPC result: [reports](./reports)
 - Policy configuration: [../config/policy.example.json](../config/policy.example.json)
-- Eighteen explicit rejection paths: [rejection-tests.json](./rejection-tests.json)
+- Twenty-seven explicit rejection paths: [rejection-tests.json](./rejection-tests.json)
 - Simulation and risk precheck: [simulation-and-risk-precheck.md](./simulation-and-risk-precheck.md)
 - Automated assertions: [../tests](../tests)
 - Recorded assertion results, including Permit2 rejection paths: [test-results.tap](./test-results.tap)
@@ -17,6 +17,7 @@ This directory contains reproducible evidence for the Passport DeFi authorizatio
 - Aerodrome selectors, routing and failure boundaries: [../docs/aerodrome.md](../docs/aerodrome.md)
 - Morpho market identity and exposure verification: [../docs/morpho.md](../docs/morpho.md)
 - Avantis v2 intent and delegation verification: [../docs/avantis.md](../docs/avantis.md)
+- Aave V3 reserve, account and health-factor verification: [../docs/aave.md](../docs/aave.md)
 
 ## Reproduce
 

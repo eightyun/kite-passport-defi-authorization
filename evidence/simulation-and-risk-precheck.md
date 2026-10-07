@@ -4,6 +4,12 @@ Generated from Base mainnet transaction vectors. Each RPC simulation replays the
 
 | Fixture | Protocol | Parsed operation | Transaction | Policy | Historical RPC simulation |
 |---|---|---|---|---|---|
+| aave-borrow-usdc.base.json | aave | aave-borrow | 0xa8614b1e6d5d319563c11355202dbc3d5f125b8bb9ba87b2f97c95c0b1471065 | reject | pass |
+| aave-disable-collateral-usdc.base.json | aave | aave-disable-collateral | 0x3904d7f1117b1429f088bfa515eb7e425de210ac67a79cb1bc708f4003b27983 | pass | pass |
+| aave-enable-collateral-usdc.base.json | aave | aave-enable-collateral | 0xa19f7d2c9603b354345c6d5ffefe8ccc0c5d0b99f9aeab73fcaa5e2231d2c90e | pass | pass |
+| aave-repay-usdc.base.json | aave | aave-repay | 0xfc7bd620dc7235fc4f0eb78bf4d0124b19c45a703ca659147b1eca8dbb763e3f | reject | pass |
+| aave-supply-usdc.base.json | aave | aave-supply | 0x5e60ee46a3d029c4a91531108a6bf1e276f7a7828afb2c685935ffa04bbd5e54 | pass | pass |
+| aave-withdraw-usdc.base.json | aave | aave-withdraw | 0x47bb5dcc2ac66c520ba266238e13bfb63dbc243aa0877433f52eb7a14c776dc4 | pass | pass |
 | aerodrome-native-to-token.base.json | aerodrome | aerodrome-native-to-token | 0x7428694f963a813ffec6fbff8c1c412985bba9bf388fd2262e7dc4e88ba9ce4c | reject | pass |
 | aerodrome-swap-usdc-aero.base.json | aerodrome | aerodrome-token-to-token | 0x4ae4c26c79314c635cde20f42371ef5621ec2f543281508a3d84665eff0b3a81 | pass | pass |
 | aerodrome-token-to-native.base.json | aerodrome | aerodrome-token-to-native | 0x81e4244c39b24e142355e197a709a88ee7dd84a77539fb8b9b7bba3739c7d2fc | reject | pass |
@@ -51,6 +57,8 @@ Generated from Base mainnet transaction vectors. Each RPC simulation replays the
 - Aerodrome routes must use configured factories; unsafe and fee-on-transfer selectors fail closed.
 - Moonwell borrowing is denied by the example policy.
 - Morpho markets must match an explicit market-ID allowlist and verified canonical parameters.
+- Aave reserves must be explicitly allowed; active, paused, frozen, collateral, borrowing and cap state is checked at the simulation block.
+- Aave variable debt, aToken balances and projected health factor are checked before authorization.
 - Avantis pair indexes, leverage, slippage and opening permissions are explicitly bounded.
 - Signed Avantis v2 intents require EIP-712 recovery, an unused unordered nonce and an active trader delegation when the signer differs from the trader.
 - Failed RPC simulation is a rejection.
@@ -71,6 +79,7 @@ The machine-readable coverage manifest is [fixtures/operation-coverage.json](../
 - Mint and redeemUnderlying receipt calculations use floor rounding, matching the contract; max-uint sentinels apply only to redemption and repayment. Protocol return codes are checked for market and controller calls.
 - Uniswap outputs are minimum guarantees; realized output still depends on pool state.
 - Morpho share-denominated amounts are resolved from the successful fixed-block call return data before policy caps are applied.
+- Aave max withdrawals and repayments are resolved from fixed-block aToken and variable-debt balances before policy caps are applied.
 
 ## Moonwell fixed-block exposure evidence
 
@@ -101,6 +110,19 @@ The exact asset/share result comes from the historical call. Position shares and
 | morpho-withdraw-collateral-weth.base.json | withdraw-collateral | 1200000000000000 | 0 | 0 → 0 | 0 → 0 | 1200000000000000 → 0 |
 | morpho-withdraw-usdc.base.json | withdraw | 50000 | 44746841279 | 447469269212 → 402722427933 | 0 → 0 | 0 → 0 |
 
+## Aave V3 fixed-block exposure evidence
+
+Reserve configuration, account balances and oracle price are read at the same historical block as the complete transaction simulation. Health factors use Aave's 1e18 fixed-point scale.
+
+| Fixture | Operation | Amount | aToken before → after | Variable debt before → after | Collateral enabled before → after | Health factor before → after |
+|---|---|---|---|---|---|---|
+| aave-borrow-usdc.base.json | borrow | 7200000000 | 0 → 0 | 25000005576 → 32200005576 | false → false | 2610456777279742939 → 2026752257351985551 |
+| aave-disable-collateral-usdc.base.json | disable-collateral | 0 | 5771614 → 5771614 | 0 → 0 | true → false | 115792089237316195423570985008687907853269984665640564039457584007913129639935 → 115792089237316195423570985008687907853269984665640564039457584007913129639935 |
+| aave-enable-collateral-usdc.base.json | enable-collateral | 0 | 5771614 → 5771614 | 0 → 0 | false → true | 115792089237316195423570985008687907853269984665640564039457584007913129639935 → 115792089237316195423570985008687907853269984665640564039457584007913129639935 |
+| aave-repay-usdc.base.json | repay | 2001275576 | 0 → 0 | 2001275576 → 0 | false → false | 5316888750996042444 → 1063940169202560000000000000000 |
+| aave-supply-usdc.base.json | supply | 36850000 | 0 → 36849999 | 0 → 0 | false → true | 115792089237316195423570985008687907853269984665640564039457584007913129639935 → 115792089237316195423570985008687907853269984665640564039457584007913129639935 |
+| aave-withdraw-usdc.base.json | withdraw | 1000000000 | 5617131288 → 4617131287 | 0 → 0 | true → true | 115792089237316195423570985008687907853269984665640564039457584007913129639935 → 115792089237316195423570985008687907853269984665640564039457584007913129639935 |
+
 ## Avantis fixed-block authorization evidence
 
 The signer is recovered from the exact v2 EIP-712 intent. Nonce bitmap and delegation state are read at the same historical block used for full-call simulation.
@@ -125,6 +147,8 @@ The signer is recovered from the exact v2 EIP-712 intent. Nonce bitmap and deleg
 - Arbitrary Uniswap v4 hooks are outside the supported trust boundary.
 - Aerodrome support covers the three standard exact-input methods. Fee-on-transfer and unsafe methods are deliberately unsupported.
 - Morpho liquidation, flash loans and authorization mutation are outside the supported operation set. Market totals are recorded as stored at the checked block; operation asset/share deltas come from full call simulation after Morpho interest accrual.
+- Aave support covers direct Pool supply, withdraw, variable-rate borrow, variable-rate repay and collateral enable/disable. Flash loans, liquidation, stable-rate debt, permit helpers, credit delegation and external adapters fail closed.
+- Aave projected health uses fixed-block Pool account data and the reserve oracle price. Pool revision 11 index rounding and automatic first-supply collateral activation are reflected in projected balances.
 - Avantis support covers direct open, close, increase, margin and limit-order management plus signed v2 market open, close and increase intents. Keeper-only execution, TP/SL, TWAP and RFQ paths fail closed.
 - Avantis closing proceeds remain unknown before execution because realized PnL, fees and oracle fill determine the final USDC credit. Opening and size-increase collateral are exact calldata amounts.
 - RPC simulation verifies call success at a fixed historical state; it does not guarantee execution against a later state.

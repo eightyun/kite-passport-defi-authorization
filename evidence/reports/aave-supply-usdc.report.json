@@ -1,0 +1,158 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-10-06T14:13:07.000Z",
+  "transaction": {
+    "chainId": 8453,
+    "from": "0x2eD129a2Cc50599727a14AD3cE3C7912451EA867",
+    "to": "0xA238Dd80C259a72e81d7e4664a9801593F98d1c5",
+    "data": "0x617ba037000000000000000000000000833589fcd6edb6e08f4c7c32d4f71b54bda0291300000000000000000000000000000000000000000000000000000000023249500000000000000000000000002ed129a2cc50599727a14ad3ce3c7912451ea8670000000000000000000000000000000000000000000000000000000000000000",
+    "value": "0",
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0x5e60ee46a3d029c4a91531108a6bf1e276f7a7828afb2c685935ffa04bbd5e54",
+      "explorerUrl": "https://base.blockscout.com/tx/0x5e60ee46a3d029c4a91531108a6bf1e276f7a7828afb2c685935ffa04bbd5e54",
+      "blockNumber": 52253320,
+      "timestamp": "2026-10-06T14:13:07.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "intent": {
+    "schemaVersion": "1.0",
+    "protocol": "aave",
+    "adapter": "aave-v3-base",
+    "chainId": 8453,
+    "sender": "0x2eD129a2Cc50599727a14AD3cE3C7912451EA867",
+    "target": "0xA238Dd80C259a72e81d7e4664a9801593F98d1c5",
+    "nativeValue": "0",
+    "transactionFingerprint": "0xaa49708bc01c3be22d33a718ea92314c2c8bfea73e90600524c13b910d77fc1f",
+    "actions": [
+      {
+        "kind": "aave",
+        "index": 0,
+        "operation": "supply",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "amount": {
+          "value": "36850000",
+          "mode": "exact"
+        },
+        "beneficiary": "0x2eD129a2Cc50599727a14AD3cE3C7912451EA867",
+        "referralCode": 0,
+        "receiptToken": "0x4e65fE4DbA92790696d040ac24Aa414708F5c0AB",
+        "variableDebtToken": "0x59dca05b6c26dbd64b5381374aAaC5CD05644C28"
+      }
+    ],
+    "expectedBalanceChanges": [
+      {
+        "account": "sender",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "category": "asset",
+        "direction": "debit",
+        "amount": {
+          "value": "36850000",
+          "mode": "exact"
+        },
+        "reason": "Aave supply transfers the underlying asset to the Pool"
+      },
+      {
+        "account": "0x2eD129a2Cc50599727a14AD3cE3C7912451EA867",
+        "asset": "0x4e65fE4DbA92790696d040ac24Aa414708F5c0AB",
+        "category": "receipt",
+        "direction": "credit",
+        "amount": {
+          "value": "36849999",
+          "mode": "exact"
+        },
+        "reason": "Aave supply mints aTokens after liquidity-index floor rounding"
+      }
+    ],
+    "warnings": [
+      "Aave balance and health-factor changes are conditional projections at the verified fixed block.",
+      "aToken and variable-debt changes apply the Pool revision 11 floor and ceiling rules at the verified indexes."
+    ],
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0x5e60ee46a3d029c4a91531108a6bf1e276f7a7828afb2c685935ffa04bbd5e54",
+      "explorerUrl": "https://base.blockscout.com/tx/0x5e60ee46a3d029c4a91531108a6bf1e276f7a7828afb2c685935ffa04bbd5e54",
+      "blockNumber": 52253320,
+      "timestamp": "2026-10-06T14:13:07.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "policy": {
+    "outcome": "pass",
+    "findings": []
+  },
+  "simulation": {
+    "attempted": true,
+    "success": true,
+    "transactionFingerprint": "0xaa49708bc01c3be22d33a718ea92314c2c8bfea73e90600524c13b910d77fc1f",
+    "blockHash": "0xcd2d142590189e703d5a4aacc040cc78d1b9b9eb1a3ef5470bc97862db4a52a9",
+    "rpcUrl": "https://mainnet.base.org",
+    "blockNumber": "52253319"
+  },
+  "finalDecision": "pass",
+  "aave": {
+    "transactionFingerprint": "0xaa49708bc01c3be22d33a718ea92314c2c8bfea73e90600524c13b910d77fc1f",
+    "status": "ready",
+    "blockNumber": "52253319",
+    "blockHash": "0xcd2d142590189e703d5a4aacc040cc78d1b9b9eb1a3ef5470bc97862db4a52a9",
+    "blockTimestamp": 1791295985,
+    "exposures": [
+      {
+        "actionIndex": 0,
+        "operation": "supply",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "account": "0x2eD129a2Cc50599727a14AD3cE3C7912451EA867",
+        "recipient": "0x2eD129a2Cc50599727a14AD3cE3C7912451EA867",
+        "amount": "36850000",
+        "aToken": "0x4e65fE4DbA92790696d040ac24Aa414708F5c0AB",
+        "variableDebtToken": "0x59dca05b6c26dbd64b5381374aAaC5CD05644C28",
+        "liquidityIndex": "1148336113365097754314078071",
+        "variableBorrowIndex": "1206144190893072768825145504",
+        "scaledATokenBalanceBefore": "0",
+        "scaledATokenBalanceAfter": "32089907",
+        "scaledVariableDebtBefore": "0",
+        "scaledVariableDebtAfter": "0",
+        "aTokenBalanceBefore": "0",
+        "aTokenBalanceAfter": "36849999",
+        "variableDebtBefore": "0",
+        "variableDebtAfter": "0",
+        "totalATokenBefore": "181912395119434",
+        "totalStableDebtBefore": "0",
+        "totalVariableDebtBefore": "163327671869227",
+        "collateralEnabledBefore": false,
+        "collateralEnabledAfter": true,
+        "reserve": {
+          "decimals": 6,
+          "ltv": "7500",
+          "liquidationThreshold": "7800",
+          "usageAsCollateralEnabled": true,
+          "borrowingEnabled": true,
+          "active": true,
+          "frozen": false,
+          "paused": false,
+          "borrowCap": "207000000",
+          "supplyCap": "230000000",
+          "debtCeiling": "0",
+          "siloedBorrowing": false
+        },
+        "accountBefore": {
+          "totalCollateralBase": "0",
+          "totalDebtBase": "0",
+          "availableBorrowsBase": "0",
+          "currentLiquidationThreshold": "0",
+          "ltv": "0",
+          "healthFactor": "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+        },
+        "accountAfter": {
+          "totalCollateralBase": "3684598898",
+          "totalDebtBase": "0",
+          "availableBorrowsBase": "2763449173",
+          "currentLiquidationThreshold": "7800",
+          "ltv": "7500",
+          "healthFactor": "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+        }
+      }
+    ]
+  }
+}

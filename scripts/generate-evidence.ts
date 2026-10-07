@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import type {
     Address,
+    AavePreflight,
     AuthorizationReport,
     IntentAnalysis,
     PolicyConfig,
@@ -53,6 +54,7 @@ function retryableReport(report: AuthorizationReport): boolean {
         report.simulation.error === 'RPC simulation failed, reverted, or returned data from the wrong chain.' ||
         report.moonwell?.status === 'unavailable' ||
         report.morpho?.status === 'unavailable' ||
+        report.aave?.status === 'unavailable' ||
         report.avantis?.status === 'unavailable' ||
         report.permit2?.checks.some((check) => check.status === 'unavailable') === true
     );
@@ -75,6 +77,7 @@ function rejectionEvidence(
     intent: IntentAnalysis,
     aerodromeIntent: IntentAnalysis,
     morphoIntent: IntentAnalysis,
+    aaveIntent: IntentAnalysis,
     policy: PolicyConfig
 ): readonly RejectionEvidence[] {
     const swap = intent.actions[0];
@@ -84,8 +87,9 @@ function rejectionEvidence(
     const unknownAddress = '0x1111111111111111111111111111111111111111' as Address;
     const aerodromeSwap = aerodromeIntent.actions[0];
     const morphoAction = morphoIntent.actions[0];
-    if (aerodromeSwap?.kind !== 'swap' || morphoAction?.kind !== 'morpho') {
-        throw new Error('Expected Aerodrome and Morpho evidence vectors');
+    const aaveAction = aaveIntent.actions[0];
+    if (aerodromeSwap?.kind !== 'swap' || morphoAction?.kind !== 'morpho' || aaveAction?.kind !== 'aave') {
+        throw new Error('Expected Aerodrome, Morpho and Aave evidence vectors');
     }
     const baseNow = 1_790_788_845;
     const scenarios: readonly {
@@ -95,6 +99,7 @@ function rejectionEvidence(
         policy: PolicyConfig;
         now?: number;
         simulation?: SimulationResult;
+        aave?: AavePreflight;
     }[] = [
         { name: 'unsupported chain', code: 'UNSUPPORTED_CHAIN', intent: { ...intent, chainId: 1 }, policy },
         {
@@ -233,13 +238,44 @@ function rejectionEvidence(
             code: 'MORPHO_CALLBACK_NOT_ALLOWED',
             intent: { ...morphoIntent, actions: [{ ...morphoAction, callbackData: '0x01' }] },
             policy
-        }
+        },
+        {
+            name: 'unapproved Aave reserve',
+            code: 'AAVE_RESERVE_NOT_ALLOWED',
+            intent: aaveIntent,
+            policy: { ...policy, allowedAaveReserves: [] }
+        },
+        ...(
+            [
+                'AAVE_RESERVE_INACTIVE',
+                'AAVE_RESERVE_PAUSED',
+                'AAVE_RESERVE_FROZEN',
+                'AAVE_BORROWING_DISABLED',
+                'AAVE_COLLATERAL_DISABLED',
+                'AAVE_SUPPLY_CAP_EXCEEDED',
+                'AAVE_BORROW_CAP_EXCEEDED',
+                'AAVE_INTEREST_RATE_MODE_NOT_ALLOWED'
+            ] as const
+        ).map((code) => ({
+            name: `Aave ${code.toLowerCase().replaceAll('_', ' ')}`,
+            code,
+            intent: aaveIntent,
+            policy,
+            aave: {
+                transactionFingerprint: aaveIntent.transactionFingerprint!,
+                status: 'invalid' as const,
+                exposures: [],
+                errorCode: code,
+                error: code
+            }
+        }))
     ];
 
     return scenarios.map((scenario) => {
         const decision = evaluatePolicy(scenario.intent, scenario.policy, {
             nowSeconds: scenario.now ?? baseNow,
-            simulation: scenario.simulation ?? successfulSimulation()
+            simulation: scenario.simulation ?? successfulSimulation(),
+            ...(scenario.aave ? { aave: scenario.aave } : {})
         });
         if (!decision.findings.some((finding) => finding.code === scenario.code)) {
             throw new Error(`Evidence scenario ${scenario.name} did not produce ${scenario.code}`);
@@ -273,10 +309,12 @@ async function main(): Promise<void> {
     const summaries: string[] = [];
     const moonwellExposures: string[] = [];
     const morphoExposures: string[] = [];
+    const aaveExposures: string[] = [];
     let v4Intent: IntentAnalysis | undefined;
     let aerodromeIntent: IntentAnalysis | undefined;
     let morphoIntent: IntentAnalysis | undefined;
     let avantisIntent: IntentAnalysis | undefined;
+    let aaveIntent: IntentAnalysis | undefined;
     const avantisChecks: string[] = [];
 
     for (const file of files) {
@@ -359,6 +397,22 @@ async function main(): Promise<void> {
             }
             avantisIntent = report.intent;
         }
+        if (report.intent.protocol === 'aave') {
+            if (
+                report.aave?.status !== 'ready' ||
+                !report.aave.exposures.length ||
+                report.aave.blockHash !== report.simulation.blockHash ||
+                report.intent.expectedBalanceChanges.some((change) => change.amount.mode !== 'exact')
+            ) {
+                throw new Error(`${file} is missing concrete Aave fixed-block exposure evidence`);
+            }
+            for (const exposure of report.aave.exposures) {
+                aaveExposures.push(
+                    `| ${file} | ${exposure.operation} | ${exposure.amount} | ${exposure.aTokenBalanceBefore} → ${exposure.aTokenBalanceAfter} | ${exposure.variableDebtBefore} → ${exposure.variableDebtAfter} | ${exposure.collateralEnabledBefore} → ${exposure.collateralEnabledAfter} | ${exposure.accountBefore.healthFactor} → ${exposure.accountAfter.healthFactor} |`
+                );
+            }
+            if (file === 'aave-supply-usdc.base.json') aaveIntent = report.intent;
+        }
         if (
             report.permit2 &&
             (!report.permit2.checks.length || report.permit2.checks.some((check) => check.status !== 'valid'))
@@ -390,11 +444,12 @@ async function main(): Promise<void> {
         v4Intent === undefined ||
         aerodromeIntent === undefined ||
         morphoIntent === undefined ||
-        avantisIntent === undefined
+        avantisIntent === undefined ||
+        aaveIntent === undefined
     ) {
-        throw new Error('Missing Uniswap v4, Aerodrome, Morpho or Avantis evidence vector');
+        throw new Error('Missing Uniswap v4, Aerodrome, Morpho, Aave or Avantis evidence vector');
     }
-    const rejections = rejectionEvidence(v4Intent, aerodromeIntent, morphoIntent, policy);
+    const rejections = rejectionEvidence(v4Intent, aerodromeIntent, morphoIntent, aaveIntent, policy);
     const testFiles = (await readdir(resolve('tests'))).filter((file) => file.endsWith('.test.ts')).sort();
     const testOutput = execFileSync(
         process.execPath,
@@ -428,6 +483,8 @@ ${summaries.join('\n')}
 - Aerodrome routes must use configured factories; unsafe and fee-on-transfer selectors fail closed.
 - Moonwell borrowing is denied by the example policy.
 - Morpho markets must match an explicit market-ID allowlist and verified canonical parameters.
+- Aave reserves must be explicitly allowed; active, paused, frozen, collateral, borrowing and cap state is checked at the simulation block.
+- Aave variable debt, aToken balances and projected health factor are checked before authorization.
 - Avantis pair indexes, leverage, slippage and opening permissions are explicitly bounded.
 - Signed Avantis v2 intents require EIP-712 recovery, an unused unordered nonce and an active trader delegation when the signer differs from the trader.
 - Failed RPC simulation is a rejection.
@@ -446,6 +503,7 @@ ${coverage.deterministicOnly.map((entry) => `- ${entry.operation}: ${entry.reaso
 - Mint and redeemUnderlying receipt calculations use floor rounding, matching the contract; max-uint sentinels apply only to redemption and repayment. Protocol return codes are checked for market and controller calls.
 - Uniswap outputs are minimum guarantees; realized output still depends on pool state.
 - Morpho share-denominated amounts are resolved from the successful fixed-block call return data before policy caps are applied.
+- Aave max withdrawals and repayments are resolved from fixed-block aToken and variable-debt balances before policy caps are applied.
 
 ## Moonwell fixed-block exposure evidence
 
@@ -462,6 +520,14 @@ The exact asset/share result comes from the historical call. Position shares and
 | Fixture | Operation | Assets | Shares | Supply shares before → after | Borrow shares before → after | Collateral before → after |
 |---|---|---|---|---|---|---|
 ${morphoExposures.join('\n')}
+
+## Aave V3 fixed-block exposure evidence
+
+Reserve configuration, account balances and oracle price are read at the same historical block as the complete transaction simulation. Health factors use Aave's 1e18 fixed-point scale.
+
+| Fixture | Operation | Amount | aToken before → after | Variable debt before → after | Collateral enabled before → after | Health factor before → after |
+|---|---|---|---|---|---|---|
+${aaveExposures.join('\n')}
 
 ## Avantis fixed-block authorization evidence
 
@@ -485,6 +551,8 @@ ${avantisChecks.join('\n')}
 - Arbitrary Uniswap v4 hooks are outside the supported trust boundary.
 - Aerodrome support covers the three standard exact-input methods. Fee-on-transfer and unsafe methods are deliberately unsupported.
 - Morpho liquidation, flash loans and authorization mutation are outside the supported operation set. Market totals are recorded as stored at the checked block; operation asset/share deltas come from full call simulation after Morpho interest accrual.
+- Aave support covers direct Pool supply, withdraw, variable-rate borrow, variable-rate repay and collateral enable/disable. Flash loans, liquidation, stable-rate debt, permit helpers, credit delegation and external adapters fail closed.
+- Aave projected health uses fixed-block Pool account data and the reserve oracle price. Pool revision 11 index rounding and automatic first-supply collateral activation are reflected in projected balances.
 - Avantis support covers direct open, close, increase, margin and limit-order management plus signed v2 market open, close and increase intents. Keeper-only execution, TP/SL, TWAP and RFQ paths fail closed.
 - Avantis closing proceeds remain unknown before execution because realized PnL, fees and oracle fill determine the final USDC credit. Opening and size-increase collateral are exact calldata amounts.
 - RPC simulation verifies call success at a fixed historical state; it does not guarantee execution against a later state.
@@ -502,7 +570,7 @@ This directory contains reproducible evidence for the Passport DeFi authorizatio
 - Operation-to-vector coverage and expected outcomes: [../fixtures/operation-coverage.json](../fixtures/operation-coverage.json)
 - Parsed intent, expected balance changes, policy decision and RPC result: [reports](./reports)
 - Policy configuration: [../config/policy.example.json](../config/policy.example.json)
-- Eighteen explicit rejection paths: [rejection-tests.json](./rejection-tests.json)
+- Twenty-seven explicit rejection paths: [rejection-tests.json](./rejection-tests.json)
 - Simulation and risk precheck: [simulation-and-risk-precheck.md](./simulation-and-risk-precheck.md)
 - Automated assertions: [../tests](../tests)
 - Recorded assertion results, including Permit2 rejection paths: [test-results.tap](./test-results.tap)
@@ -511,6 +579,7 @@ This directory contains reproducible evidence for the Passport DeFi authorizatio
 - Aerodrome selectors, routing and failure boundaries: [../docs/aerodrome.md](../docs/aerodrome.md)
 - Morpho market identity and exposure verification: [../docs/morpho.md](../docs/morpho.md)
 - Avantis v2 intent and delegation verification: [../docs/avantis.md](../docs/avantis.md)
+- Aave V3 reserve, account and health-factor verification: [../docs/aave.md](../docs/aave.md)
 
 ## Reproduce
 

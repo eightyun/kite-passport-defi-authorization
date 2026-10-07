@@ -1,0 +1,130 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-10-06T10:59:57.000Z",
+  "transaction": {
+    "chainId": 8453,
+    "from": "0xE66a2E2A59688624519deB0CcaE4D1B90bfDfBCD",
+    "to": "0xA238Dd80C259a72e81d7e4664a9801593F98d1c5",
+    "data": "0x5a3b74b9000000000000000000000000833589fcd6edb6e08f4c7c32d4f71b54bda029130000000000000000000000000000000000000000000000000000000000000000",
+    "value": "0",
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0x3904d7f1117b1429f088bfa515eb7e425de210ac67a79cb1bc708f4003b27983",
+      "explorerUrl": "https://base.blockscout.com/tx/0x3904d7f1117b1429f088bfa515eb7e425de210ac67a79cb1bc708f4003b27983",
+      "blockNumber": 52247525,
+      "timestamp": "2026-10-06T10:59:57.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "intent": {
+    "schemaVersion": "1.0",
+    "protocol": "aave",
+    "adapter": "aave-v3-base",
+    "chainId": 8453,
+    "sender": "0xE66a2E2A59688624519deB0CcaE4D1B90bfDfBCD",
+    "target": "0xA238Dd80C259a72e81d7e4664a9801593F98d1c5",
+    "nativeValue": "0",
+    "transactionFingerprint": "0x74e5601cbfe0afff31abbb97e4beb808cce9bde568f2e22c34c207a8d090bb56",
+    "actions": [
+      {
+        "kind": "aave",
+        "index": 0,
+        "operation": "disable-collateral",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "beneficiary": "0xE66a2E2A59688624519deB0CcaE4D1B90bfDfBCD",
+        "receiptToken": "0x4e65fE4DbA92790696d040ac24Aa414708F5c0AB",
+        "variableDebtToken": "0x59dca05b6c26dbd64b5381374aAaC5CD05644C28"
+      }
+    ],
+    "expectedBalanceChanges": [],
+    "warnings": [
+      "Aave balance and health-factor changes are conditional projections at the verified fixed block.",
+      "aToken and variable-debt changes apply the Pool revision 11 floor and ceiling rules at the verified indexes."
+    ],
+    "source": {
+      "name": "Base Blockscout",
+      "transactionHash": "0x3904d7f1117b1429f088bfa515eb7e425de210ac67a79cb1bc708f4003b27983",
+      "explorerUrl": "https://base.blockscout.com/tx/0x3904d7f1117b1429f088bfa515eb7e425de210ac67a79cb1bc708f4003b27983",
+      "blockNumber": 52247525,
+      "timestamp": "2026-10-06T10:59:57.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "policy": {
+    "outcome": "pass",
+    "findings": []
+  },
+  "simulation": {
+    "attempted": true,
+    "success": true,
+    "transactionFingerprint": "0x74e5601cbfe0afff31abbb97e4beb808cce9bde568f2e22c34c207a8d090bb56",
+    "blockHash": "0xcef3d0b9e52ff6d09c729d503a0f8612af5abbf39e748bcedf00e1a62fea1d34",
+    "rpcUrl": "https://mainnet.base.org",
+    "blockNumber": "52247524"
+  },
+  "finalDecision": "pass",
+  "aave": {
+    "transactionFingerprint": "0x74e5601cbfe0afff31abbb97e4beb808cce9bde568f2e22c34c207a8d090bb56",
+    "status": "ready",
+    "blockNumber": "52247524",
+    "blockHash": "0xcef3d0b9e52ff6d09c729d503a0f8612af5abbf39e748bcedf00e1a62fea1d34",
+    "blockTimestamp": 1791284395,
+    "exposures": [
+      {
+        "actionIndex": 0,
+        "operation": "disable-collateral",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "account": "0xE66a2E2A59688624519deB0CcaE4D1B90bfDfBCD",
+        "recipient": "0xE66a2E2A59688624519deB0CcaE4D1B90bfDfBCD",
+        "amount": "0",
+        "aToken": "0x4e65fE4DbA92790696d040ac24Aa414708F5c0AB",
+        "variableDebtToken": "0x59dca05b6c26dbd64b5381374aAaC5CD05644C28",
+        "liquidityIndex": "1148320132653475976706677673",
+        "variableBorrowIndex": "1206123412813110771300265741",
+        "scaledATokenBalanceBefore": "5026137",
+        "scaledATokenBalanceAfter": "5026137",
+        "scaledVariableDebtBefore": "0",
+        "scaledVariableDebtAfter": "0",
+        "aTokenBalanceBefore": "5771614",
+        "aTokenBalanceAfter": "5771614",
+        "variableDebtBefore": "0",
+        "variableDebtAfter": "0",
+        "totalATokenBefore": "182100171622924",
+        "totalStableDebtBefore": "0",
+        "totalVariableDebtBefore": "163329261726556",
+        "collateralEnabledBefore": true,
+        "collateralEnabledAfter": false,
+        "reserve": {
+          "decimals": 6,
+          "ltv": "7500",
+          "liquidationThreshold": "7800",
+          "usageAsCollateralEnabled": true,
+          "borrowingEnabled": true,
+          "active": true,
+          "frozen": false,
+          "paused": false,
+          "borrowCap": "207000000",
+          "supplyCap": "230000000",
+          "debtCeiling": "0",
+          "siloedBorrowing": false
+        },
+        "accountBefore": {
+          "totalCollateralBase": "577098593",
+          "totalDebtBase": "0",
+          "availableBorrowsBase": "432823944",
+          "currentLiquidationThreshold": "7800",
+          "ltv": "7500",
+          "healthFactor": "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+        },
+        "accountAfter": {
+          "totalCollateralBase": "0",
+          "totalDebtBase": "0",
+          "availableBorrowsBase": "0",
+          "currentLiquidationThreshold": "0",
+          "ltv": "0",
+          "healthFactor": "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+        }
+      }
+    ]
+  }
+}
