@@ -179,5 +179,15 @@
     "rpcUrl": "https://mainnet.base.org",
     "blockNumber": "52003493"
   },
-  "finalDecision": "reject"
+  "finalDecision": "reject",
+  "receipt": {
+    "analyzer": "@eightyun/kite-passport-defi-authorization",
+    "analyzerVersion": "0.2.0",
+    "policyHash": "0xb5ed6faafef58cb2fe4019eeb1756a2c25d95b265e2935c5ec20b6d427c2b325",
+    "reportHash": "0xdeba13c4fac9155234c800239cb1ca7f7c76f617be814f8832e72984c708dc9d",
+    "transactionFingerprint": "0x43b023c6acd8e77d5160575825b02ef1401e4904c4bccc6c7c874ee84ce3abdb",
+    "validFromBlock": "52003493",
+    "validUntilBlock": "52003493",
+    "verificationBlockHash": "0x2d9ebc1bd6bede19d8a0277cb2d8ee812c9b604f90b3b3d3ca71087e5a2c1f69"
+  }
 }

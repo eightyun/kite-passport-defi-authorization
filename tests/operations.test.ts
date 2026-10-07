@@ -268,3 +268,47 @@ test('marks Universal Router allow-revert commands as unsupported', () => {
         assert.match(action.reason, /allow-revert/);
     }
 });
+
+test('decodes Universal Router sub-plans and assigns unique flattened action indexes', () => {
+    const swapInput = encodeAbiParameters(
+        parseAbiParameters(
+            'address recipient, uint256 amountIn, uint256 amountOutMinimum, address[] path, bool payerIsUser'
+        ),
+        [sender, 100n, 1n, [BASE_USDC, BASE_WETH], true]
+    );
+    const subPlan = encodeAbiParameters(parseAbiParameters('bytes commands, bytes[] inputs'), [
+        '0x0808',
+        [swapInput, swapInput]
+    ]);
+    const analysis = decodeTransaction(universalRouterTransaction('0x21', subPlan));
+    assert.deepEqual(
+        analysis.actions.map((action) => [action.kind, action.index]),
+        [
+            ['swap', 0],
+            ['swap', 1]
+        ]
+    );
+});
+
+test('rejects allow-revert commands inside Universal Router sub-plans', () => {
+    const swapInput = encodeAbiParameters(
+        parseAbiParameters(
+            'address recipient, uint256 amountIn, uint256 amountOutMinimum, address[] path, bool payerIsUser'
+        ),
+        [sender, 100n, 1n, [BASE_USDC, BASE_WETH], true]
+    );
+    const subPlan = encodeAbiParameters(parseAbiParameters('bytes commands, bytes[] inputs'), ['0x88', [swapInput]]);
+    const action = decodeTransaction(universalRouterTransaction('0x21', subPlan)).actions[0];
+    assert.equal(action?.kind, 'unknown');
+    if (action?.kind === 'unknown') assert.match(action.reason, /allow-revert/);
+});
+
+test('fails closed when Universal Router sub-plans exceed the recursion limit', () => {
+    let input = encodeAbiParameters(parseAbiParameters('bytes commands, bytes[] inputs'), ['0x', []]);
+    for (let depth = 0; depth < 5; depth += 1) {
+        input = encodeAbiParameters(parseAbiParameters('bytes commands, bytes[] inputs'), ['0x21', [input]]);
+    }
+    const action = decodeTransaction(universalRouterTransaction('0x21', input)).actions[0];
+    assert.equal(action?.kind, 'unknown');
+    if (action?.kind === 'unknown') assert.match(action.reason, /depth exceeds/);
+});

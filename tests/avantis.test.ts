@@ -3,6 +3,7 @@ import { createServer } from 'node:http';
 import test from 'node:test';
 import { resolve } from 'node:path';
 import { encodeAbiParameters, encodeFunctionData, parseAbi, parseAbiParameters, toFunctionSelector, toHex } from 'viem';
+import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { avantisAbi } from '../src/adapters/avantis.js';
 import { decodeTransaction } from '../src/decode.js';
 import { loadPolicy, loadTransaction } from '../src/io.js';
@@ -96,6 +97,98 @@ test('decodes real signed Avantis open, close and coin-exposure increase vectors
         assert.match(action.signature ?? '', /^0x[0-9a-f]{130}$/);
         assert.ok(action.deadlineMs && action.nonce);
         assert.ok(intent.expectedBalanceChanges.length > 0);
+    }
+});
+
+test('decodes and verifies the current signed Avantis TP/SL update intent', async () => {
+    const trader = privateKeyToAccount(generatePrivateKey());
+    const message = {
+        trader: trader.address,
+        _pairIndex: 1n,
+        _index: 0n,
+        _newTp: 90_000n * 10n ** 10n,
+        _newSl: 70_000n * 10n ** 10n,
+        _deadline: 1_800_000_000_123n,
+        _nonce: 19n
+    };
+    const types = {
+        UpdateTpSlReq: [
+            { name: 'trader', type: 'address' },
+            { name: '_pairIndex', type: 'uint256' },
+            { name: '_index', type: 'uint256' },
+            { name: '_newTp', type: 'uint256' },
+            { name: '_newSl', type: 'uint256' },
+            { name: '_deadline', type: 'uint256' },
+            { name: '_nonce', type: 'uint256' }
+        ]
+    } as const;
+    const signature = await trader.signTypedData({
+        domain: { name: 'AvantisTrading', version: '1', chainId: 8453, verifyingContract: router },
+        types,
+        primaryType: 'UpdateTpSlReq',
+        message
+    });
+    const userIntent = encodeAbiParameters(
+        parseAbiParameters('address,uint256,uint256,uint256,uint256,uint256,uint256'),
+        [
+            message.trader,
+            message._pairIndex,
+            message._index,
+            message._newTp,
+            message._newSl,
+            message._deadline,
+            message._nonce
+        ]
+    );
+    const data = encodeFunctionData({
+        abi: avantisAbi,
+        functionName: 'executePositionUpdateBatched',
+        args: [5, signature, userIntent, [], 0, [0n, 0n, 0n, false, 0n, false, 0n]]
+    });
+    const envelope = transaction(data);
+    const intent = decodeTransaction(envelope);
+    const action = intent.actions[0];
+    assert.equal(action?.kind, 'avantis');
+    if (action?.kind !== 'avantis') return;
+    assert.equal(action.operation, 'update-tp-sl');
+    assert.equal(action.takeProfit, message._newTp.toString());
+    assert.equal(action.stopLoss, message._newSl.toString());
+    assert.equal(action.intentType, 'UpdateTpSlReq');
+
+    const server = createServer(async (request, response) => {
+        let raw = '';
+        for await (const chunk of request) raw += chunk.toString();
+        const body = JSON.parse(raw) as { id: number; method: string; params: unknown[] };
+        let result: unknown;
+        if (body.method === 'eth_chainId') result = toHex(8453);
+        else if (body.method === 'eth_getBlockByNumber')
+            result = {
+                number: '0x64',
+                hash: `0x${'45'.repeat(32)}`,
+                timestamp: toHex(1_790_000_000),
+                transactions: [],
+                gasLimit: '0x1000000',
+                gasUsed: '0x0',
+                size: '0x1',
+                difficulty: '0x0',
+                totalDifficulty: '0x0',
+                baseFeePerGas: '0x1'
+            };
+        else if (body.method === 'eth_call') result = encodeAbiParameters(parseAbiParameters('uint256'), [0n]);
+        else throw new Error(`Unexpected RPC method ${body.method}`);
+        response.setHeader('content-type', 'application/json');
+        response.end(JSON.stringify({ jsonrpc: '2.0', id: body.id, result }));
+    });
+    await new Promise<void>((done) => server.listen(0, '127.0.0.1', done));
+    const bound = server.address();
+    assert.ok(bound && typeof bound !== 'string');
+    try {
+        const state = await preflightAvantis(envelope, intent, `http://127.0.0.1:${bound.port}`, 100n);
+        assert.equal(state.status, 'ready');
+        assert.equal(state.checks[0]?.signer, trader.address);
+        assert.equal(state.checks[0]?.nonceUsed, false);
+    } finally {
+        await new Promise<void>((done, reject) => server.close((error) => (error ? reject(error) : done())));
     }
 });
 

@@ -19,6 +19,7 @@ This directory contains reproducible evidence for the Passport DeFi authorizatio
 - Avantis v2 intent and delegation verification: [../docs/avantis.md](../docs/avantis.md)
 - Aave V3 reserve, account and health-factor verification: [../docs/aave.md](../docs/aave.md)
 - Compound III market, account and collateralization verification: [../docs/compound.md](../docs/compound.md)
+- Report policy hash, analyzer version, valid block and verification command: [../docs/receipts.md](../docs/receipts.md)
 
 ## Reproduce
 

@@ -77,7 +77,7 @@
       },
       {
         "kind": "transfer",
-        "index": 1,
+        "index": 3,
         "operation": "sweep",
         "asset": "0x0000000000000000000000000000000000000000",
         "recipient": "sender",
@@ -201,5 +201,15 @@
     "rpcUrl": "https://mainnet.base.org",
     "blockNumber": "52016752"
   },
-  "finalDecision": "pass"
+  "finalDecision": "pass",
+  "receipt": {
+    "analyzer": "@eightyun/kite-passport-defi-authorization",
+    "analyzerVersion": "0.2.0",
+    "policyHash": "0xb5ed6faafef58cb2fe4019eeb1756a2c25d95b265e2935c5ec20b6d427c2b325",
+    "reportHash": "0xe9721101f41bbd2685c3256dcab2799d3a53b707c84a68bb483d8c6cc002e34f",
+    "transactionFingerprint": "0xa24593e67e5f1ac6f9a8002a7ed8128bebaa7ad6dedb9442be2a8d03c129a4d7",
+    "validFromBlock": "52016752",
+    "validUntilBlock": "52016752",
+    "verificationBlockHash": "0xdf712321eadd9e9235b9acaf7e2b0d665be321696b79a93377971e4ba9053c30"
+  }
 }

@@ -167,5 +167,15 @@
         "recoveredSigner": "0x58F1D63B5Ff08c052B5c562D8a58Aa10734d7473"
       }
     ]
+  },
+  "receipt": {
+    "analyzer": "@eightyun/kite-passport-defi-authorization",
+    "analyzerVersion": "0.2.0",
+    "policyHash": "0xb5ed6faafef58cb2fe4019eeb1756a2c25d95b265e2935c5ec20b6d427c2b325",
+    "reportHash": "0x35f72ad7b3e5dacfc4b5ab25284bf56f9f3a740365c8350b04d6b31b1da1de3f",
+    "transactionFingerprint": "0xaf6a37a83e79c5544b3247346d89cf27e59ac03c85efbd6e73f0b834f261e0aa",
+    "validFromBlock": "52023012",
+    "validUntilBlock": "52023012",
+    "verificationBlockHash": "0xfe655774324b9f1d47b5c4e73e5bca67b55bf5c4afe01cd38ca9a061b719b282"
   }
 }

@@ -107,6 +107,17 @@ const intentTypes: Readonly<Record<string, TypedData>> = {
             { name: '_nonce', type: 'uint256' }
         ],
         UpdatePositionSize: updatePositionType
+    },
+    UpdateTpSlReq: {
+        UpdateTpSlReq: [
+            { name: 'trader', type: 'address' },
+            { name: '_pairIndex', type: 'uint256' },
+            { name: '_index', type: 'uint256' },
+            { name: '_newTp', type: 'uint256' },
+            { name: '_newSl', type: 'uint256' },
+            { name: '_deadline', type: 'uint256' },
+            { name: '_nonce', type: 'uint256' }
+        ]
     }
 };
 

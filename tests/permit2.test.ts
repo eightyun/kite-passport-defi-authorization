@@ -1,7 +1,17 @@
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import test from 'node:test';
-import { encodeAbiParameters, encodeFunctionData, parseAbi, parseAbiParameters, toHex } from 'viem';
+import {
+    encodeAbiParameters,
+    encodeFunctionData,
+    hashTypedData,
+    keccak256,
+    parseAbi,
+    parseAbiParameters,
+    toBytes,
+    toFunctionSelector,
+    toHex
+} from 'viem';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import {
     BASE_PERMIT2,
@@ -12,9 +22,9 @@ import {
     ROUTER_RECIPIENT
 } from '../src/contracts.js';
 import { decodeTransaction } from '../src/decode.js';
-import type { Hex, Permit2Permit, PolicyConfig, TransactionEnvelope } from '../src/domain.js';
+import type { Hex, Permit2Permit, Permit2WitnessPermit, PolicyConfig, TransactionEnvelope } from '../src/domain.js';
 import { loadPolicy, loadTransaction } from '../src/io.js';
-import { permit2Digest, recoverPermit2Signer, verifyPermit2 } from '../src/permit2.js';
+import { permit2Digest, permit2WitnessDigest, recoverPermit2Signer, verifyPermit2 } from '../src/permit2.js';
 import { analyzeTransaction, createAuthorizationReport } from '../src/report.js';
 import { skippedSimulation } from '../src/simulation.js';
 
@@ -109,7 +119,10 @@ interface RpcOptions {
     chainId?: number;
     failSimulation?: boolean;
     failAllowance?: boolean;
+    nonceBitmap?: bigint;
 }
+
+const nonceBitmapSelector = toFunctionSelector('nonceBitmap(address,uint256)').toLowerCase();
 
 async function rpc(options: RpcOptions = {}) {
     const calls: { method: string; params: unknown[] }[] = [];
@@ -149,6 +162,8 @@ async function rpc(options: RpcOptions = {}) {
             };
             if (call.to.toLowerCase() === BASE_PERMIT2.toLowerCase()) {
                 if (options.failAllowance) error = { code: -32000, message: 'state unavailable' };
+                else if (call.data.slice(0, 10).toLowerCase() === nonceBitmapSelector)
+                    result = encodeAbiParameters(parseAbiParameters('uint256'), [options.nonceBitmap ?? 0n]);
                 else
                     result = encodeAbiParameters(
                         parseAbiParameters('uint160 amount, uint48 expiration, uint48 nonce'),
@@ -201,6 +216,180 @@ test('independently recovers the signer from an unmodified real Base Permit2 tra
     );
     const wrong = await recoverPermit2Signer(permit2Digest(action.permit, 1), action.permit.signature);
     assert.notEqual(wrong.toLowerCase(), tx.from.toLowerCase());
+});
+
+test('decodes and verifies a direct Permit2 witness transfer at a fixed block', async () => {
+    const witnessTypeString =
+        'ExampleTrade witness)ExampleTrade(bytes32 orderHash)TokenPermissions(address token,uint256 amount)';
+    const orderHash = `0x${'34'.repeat(32)}` as Hex;
+    const witness = keccak256(
+        encodeAbiParameters(parseAbiParameters('bytes32 typeHash,bytes32 orderHash'), [
+            keccak256(toBytes('ExampleTrade(bytes32 orderHash)')),
+            orderHash
+        ])
+    );
+    const unsigned: Permit2WitnessPermit = {
+        type: 'PermitWitnessTransferFrom',
+        owner: account.address,
+        spender: account.address,
+        nonce: '1',
+        deadline: String(now + 60),
+        signature: '0x',
+        witness,
+        witnessTypeString,
+        witnessTypeHash: keccak256(toBytes(witnessTypeString)),
+        permissions: [{ token: BASE_USDC, amount: '100' }]
+    };
+    const independentDigest = hashTypedData({
+        domain: { name: 'Permit2', chainId: 8453, verifyingContract: BASE_PERMIT2 },
+        types: {
+            TokenPermissions: [
+                { name: 'token', type: 'address' },
+                { name: 'amount', type: 'uint256' }
+            ],
+            ExampleTrade: [{ name: 'orderHash', type: 'bytes32' }],
+            PermitWitnessTransferFrom: [
+                { name: 'permitted', type: 'TokenPermissions' },
+                { name: 'spender', type: 'address' },
+                { name: 'nonce', type: 'uint256' },
+                { name: 'deadline', type: 'uint256' },
+                { name: 'witness', type: 'ExampleTrade' }
+            ]
+        },
+        primaryType: 'PermitWitnessTransferFrom',
+        message: {
+            permitted: { token: BASE_USDC, amount: 100n },
+            spender: account.address,
+            nonce: 1n,
+            deadline: BigInt(now + 60),
+            witness: { orderHash }
+        }
+    });
+    assert.equal(permit2WitnessDigest(unsigned, 8453), independentDigest);
+    const permit = { ...unsigned, signature: await account.sign({ hash: permit2WitnessDigest(unsigned, 8453) }) };
+    const data = encodeFunctionData({
+        abi: parseAbi([
+            'function permitWitnessTransferFrom(((address token,uint256 amount) permitted,uint256 nonce,uint256 deadline) permit,(address to,uint256 requestedAmount) transferDetails,address owner,bytes32 witness,string witnessTypeString,bytes signature)'
+        ]),
+        functionName: 'permitWitnessTransferFrom',
+        args: [
+            {
+                permitted: { token: BASE_USDC, amount: 100n },
+                nonce: 1n,
+                deadline: BigInt(now + 60)
+            },
+            { to: account.address, requestedAmount: 60n },
+            account.address,
+            permit.witness,
+            witnessTypeString,
+            permit.signature
+        ]
+    });
+    const tx: TransactionEnvelope = {
+        chainId: 8453,
+        from: account.address,
+        to: BASE_PERMIT2,
+        value: '0',
+        data
+    };
+    const intent = decodeTransaction(tx);
+    const action = intent.actions[0];
+    assert.equal(intent.protocol, 'permit2');
+    assert.ok(action?.kind === 'authorization' && action.witnessPermit);
+    assert.equal(action.witnessPermit.witnessTypeHash, permit.witnessTypeHash);
+    assert.equal(action.transfers?.[0]?.amount, '60');
+
+    const policy = await loadPolicy('config/policy.example.json');
+    const witnessPolicy: PolicyConfig = {
+        ...policy,
+        allowedTargets: [...policy.allowedTargets, BASE_PERMIT2],
+        allowedPermit2WitnessTypeHashes: [permit.witnessTypeHash]
+    };
+    const node = await rpc();
+    try {
+        const checked = await report(tx, node.url, witnessPolicy);
+        assert.equal(checked.finalDecision, 'pass');
+        assert.equal(checked.permit2?.checks[0]?.unorderedNonce?.used, false);
+        assert.equal(checked.permit2?.checks[0]?.digest, permit2WitnessDigest(permit, 8453));
+
+        const blockedType = await report(tx, node.url, { ...witnessPolicy, allowedPermit2WitnessTypeHashes: [] });
+        assert.ok(blockedType.policy.findings.some((item) => item.code === 'PERMIT2_WITNESS_TYPE_NOT_ALLOWED'));
+        const usedNonceNode = await rpc({ nonceBitmap: 2n });
+        try {
+            const used = await report(tx, usedNonceNode.url, witnessPolicy);
+            assert.ok(used.policy.findings.some((item) => item.code === 'PERMIT2_NONCE_MISMATCH'));
+        } finally {
+            await usedNonceNode.close();
+        }
+    } finally {
+        await node.close();
+    }
+});
+
+test('decodes and verifies a direct Permit2 batch witness transfer', async () => {
+    const witnessTypeString =
+        'BatchOrder witness)BatchOrder(bytes32 orderHash)TokenPermissions(address token,uint256 amount)';
+    const unsigned: Permit2WitnessPermit = {
+        type: 'PermitBatchWitnessTransferFrom',
+        owner: account.address,
+        spender: account.address,
+        nonce: '7',
+        deadline: String(now + 60),
+        signature: '0x',
+        witness: `0x${'56'.repeat(32)}`,
+        witnessTypeString,
+        witnessTypeHash: keccak256(toBytes(witnessTypeString)),
+        permissions: [
+            { token: BASE_USDC, amount: '100' },
+            { token: BASE_WETH, amount: '50' }
+        ]
+    };
+    const permit = { ...unsigned, signature: await account.sign({ hash: permit2WitnessDigest(unsigned, 8453) }) };
+    const data = encodeFunctionData({
+        abi: parseAbi([
+            'function permitWitnessTransferFrom(((address token,uint256 amount)[] permitted,uint256 nonce,uint256 deadline) permit,(address to,uint256 requestedAmount)[] transferDetails,address owner,bytes32 witness,string witnessTypeString,bytes signature)'
+        ]),
+        functionName: 'permitWitnessTransferFrom',
+        args: [
+            {
+                permitted: [
+                    { token: BASE_USDC, amount: 100n },
+                    { token: BASE_WETH, amount: 50n }
+                ],
+                nonce: 7n,
+                deadline: BigInt(now + 60)
+            },
+            [
+                { to: account.address, requestedAmount: 60n },
+                { to: account.address, requestedAmount: 40n }
+            ],
+            account.address,
+            permit.witness,
+            witnessTypeString,
+            permit.signature
+        ]
+    });
+    const tx: TransactionEnvelope = {
+        chainId: 8453,
+        from: account.address,
+        to: BASE_PERMIT2,
+        value: '0',
+        data
+    };
+    const policy = await loadPolicy('config/policy.example.json');
+    const node = await rpc();
+    try {
+        const checked = await report(tx, node.url, {
+            ...policy,
+            allowedPermit2WitnessTypeHashes: [permit.witnessTypeHash]
+        });
+        assert.equal(checked.finalDecision, 'pass');
+        assert.equal(checked.intent.actions[0]?.kind, 'authorization');
+        assert.equal(checked.intent.actions[0]?.operation, 'permit2-witness-batch');
+        assert.equal(checked.intent.expectedBalanceChanges.length, 4);
+    } finally {
+        await node.close();
+    }
 });
 
 test('accepts an EOA permit only with nonce verification and matching full-transaction simulation', async () => {

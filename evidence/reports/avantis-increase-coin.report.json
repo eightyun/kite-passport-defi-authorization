@@ -129,5 +129,15 @@
         "delegationExpiry": "1820950940"
       }
     ]
+  },
+  "receipt": {
+    "analyzer": "@eightyun/kite-passport-defi-authorization",
+    "analyzerVersion": "0.2.0",
+    "policyHash": "0xb5ed6faafef58cb2fe4019eeb1756a2c25d95b265e2935c5ec20b6d427c2b325",
+    "reportHash": "0x84269cd2d35da18ee5bca9694df5ce670d8a9d88ea86d32ca1ab8ae15913e589",
+    "transactionFingerprint": "0xc2421be279fe56ab4d98825123c73ddb48d4f85cd2a8e944e537864877346b6c",
+    "validFromBlock": "52063479",
+    "validUntilBlock": "52063479",
+    "verificationBlockHash": "0x266e090f07a4ac1f8fec085f0e0723765b9b3074db34d7705d4f00ab860a9374"
   }
 }

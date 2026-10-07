@@ -4,6 +4,7 @@ export * from './domain.js';
 export * from './io.js';
 export * from './policy.js';
 export * from './report.js';
+export * from './receipt.js';
 export * from './simulation.js';
 export * from './permit2.js';
 export * from './moonwell.js';

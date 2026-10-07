@@ -165,6 +165,33 @@ function signedFields(
 }
 
 function decodeSigned(order: number, signature: Hex, intent: Hex): AvantisAction | undefined {
+    if (order === 5) {
+        const [trader, pairIndex, index, newTp, newSl, deadline, nonce] = decodeAbiParameters(
+            parseAbiParameters('address,uint256,uint256,uint256,uint256,uint256,uint256'),
+            intent
+        );
+        const message = {
+            trader: address(trader),
+            _pairIndex: pairIndex.toString(),
+            _index: index.toString(),
+            _newTp: newTp.toString(),
+            _newSl: newSl.toString(),
+            _deadline: deadline.toString(),
+            _nonce: nonce.toString()
+        };
+        return {
+            kind: 'avantis',
+            index: 0,
+            operation: 'update-tp-sl',
+            trader: address(trader),
+            pairIndex: Number(pairIndex),
+            positionIndex: index.toString(),
+            sizing: 'usdc',
+            takeProfit: newTp.toString(),
+            stopLoss: newSl.toString(),
+            ...signedFields('UpdateTpSlReq', message, signature)
+        };
+    }
     if ([0, 6].includes(order)) {
         const [trade, type, slippageP, deadline, nonce] = decodeAbiParameters(
             parseAbiParameters(`${tradeParameters},uint8,uint256,uint256,uint256`),

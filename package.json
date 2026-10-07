@@ -1,6 +1,6 @@
 {
     "name": "@eightyun/kite-passport-defi-authorization",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "Auditable DeFi intent decoding and authorization policy checks for Kite Passport",
     "repository": {
         "type": "git",

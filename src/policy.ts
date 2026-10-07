@@ -258,7 +258,7 @@ export function evaluatePolicy(decoded: IntentAnalysis, config: PolicyConfig, co
             const check = verification?.checks.find((entry) => entry.actionIndex === action.index);
             if (
                 !action.decoded ||
-                (!action.permit && !action.transfers) ||
+                (!action.permit && !action.witnessPermit && !action.transfers) ||
                 !check ||
                 !intent.transactionFingerprint ||
                 verification?.transactionFingerprint !== intent.transactionFingerprint
@@ -283,6 +283,7 @@ export function evaluatePolicy(decoded: IntentAnalysis, config: PolicyConfig, co
                 }
             }
             const permit = action.permit;
+            const witnessPermit = action.witnessPermit;
             if (permit) {
                 if (permit.owner.toLowerCase() !== intent.sender.toLowerCase())
                     fail('PERMIT2_OWNER_MISMATCH', 'Permit2 owner must equal the Router sender.');
@@ -314,8 +315,35 @@ export function evaluatePolicy(decoded: IntentAnalysis, config: PolicyConfig, co
                     }
                 }
             }
+            if (witnessPermit) {
+                if (witnessPermit.owner.toLowerCase() !== intent.sender.toLowerCase())
+                    fail('PERMIT2_OWNER_MISMATCH', 'Permit2 witness owner must equal the transaction sender.');
+                if (witnessPermit.spender.toLowerCase() !== intent.sender.toLowerCase())
+                    fail('PERMIT2_SPENDER_NOT_ALLOWED', 'Permit2 witness spender must equal the transaction sender.');
+                const now = BigInt(context.nowSeconds);
+                const deadline = BigInt(witnessPermit.deadline);
+                if (deadline < now) fail('PERMIT2_SIGNATURE_EXPIRED', 'Permit2 witness deadline has expired.');
+                if (
+                    deadline >
+                    now + BigInt(config.maximumPermit2SignatureDeadlineSeconds ?? config.maximumDeadlineSeconds)
+                ) {
+                    fail(
+                        'PERMIT2_SIGNATURE_DEADLINE_TOO_FAR',
+                        'Permit2 witness deadline exceeds the configured horizon.'
+                    );
+                }
+                const allowedWitnessTypes = new Set(
+                    (config.allowedPermit2WitnessTypeHashes ?? []).map((value) => value.toLowerCase())
+                );
+                if (!allowedWitnessTypes.has(witnessPermit.witnessTypeHash.toLowerCase())) {
+                    fail(
+                        'PERMIT2_WITNESS_TYPE_NOT_ALLOWED',
+                        `Permit2 witness type ${witnessPermit.witnessTypeHash} is not allowed by policy.`
+                    );
+                }
+            }
             if (action.transfers?.length === 0) fail('PERMIT2_EMPTY_BATCH', 'Permit2 transfer batch is empty.');
-            const entries = permit?.details ?? action.transfers ?? [];
+            const entries = permit?.details ?? witnessPermit?.permissions ?? action.transfers ?? [];
             const totals = new Map<string, bigint>();
             for (const entry of entries) {
                 const token = entry.token.toLowerCase();

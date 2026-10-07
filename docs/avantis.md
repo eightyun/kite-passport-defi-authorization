@@ -9,8 +9,9 @@ The adapter recognizes the current Avantis/Veranta v2 TradingRouter on Base at `
 - direct and signed position-size increase;
 - direct margin update;
 - direct open-limit update and cancellation.
+- signed global take-profit and stop-loss update (`UpdateTpSlReq`).
 
-Signed calls support the v2 USDC-sized and coin-exposure intent variants used by `executeMarketOrderBatched` and `executePositionUpdateBatched`. Keeper-only execution, TP/SL, TWAP, RFQ, referral and delegation-mutation calls fail closed as unknown actions.
+Signed calls support the v2 USDC-sized and coin-exposure intent variants used by `executeMarketOrderBatched` and `executePositionUpdateBatched`. The current global TP/SL workflow signs `UpdateTpSlReq`, submits it to the official `/price-triggers` API, and lets the operator execute order type `5` through `executePositionUpdateBatched`. A successful HTTP response only means accepted; on-chain state or a transaction receipt must confirm execution. TWAP, RFQ, partial TP/SL API records, referral and delegation-mutation calls remain outside the EVM transaction-envelope analyzer and fail closed when presented as unsupported calldata.
 
 ## Signed-intent verification
 
@@ -36,6 +37,6 @@ Policy can restrict pair indexes, opening, leverage, slippage, USDC collateral a
 
 ## Evidence
 
-Three successful Base mainnet transactions cover signed USDC market open, USDC market close and coin-exposure position increase. Generated reports preserve the calldata, recovered signer, EIP-712 digest, nonce state, delegation expiry, simulation block and policy result.
+Three successful Base mainnet transactions cover signed USDC market open, USDC market close and coin-exposure position increase. A deterministic signed vector covers the current global TP/SL intent and verifies signer recovery and nonce state. Generated reports preserve the calldata, recovered signer, EIP-712 digest, nonce state, delegation expiry, simulation block and policy result. The repository does not claim an observed Base TP/SL transaction vector.
 
 The adapter is a pre-execution authorization aid. It does not calculate liquidation health, oracle quality, realized PnL or guarantee execution against a later block. It has not received an external security audit.

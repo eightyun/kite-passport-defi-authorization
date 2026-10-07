@@ -6,6 +6,7 @@ import {
     BASE_MORPHO,
     BASE_MOONWELL_COMPTROLLER,
     BASE_MOONWELL_MARKETS,
+    BASE_PERMIT2,
     BASE_UNISWAP_UNIVERSAL_ROUTER
 } from './contracts.js';
 import { decodeAaveTransaction } from './adapters/aave.js';
@@ -16,6 +17,7 @@ import { decodeMorphoTransaction } from './adapters/morpho.js';
 import { decodeMoonwellTransaction } from './adapters/moonwell.js';
 import { decodeUniswapTransaction } from './adapters/uniswap.js';
 import type { IntentAnalysis, TransactionEnvelope } from './domain.js';
+import { decodePermit2Transaction } from './permit2.js';
 
 export function decodeTransaction(transaction: TransactionEnvelope): IntentAnalysis {
     const target = transaction.to.toLowerCase();
@@ -27,6 +29,9 @@ export function decodeTransaction(transaction: TransactionEnvelope): IntentAnaly
     }
     if (target === BASE_UNISWAP_UNIVERSAL_ROUTER.toLowerCase()) {
         return decodeUniswapTransaction(transaction);
+    }
+    if (target === BASE_PERMIT2.toLowerCase()) {
+        return decodePermit2Transaction(transaction);
     }
     if (target === BASE_AERODROME_ROUTER.toLowerCase()) {
         return decodeAerodromeTransaction(transaction);

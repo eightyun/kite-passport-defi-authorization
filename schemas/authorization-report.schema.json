@@ -26,6 +26,21 @@
             "required": ["attempted", "success"]
         },
         "finalDecision": { "enum": ["pass", "reject", "review"] },
+        "receipt": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["analyzer", "analyzerVersion", "policyHash", "reportHash", "transactionFingerprint"],
+            "properties": {
+                "analyzer": { "const": "@eightyun/kite-passport-defi-authorization" },
+                "analyzerVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+                "policyHash": { "$ref": "#/$defs/hash" },
+                "reportHash": { "$ref": "#/$defs/hash" },
+                "transactionFingerprint": { "$ref": "#/$defs/hash" },
+                "validFromBlock": { "$ref": "#/$defs/integerString" },
+                "validUntilBlock": { "$ref": "#/$defs/integerString" },
+                "verificationBlockHash": { "$ref": "#/$defs/hash" }
+            }
+        },
         "moonwell": {
             "type": "object",
             "additionalProperties": false,
@@ -509,6 +524,18 @@
                             "signatureMethod": { "enum": ["eoa", "eip1271"] },
                             "digest": { "$ref": "#/$defs/hash" },
                             "recoveredSigner": { "$ref": "#/$defs/address" },
+                            "unorderedNonce": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": ["nonce", "wordPosition", "bitPosition", "bitmap", "used"],
+                                "properties": {
+                                    "nonce": { "$ref": "#/$defs/integerString" },
+                                    "wordPosition": { "$ref": "#/$defs/integerString" },
+                                    "bitPosition": { "type": "integer", "minimum": 0, "maximum": 255 },
+                                    "bitmap": { "$ref": "#/$defs/integerString" },
+                                    "used": { "type": "boolean" }
+                                }
+                            },
                             "allowances": {
                                 "type": "array",
                                 "items": {

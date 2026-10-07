@@ -33,8 +33,11 @@ const COMMAND = {
     UNWRAP_WETH: 0x0c,
     PERMIT2_TRANSFER_FROM_BATCH: 0x0d,
     BALANCE_CHECK_ERC20: 0x0e,
-    V4_SWAP: 0x10
+    V4_SWAP: 0x10,
+    EXECUTE_SUB_PLAN: 0x21
 } as const;
+
+const MAX_SUB_PLAN_DEPTH = 4;
 
 const V4_ACTION = {
     SWAP_EXACT_IN_SINGLE: 0x06,
@@ -439,7 +442,8 @@ function decodeCommand(
     commandByte: number,
     input: Hex,
     index: number,
-    transaction: TransactionEnvelope
+    transaction: TransactionEnvelope,
+    depth: number
 ): readonly IntentAction[] {
     if ((commandByte & 0x80) !== 0) {
         return [
@@ -467,6 +471,31 @@ function decodeCommand(
     if (command === COMMAND.V4_SWAP) {
         return decodeV4(input, index, transaction);
     }
+    if (command === COMMAND.EXECUTE_SUB_PLAN) {
+        if (depth >= MAX_SUB_PLAN_DEPTH) {
+            return [
+                {
+                    kind: 'unknown',
+                    index,
+                    code: command,
+                    reason: `Universal Router sub-plan depth exceeds ${MAX_SUB_PLAN_DEPTH}`
+                }
+            ];
+        }
+        try {
+            const [commands, inputs] = decodeAbiParameters(parseAbiParameters('bytes commands, bytes[] inputs'), input);
+            return decodePlan(commands, inputs, transaction, depth + 1);
+        } catch {
+            return [
+                {
+                    kind: 'unknown',
+                    index,
+                    code: command,
+                    reason: 'Malformed Universal Router sub-plan'
+                }
+            ];
+        }
+    }
     if (
         command === COMMAND.PERMIT2_TRANSFER_FROM ||
         command === COMMAND.PERMIT2_PERMIT_BATCH ||
@@ -491,6 +520,30 @@ function decodeCommand(
             reason: `Unsupported Universal Router command 0x${command.toString(16).padStart(2, '0')}`
         }
     ];
+}
+
+function decodePlan(
+    commands: Hex,
+    inputs: readonly Hex[],
+    transaction: TransactionEnvelope,
+    depth: number
+): readonly IntentAction[] {
+    const commandBytes = [...hexToBytes(commands)];
+    if (commandBytes.length !== inputs.length) {
+        return [
+            {
+                kind: 'unknown',
+                index: 0,
+                code: COMMAND.EXECUTE_SUB_PLAN,
+                reason: 'Universal Router command and input counts differ'
+            }
+        ];
+    }
+    return commandBytes.flatMap((command, index) => {
+        const input = inputs[index];
+        if (input === undefined) throw new Error('Missing Universal Router command input');
+        return decodeCommand(command, input, index, transaction, depth);
+    });
 }
 
 function buildBalanceChanges(actions: readonly IntentAction[]): readonly BalanceChange[] {
@@ -628,17 +681,7 @@ export function decodeUniswapTransaction(transaction: TransactionEnvelope): Inte
         throw new Error(`Unsupported Universal Router selector ${selector}`);
     }
 
-    const commandBytes = [...hexToBytes(commands)];
-    if (commandBytes.length !== inputs.length) {
-        throw new Error('Universal Router command and input counts differ');
-    }
-    const actions = commandBytes.flatMap((command, index) => {
-        const input = inputs[index];
-        if (input === undefined) {
-            throw new Error('Missing Universal Router command input');
-        }
-        return decodeCommand(command, input, index, transaction);
-    });
+    const actions = decodePlan(commands, inputs, transaction, 0).map((action, index) => ({ ...action, index }));
 
     const warnings: string[] = [];
     if (actions.some((action) => action.kind === 'authorization' && !action.decoded)) {

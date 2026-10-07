@@ -116,5 +116,15 @@
         "permissionBefore": true
       }
     ]
+  },
+  "receipt": {
+    "analyzer": "@eightyun/kite-passport-defi-authorization",
+    "analyzerVersion": "0.2.0",
+    "policyHash": "0xb5ed6faafef58cb2fe4019eeb1756a2c25d95b265e2935c5ec20b6d427c2b325",
+    "reportHash": "0xaa5c245e2735ccbe5f64845100bfe7e28b2ed910dd4f21d457194da0e5425529",
+    "transactionFingerprint": "0x82149ad50bf5948f0b2fb3af34684f4bf3f6f37b48c8e18810c136c2c5733271",
+    "validFromBlock": "52258359",
+    "validUntilBlock": "52258359",
+    "verificationBlockHash": "0x9e3c0bdbdd23bb671c9c92684dd9d54ef073fc883967631f6aaab17da99b921c"
   }
 }

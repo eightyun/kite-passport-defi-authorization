@@ -164,6 +164,10 @@ export function parsePolicy(value: unknown): PolicyConfig {
     const maximumAvantisLeverage = optionalIntegerString('maximumAvantisLeverage');
     const maximumAvantisSlippageP = optionalIntegerString('maximumAvantisSlippageP');
     const minimumAaveHealthFactor = optionalIntegerString('minimumAaveHealthFactor');
+    const allowedPermit2WitnessTypeHashes =
+        value.allowedPermit2WitnessTypeHashes === undefined
+            ? undefined
+            : hexArray(value, 'allowedPermit2WitnessTypeHashes');
     const allowAvantisOpen =
         value.allowAvantisOpen === undefined ? undefined : requiredBoolean(value, 'allowAvantisOpen');
     return {
@@ -188,6 +192,7 @@ export function parsePolicy(value: unknown): PolicyConfig {
         allowDynamicV4Fee: requiredBoolean(value, 'allowDynamicV4Fee'),
         requireSimulation: requiredBoolean(value, 'requireSimulation'),
         ...permit2Durations,
+        ...(allowedPermit2WitnessTypeHashes === undefined ? {} : { allowedPermit2WitnessTypeHashes }),
         ...(allowedAvantisPairIndexes === undefined ? {} : { allowedAvantisPairIndexes }),
         ...(maximumAvantisLeverage === undefined ? {} : { maximumAvantisLeverage }),
         ...(maximumAvantisSlippageP === undefined ? {} : { maximumAvantisSlippageP }),

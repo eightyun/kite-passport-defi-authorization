@@ -19,6 +19,7 @@ import { preflightMorpho, resolveMorpho } from './morpho.js';
 import { preflightAvantis } from './avantis.js';
 import { preflightAave, resolveAaveIntent } from './aave.js';
 import { preflightCompound, resolveCompoundIntent } from './compound.js';
+import { createAuthorizationReceipt } from './receipt.js';
 
 export interface ReportOptions {
     readonly generatedAt: string;
@@ -60,7 +61,7 @@ export function createAuthorizationReport(
         ...(options.compound ? { compound: options.compound } : {}),
         ...(options.avantis ? { avantis: options.avantis } : {})
     });
-    return {
+    const report: Omit<AuthorizationReport, 'receipt'> = {
         schemaVersion: '1.0',
         generatedAt: options.generatedAt,
         transaction,
@@ -74,6 +75,10 @@ export function createAuthorizationReport(
         ...(options.compound ? { compound: options.compound } : {}),
         ...(options.permit2 ? { permit2: options.permit2 } : {}),
         ...(options.avantis ? { avantis: options.avantis } : {})
+    };
+    return {
+        ...report,
+        receipt: createAuthorizationReceipt(report, policyConfig)
     };
 }
 

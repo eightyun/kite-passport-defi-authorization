@@ -326,6 +326,21 @@
             "operation": "uniswap-v4-explicit-wrap-unwrap-actions",
             "test": "tests/operations.test.ts",
             "reason": "Native-input and native-output swaps have real vectors, but no matching v4 action-level WRAP or UNWRAP command is included in the observed transaction sample."
+        },
+        {
+            "operation": "universal-router-execute-sub-plan",
+            "test": "tests/operations.test.ts",
+            "reason": "Recursive decoding and failure boundaries are executable deterministic vectors; no matching Base transaction is included in the observed transaction sample."
+        },
+        {
+            "operation": "permit2-witness-transfer",
+            "test": "tests/permit2.test.ts",
+            "reason": "Single and batch witness signatures, unordered nonces and policy controls are executable deterministic vectors; no matching Base transaction is included in the observed transaction sample."
+        },
+        {
+            "operation": "avantis-signed-update-tp-sl",
+            "test": "tests/avantis.test.ts",
+            "reason": "The current UpdateTpSlReq signature and operator calldata path are executable deterministic vectors; no matching Base transaction is included in the observed transaction sample."
         }
     ]
 }

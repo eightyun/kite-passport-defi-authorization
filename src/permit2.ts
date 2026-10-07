@@ -1,6 +1,7 @@
 import { rpcTransport } from './rpc.js';
 import {
     createPublicClient,
+    concatHex,
     decodeAbiParameters,
     encodeAbiParameters,
     getAddress,
@@ -10,6 +11,8 @@ import {
     parseAbiParameters,
     recoverAddress,
     sliceHex,
+    toBytes,
+    toFunctionSelector,
     toHex
 } from 'viem';
 import {
@@ -27,6 +30,7 @@ import type {
     Permit2Check,
     Permit2Detail,
     Permit2Permit,
+    Permit2WitnessPermit,
     Permit2Verification,
     PolicyFinding,
     TransactionEnvelope
@@ -42,8 +46,35 @@ const batchParameters = parseAbiParameters(
 const allowanceAbi = parseAbi([
     'function allowance(address owner, address token, address spender) view returns (uint160 amount, uint48 expiration, uint48 nonce)'
 ]);
+const nonceBitmapAbi = parseAbi(['function nonceBitmap(address owner,uint256 wordPosition) view returns (uint256)']);
 const signatureAbi = parseAbi(['function isValidSignature(bytes32 hash, bytes signature) view returns (bytes4)']);
 const maxAllowance = (1n << 160n) - 1n;
+const tokenPermissionParameters = parseAbiParameters('bytes32 typeHash,address token,uint256 amount');
+const witnessStructParameters = parseAbiParameters(
+    'bytes32 typeHash,bytes32 permitted,address spender,uint256 nonce,uint256 deadline,bytes32 witness'
+);
+const domainParameters = parseAbiParameters(
+    'bytes32 typeHash,bytes32 nameHash,uint256 chainId,address verifyingContract'
+);
+const tokenPermissionsTypeHash = keccak256(toBytes('TokenPermissions(address token,uint256 amount)'));
+const domainTypeHash = keccak256(toBytes('EIP712Domain(string name,uint256 chainId,address verifyingContract)'));
+const permit2NameHash = keccak256(toBytes('Permit2'));
+const singleWitnessStub =
+    'PermitWitnessTransferFrom(TokenPermissions permitted,address spender,uint256 nonce,uint256 deadline,';
+const batchWitnessStub =
+    'PermitBatchWitnessTransferFrom(TokenPermissions[] permitted,address spender,uint256 nonce,uint256 deadline,';
+const singleWitnessSelector = toFunctionSelector(
+    'permitWitnessTransferFrom(((address,uint256),uint256,uint256),(address,uint256),address,bytes32,string,bytes)'
+);
+const batchWitnessSelector = toFunctionSelector(
+    'permitWitnessTransferFrom(((address,uint256)[],uint256,uint256),(address,uint256)[],address,bytes32,string,bytes)'
+);
+const singleWitnessParameters = parseAbiParameters(
+    '((address token,uint256 amount) permitted,uint256 nonce,uint256 deadline) permit,(address to,uint256 requestedAmount) transferDetails,address owner,bytes32 witness,string witnessTypeString,bytes signature'
+);
+const batchWitnessParameters = parseAbiParameters(
+    '((address token,uint256 amount)[] permitted,uint256 nonce,uint256 deadline) permit,(address to,uint256 requestedAmount)[] transferDetails,address owner,bytes32 witness,string witnessTypeString,bytes signature'
+);
 
 export function transactionFingerprint(transaction: TransactionEnvelope): Hex {
     return keccak256(
@@ -133,6 +164,161 @@ export function decodePermit2Command(
     };
 }
 
+export function decodePermit2Transaction(transaction: TransactionEnvelope): IntentAnalysis {
+    const selector = transaction.data.slice(0, 10).toLowerCase();
+    const payload = sliceHex(transaction.data, 4);
+    let witnessPermit: Permit2WitnessPermit;
+    let transfers: AuthorizationAction['transfers'];
+    let transferCount: number;
+    if (selector === singleWitnessSelector.toLowerCase()) {
+        const [permit, transfer, owner, witness, witnessTypeString, signature] = decodeAbiParameters(
+            singleWitnessParameters,
+            payload
+        );
+        const token = getAddress(permit.permitted.token);
+        witnessPermit = {
+            type: 'PermitWitnessTransferFrom',
+            owner: getAddress(owner),
+            spender: transaction.from,
+            nonce: permit.nonce.toString(),
+            deadline: permit.deadline.toString(),
+            signature,
+            witness,
+            witnessTypeString,
+            witnessTypeHash: keccak256(toBytes(witnessTypeString)),
+            permissions: [{ token, amount: permit.permitted.amount.toString() }]
+        };
+        transfers = [
+            {
+                token,
+                from: getAddress(owner),
+                to: getAddress(transfer.to),
+                amount: transfer.requestedAmount.toString()
+            }
+        ];
+        transferCount = 1;
+    } else if (selector === batchWitnessSelector.toLowerCase()) {
+        const [permit, transferDetails, owner, witness, witnessTypeString, signature] = decodeAbiParameters(
+            batchWitnessParameters,
+            payload
+        );
+        const permissions = permit.permitted.map((entry) => ({
+            token: getAddress(entry.token),
+            amount: entry.amount.toString()
+        }));
+        witnessPermit = {
+            type: 'PermitBatchWitnessTransferFrom',
+            owner: getAddress(owner),
+            spender: transaction.from,
+            nonce: permit.nonce.toString(),
+            deadline: permit.deadline.toString(),
+            signature,
+            witness,
+            witnessTypeString,
+            witnessTypeHash: keccak256(toBytes(witnessTypeString)),
+            permissions
+        };
+        transfers = transferDetails.flatMap((entry, index) => {
+            const permission = permissions[index];
+            return permission
+                ? [
+                      {
+                          token: permission.token,
+                          from: getAddress(owner),
+                          to: getAddress(entry.to),
+                          amount: entry.requestedAmount.toString()
+                      }
+                  ]
+                : [];
+        });
+        transferCount = transferDetails.length;
+    } else {
+        throw new Error(`Unsupported Permit2 selector ${selector}`);
+    }
+    const decoded =
+        witnessPermit.permissions.length === transferCount &&
+        witnessPermit.permissions.length === transfers.length &&
+        transfers.length > 0;
+    const action: AuthorizationAction = {
+        kind: 'authorization',
+        index: 0,
+        operation:
+            witnessPermit.type === 'PermitWitnessTransferFrom' ? 'permit2-witness-transfer' : 'permit2-witness-batch',
+        decoded,
+        witnessPermit,
+        transfers
+    };
+    return {
+        schemaVersion: '1.0',
+        protocol: 'permit2',
+        adapter: 'permit2-signature-transfer',
+        chainId: transaction.chainId,
+        sender: transaction.from,
+        target: transaction.to,
+        nativeValue: transaction.value,
+        transactionFingerprint: transactionFingerprint(transaction),
+        actions: [action],
+        expectedBalanceChanges: transfers.flatMap((transfer) => [
+            {
+                account: transfer.from,
+                asset: transfer.token,
+                category: 'asset' as const,
+                direction: 'debit' as const,
+                amount: { value: transfer.amount, mode: 'exact' as const },
+                reason: 'Permit2 witness transfer debit'
+            },
+            {
+                account: transfer.to,
+                asset: transfer.token,
+                category: 'asset' as const,
+                direction: 'credit' as const,
+                amount: { value: transfer.amount, mode: 'exact' as const },
+                reason: 'Permit2 witness transfer credit'
+            }
+        ]),
+        warnings: decoded
+            ? ['Permit2 witness semantics are authorized by an explicit witness type hash allowlist.']
+            : ['Permit2 witness permission and transfer counts differ.'],
+        ...(transaction.source === undefined ? {} : { source: transaction.source })
+    };
+}
+
+export function permit2WitnessDigest(permit: Permit2WitnessPermit, chainId: number): Hex {
+    if (permit.permissions.length === 0) throw new Error('Permit2 witness permit needs at least one permission');
+    const permissionHashes = permit.permissions.map((permission) =>
+        keccak256(
+            encodeAbiParameters(tokenPermissionParameters, [
+                tokenPermissionsTypeHash,
+                permission.token,
+                BigInt(permission.amount)
+            ])
+        )
+    );
+    const permissionHash =
+        permit.type === 'PermitWitnessTransferFrom' ? permissionHashes[0]! : keccak256(concatHex(permissionHashes));
+    if (permit.type === 'PermitWitnessTransferFrom' && permissionHashes.length !== 1)
+        throw new Error('Single Permit2 witness permit needs exactly one permission');
+    const typeHash = keccak256(
+        toBytes(
+            `${permit.type === 'PermitWitnessTransferFrom' ? singleWitnessStub : batchWitnessStub}${permit.witnessTypeString}`
+        )
+    );
+    const structHash = keccak256(
+        encodeAbiParameters(witnessStructParameters, [
+            typeHash,
+            permissionHash,
+            permit.spender,
+            BigInt(permit.nonce),
+            BigInt(permit.deadline),
+            permit.witness
+        ])
+    );
+    const domainSeparator = keccak256(
+        encodeAbiParameters(domainParameters, [domainTypeHash, permit2NameHash, BigInt(chainId), BASE_PERMIT2])
+    );
+    return keccak256(concatHex(['0x1901', domainSeparator, structHash]));
+}
+
 export function permit2Digest(permit: Permit2Permit, chainId: number): Hex {
     const types = {
         PermitDetails: [
@@ -205,7 +391,9 @@ export async function verifyPermit2(
     try {
         if (
             transaction.chainId !== BASE_CHAIN_ID ||
-            transaction.to.toLowerCase() !== BASE_UNISWAP_UNIVERSAL_ROUTER.toLowerCase() ||
+            ![BASE_UNISWAP_UNIVERSAL_ROUTER, BASE_PERMIT2]
+                .map((address) => address.toLowerCase())
+                .includes(transaction.to.toLowerCase()) ||
             (await client.getChainId()) !== transaction.chainId
         )
             throw new Error('Unsupported chain or router');
@@ -269,11 +457,89 @@ export async function verifyPermit2(
         let signatureMethod: Permit2Check['signatureMethod'];
         let digest: Hex | undefined;
         let recoveredSigner: `0x${string}` | undefined;
+        let unorderedNonce: Permit2Check['unorderedNonce'];
         let unavailable = false;
         const fail = (code: PolicyFinding['code'], message: string) =>
             findings.push({ code, message, actionIndex: action.index });
         try {
-            if (action.permit) {
+            if (action.witnessPermit && action.transfers && action.decoded) {
+                const permit = action.witnessPermit;
+                digest = permit2WitnessDigest(permit, transaction.chainId);
+                const code = await client.getCode({ address: permit.owner, ...atBlock });
+                let valid = false;
+                if (code && code !== '0x') {
+                    signatureMethod = 'eip1271';
+                    try {
+                        valid =
+                            (await client.readContract({
+                                address: permit.owner,
+                                abi: signatureAbi,
+                                functionName: 'isValidSignature',
+                                args: [digest, permit.signature],
+                                account: BASE_PERMIT2,
+                                ...atBlock
+                            })) === '0x1626ba7e';
+                    } catch {
+                        fail(
+                            'PERMIT2_STATE_UNAVAILABLE',
+                            'EIP-1271 validation reverted or its RPC result was unavailable.'
+                        );
+                        unavailable = true;
+                    }
+                } else {
+                    signatureMethod = 'eoa';
+                    try {
+                        recoveredSigner = await recoverPermit2Signer(digest, permit.signature);
+                        valid = recoveredSigner.toLowerCase() === permit.owner.toLowerCase();
+                    } catch {
+                        valid = false;
+                    }
+                }
+                if (!valid && !unavailable)
+                    fail(
+                        'PERMIT2_SIGNATURE_INVALID',
+                        'Permit2 witness signature does not authorize the declared owner and typed data.'
+                    );
+                if (BigInt(permit.deadline) < BigInt(timestamp))
+                    fail('PERMIT2_SIGNATURE_EXPIRED', 'Permit2 witness signature deadline has expired.');
+                const nonce = BigInt(permit.nonce);
+                const wordPosition = nonce >> 8n;
+                const bitPosition = Number(nonce & 255n);
+                const bitmap = await client.readContract({
+                    address: BASE_PERMIT2,
+                    abi: nonceBitmapAbi,
+                    functionName: 'nonceBitmap',
+                    args: [permit.owner, wordPosition],
+                    ...atBlock
+                });
+                const used = (bitmap & (1n << BigInt(bitPosition))) !== 0n;
+                unorderedNonce = {
+                    nonce: permit.nonce,
+                    wordPosition: wordPosition.toString(),
+                    bitPosition,
+                    bitmap: bitmap.toString(),
+                    used
+                };
+                if (used) fail('PERMIT2_NONCE_MISMATCH', 'Permit2 witness unordered nonce is already used.');
+                if (permit.permissions.length !== action.transfers.length) {
+                    fail('PERMIT2_EMPTY_BATCH', 'Permit2 witness permission and transfer counts differ.');
+                } else {
+                    permit.permissions.forEach((permission, index) => {
+                        const transfer = action.transfers?.[index];
+                        if (!transfer || transfer.token.toLowerCase() !== permission.token.toLowerCase()) {
+                            fail(
+                                'UNVERIFIED_AUTHORIZATION',
+                                'Permit2 witness transfer token does not match its permission.'
+                            );
+                        } else if (BigInt(transfer.amount) > BigInt(permission.amount)) {
+                            fail(
+                                'PERMIT2_ALLOWANCE_INSUFFICIENT',
+                                'Permit2 witness transfer exceeds the signed maximum amount.'
+                            );
+                        }
+                    });
+                }
+            } else if (action.permit) {
                 const permit = action.permit;
                 digest = permit2Digest(permit, transaction.chainId);
                 const code = await client.getCode({
@@ -377,7 +643,8 @@ export async function verifyPermit2(
             findings,
             ...(digest ? { digest } : {}),
             ...(signatureMethod ? { signatureMethod } : {}),
-            ...(recoveredSigner ? { recoveredSigner } : {})
+            ...(recoveredSigner ? { recoveredSigner } : {}),
+            ...(unorderedNonce ? { unorderedNonce } : {})
         });
         // A failed command cannot provide a new authorization to later commands.
         if (findings.length) state.clear();

@@ -11,6 +11,8 @@ The Base Universal Router adapter decodes all four Permit2 AllowanceTransfer com
 
 Single transfers resolve the Router's sender/router recipient placeholders. Batch transfers preserve literal addresses, matching the deployed command behavior. Every transfer owner must equal the Router sender.
 
+The direct Permit2 adapter also decodes both `permitWitnessTransferFrom` overloads. It preserves the owner, caller-bound spender, single or batch token permissions, requested transfers, unordered nonce, deadline, witness, witness type string, witness type hash and signature.
+
 ## Verification and policy
 
 1. Confirm the RPC chain ID, Base Router target and Permit2 deployment.
@@ -21,6 +23,8 @@ Single transfers resolve the Router's sender/router recipient placeholders. Batc
 6. Enforce sender, spender, token, recipient, amount, expiration and signature-deadline policies. Explicit transfer amounts accumulate across the entire transaction.
 7. Simulate the entire Router transaction against the same block. This checks chain execution including implicit swap payments, balances, ERC-20 approvals and interactions between commands.
 8. Require matching verification/simulation fingerprints and block hashes before allowing a transaction.
+
+For witness transfers, the verifier reconstructs Permit2's official `PermitWitnessTransferFrom` or `PermitBatchWitnessTransferFrom` struct hash, checks the owner's unordered nonce bitmap, and verifies every requested amount against its signed token permission. Because witness semantics are application-defined, policy must explicitly allow the hash of the complete witness type string through `allowedPermit2WitnessTypeHashes`. An empty allowlist rejects every witness transfer.
 
 The command does not sign or broadcast transactions. RPC failure, unverified authorization or a failed simulation cannot produce a policy pass.
 
@@ -78,9 +82,9 @@ This regenerates the historical audit reports, general rejection evidence and TA
 
 ## Coverage and boundaries
 
-The real Permit2 vectors prove EOA decoding, digest recovery, historical nonce checking, an explicit single transfer and full-call replay. Deterministic tests additionally cover PermitBatch, EIP-2098, EIP-1271, explicit batch transfers, repeated nonces, expired authorizations, wrong spender, amount caps, unknown tokens, recipient/owner restrictions, missing RPC state and simulation failure. No matching top-level batch command to the registered Base Universal Router is included in the observed transaction sample, so batch coverage is not claimed as a real transaction vector.
+The real Permit2 vectors prove EOA decoding, digest recovery, historical nonce checking, an explicit single transfer and full-call replay. Deterministic tests additionally cover PermitBatch, EIP-2098, EIP-1271, explicit batch transfers, direct witness transfers, unordered nonces, witness allowlisting, repeated nonces, expired authorizations, wrong spender, amount caps, unknown tokens, recipient/owner restrictions, missing RPC state and simulation failure. No matching batch or witness call is included in the observed transaction sample, so that coverage is not claimed as a real transaction vector.
 
-EIP-1271 behavior is tested with a controlled RPC fixture; no live smart-wallet transaction is claimed. Direct SignatureTransfer/witness entrypoints and nested Router subplans are not supported. Unknown commands fail closed. External security auditing is still required before using this project as production risk control.
+EIP-1271 behavior is tested with a controlled RPC fixture; no live smart-wallet transaction is claimed. Universal Router sub-plans are decoded recursively with a depth limit of four, and allow-revert commands remain outside the authorization boundary. Unknown commands fail closed. External security auditing is still required before using this project as production risk control.
 
 ## Primary references
 
@@ -90,3 +94,4 @@ EIP-1271 behavior is tested with a controlled RPC fixture; no live smart-wallet 
 - [Permit2 EIP-712 domain](https://github.com/Uniswap/permit2/blob/main/src/EIP712.sol)
 - [Permit2 signature verification](https://github.com/Uniswap/permit2/blob/main/src/libraries/SignatureVerification.sol)
 - [Permit2 typed-data hashes](https://github.com/Uniswap/permit2/blob/main/src/libraries/PermitHash.sol)
+- [Permit2 SignatureTransfer interface](https://github.com/Uniswap/permit2/blob/main/src/interfaces/ISignatureTransfer.sol)

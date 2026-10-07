@@ -128,5 +128,15 @@
         "collateralUnderlyingAfter": "0"
       }
     ]
+  },
+  "receipt": {
+    "analyzer": "@eightyun/kite-passport-defi-authorization",
+    "analyzerVersion": "0.2.0",
+    "policyHash": "0xb5ed6faafef58cb2fe4019eeb1756a2c25d95b265e2935c5ec20b6d427c2b325",
+    "reportHash": "0x52f2b7dc1e72326f479c6d715443cb0b3526f368c3d465b256fc74d3237f6cf9",
+    "transactionFingerprint": "0x8576c1948e01d75c422cf6315f7dfd347852d5984a4eab28c17f242bbd079cdd",
+    "validFromBlock": "51996957",
+    "validUntilBlock": "51996957",
+    "verificationBlockHash": "0xc91f592add40e0752cddd0d69da8788655a81cc93544084ab7f67f033492dc35"
   }
 }

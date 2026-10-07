@@ -116,5 +116,15 @@
         "totalBorrowShares": "80928992546749342637"
       }
     ]
+  },
+  "receipt": {
+    "analyzer": "@eightyun/kite-passport-defi-authorization",
+    "analyzerVersion": "0.2.0",
+    "policyHash": "0xb5ed6faafef58cb2fe4019eeb1756a2c25d95b265e2935c5ec20b6d427c2b325",
+    "reportHash": "0xbd9e394ff6e960b159e0871895f4f083f6d0fd344e86b79914aaebf73f8ece0d",
+    "transactionFingerprint": "0x893937e1de4e7f2daa0b7823d3c7df71252599c8098d52d5c645963d62d55271",
+    "validFromBlock": "52027119",
+    "validUntilBlock": "52027119",
+    "verificationBlockHash": "0xf0961f6570c855927ab2cd632a677436ff100a8596454944893d39d5f5f282c2"
   }
 }

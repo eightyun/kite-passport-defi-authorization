@@ -152,9 +152,11 @@ export interface TransferAction {
 export interface AuthorizationAction {
     readonly kind: 'authorization';
     readonly index: number;
-    readonly operation: 'permit2-permit' | 'permit2-transfer' | 'permit2-batch';
+    readonly operation:
+        'permit2-permit' | 'permit2-transfer' | 'permit2-batch' | 'permit2-witness-transfer' | 'permit2-witness-batch';
     readonly decoded: boolean;
     readonly permit?: Permit2Permit;
+    readonly witnessPermit?: Permit2WitnessPermit;
     readonly transfers?: readonly Permit2Transfer[];
 }
 
@@ -164,12 +166,14 @@ export type AvantisIntentType =
     | 'CloseTradeReq'
     | 'CloseTradeCoinExposureReq'
     | 'IncreasePositionSizeReq'
-    | 'IncreasePositionSizeWithCoinExposureReq';
+    | 'IncreasePositionSizeWithCoinExposureReq'
+    | 'UpdateTpSlReq';
 
 export interface AvantisAction {
     readonly kind: 'avantis';
     readonly index: number;
-    readonly operation: 'open' | 'close' | 'increase' | 'update-margin' | 'cancel-limit' | 'update-limit';
+    readonly operation:
+        'open' | 'close' | 'increase' | 'update-margin' | 'cancel-limit' | 'update-limit' | 'update-tp-sl';
     readonly trader: Address;
     readonly pairIndex: number;
     readonly positionIndex?: string;
@@ -220,6 +224,24 @@ export interface Permit2Transfer {
     readonly amount: string;
 }
 
+export interface Permit2WitnessPermission {
+    readonly token: Address;
+    readonly amount: string;
+}
+
+export interface Permit2WitnessPermit {
+    readonly type: 'PermitWitnessTransferFrom' | 'PermitBatchWitnessTransferFrom';
+    readonly owner: Address;
+    readonly spender: Address;
+    readonly nonce: string;
+    readonly deadline: string;
+    readonly signature: Hex;
+    readonly witness: Hex;
+    readonly witnessTypeString: string;
+    readonly witnessTypeHash: Hex;
+    readonly permissions: readonly Permit2WitnessPermission[];
+}
+
 export interface Permit2AllowanceEvidence {
     readonly token: Address;
     readonly owner: Address;
@@ -236,6 +258,13 @@ export interface Permit2Check {
     readonly signatureMethod?: 'eoa' | 'eip1271';
     readonly digest?: Hex;
     readonly recoveredSigner?: Address;
+    readonly unorderedNonce?: {
+        readonly nonce: string;
+        readonly wordPosition: string;
+        readonly bitPosition: number;
+        readonly bitmap: string;
+        readonly used: boolean;
+    };
     readonly allowances: readonly Permit2AllowanceEvidence[];
     readonly expectedAllowanceUpdates: readonly {
         readonly token: Address;
@@ -277,7 +306,8 @@ export type IntentAction =
 
 export interface IntentAnalysis {
     readonly schemaVersion: '1.0';
-    readonly protocol: 'uniswap' | 'aerodrome' | 'moonwell' | 'morpho' | 'aave' | 'compound' | 'avantis' | 'unknown';
+    readonly protocol:
+        'uniswap' | 'permit2' | 'aerodrome' | 'moonwell' | 'morpho' | 'aave' | 'compound' | 'avantis' | 'unknown';
     readonly adapter: string;
     readonly chainId: number;
     readonly sender: Address;
@@ -312,6 +342,7 @@ export interface PolicyConfig {
     readonly requireSimulation: boolean;
     readonly maximumPermit2ExpirationSeconds?: number;
     readonly maximumPermit2SignatureDeadlineSeconds?: number;
+    readonly allowedPermit2WitnessTypeHashes?: readonly Hex[];
     readonly maximumAvantisLeverage?: string;
     readonly maximumAvantisSlippageP?: string;
     readonly allowAvantisOpen?: boolean;
@@ -390,6 +421,7 @@ export type PolicyReasonCode =
     | 'PERMIT2_LIMIT_MISSING'
     | 'PERMIT2_STATE_UNAVAILABLE'
     | 'PERMIT2_EMPTY_BATCH'
+    | 'PERMIT2_WITNESS_TYPE_NOT_ALLOWED'
     | 'SIMULATION_REQUIRED'
     | 'SIMULATION_FAILED';
 
@@ -424,12 +456,37 @@ export interface AuthorizationReport {
     readonly policy: PolicyDecision;
     readonly simulation: SimulationResult;
     readonly finalDecision: 'pass' | 'reject' | 'review';
+    readonly receipt?: AuthorizationReceipt;
     readonly permit2?: Permit2Verification;
     readonly moonwell?: MoonwellPreflight;
     readonly morpho?: MorphoPreflight;
     readonly aave?: AavePreflight;
     readonly compound?: CompoundPreflight;
     readonly avantis?: AvantisPreflight;
+}
+
+export interface AuthorizationReceipt {
+    readonly analyzer: '@eightyun/kite-passport-defi-authorization';
+    readonly analyzerVersion: string;
+    readonly policyHash: Hex;
+    readonly reportHash: Hex;
+    readonly transactionFingerprint: Hex;
+    readonly validFromBlock?: string;
+    readonly validUntilBlock?: string;
+    readonly verificationBlockHash?: Hex;
+}
+
+export interface ReceiptVerificationResult {
+    readonly valid: boolean;
+    readonly analyzer: string;
+    readonly analyzerVersion: string;
+    readonly policyHash?: Hex;
+    readonly reportHash?: Hex;
+    readonly transactionFingerprint?: Hex;
+    readonly validFromBlock?: string;
+    readonly validUntilBlock?: string;
+    readonly verifiedAtBlock?: string;
+    readonly findings: readonly string[];
 }
 
 export interface AvantisIntentCheck {

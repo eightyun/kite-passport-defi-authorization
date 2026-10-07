@@ -8,18 +8,19 @@ All committed tests, real transaction vectors and historical simulations current
 
 ## Supported protocols
 
-| Protocol           | Supported operations                                                                             |
-| ------------------ | ------------------------------------------------------------------------------------------------ |
-| Uniswap v2         | exact-input and exact-output swaps through Universal Router                                      |
-| Uniswap v3         | single-hop and multi-hop exact-input/exact-output swaps                                          |
-| Uniswap v4         | standard exact-input/exact-output swaps, settlement and take actions                             |
-| Universal Router   | Permit2 single/batch permits and transfers, wrap, unwrap, sweep and transfer                     |
-| Aerodrome Router   | token/token, native/token and token/native exact-input swaps                                     |
-| Moonwell Core      | supply, withdraw, borrow, repay and collateral enable/disable                                    |
-| Morpho Blue        | supply, withdraw, borrow, repay and collateral supply/withdraw                                   |
-| Aave V3 Pool       | supply, withdraw, variable-rate borrow/repay and collateral enable/disable                       |
-| Compound III Comet | base supply/withdraw/borrow/repay, collateral supply/withdraw and manager authorization          |
-| Avantis/Veranta v2 | direct and signed market open/close, position increase, margin update and limit-order management |
+| Protocol           | Supported operations                                                                    |
+| ------------------ | --------------------------------------------------------------------------------------- |
+| Uniswap v2         | exact-input and exact-output swaps through Universal Router                             |
+| Uniswap v3         | single-hop and multi-hop exact-input/exact-output swaps                                 |
+| Uniswap v4         | standard exact-input/exact-output swaps, settlement and take actions                    |
+| Universal Router   | nested sub-plans, Permit2 permits/transfers, wrap, unwrap, sweep and transfer           |
+| Permit2            | direct single/batch witness transfers with signature and unordered-nonce verification   |
+| Aerodrome Router   | token/token, native/token and token/native exact-input swaps                            |
+| Moonwell Core      | supply, withdraw, borrow, repay and collateral enable/disable                           |
+| Morpho Blue        | supply, withdraw, borrow, repay and collateral supply/withdraw                          |
+| Aave V3 Pool       | supply, withdraw, variable-rate borrow/repay and collateral enable/disable              |
+| Compound III Comet | base supply/withdraw/borrow/repay, collateral supply/withdraw and manager authorization |
+| Avantis/Veranta v2 | open/close/increase, margin and limit updates, and signed global TP/SL updates          |
 
 Uniswap v4 hooks and dynamic-fee pools are rejected by the example policy unless explicitly allowed. Unknown commands and actions are always rejected.
 
@@ -82,8 +83,20 @@ The command emits JSON containing:
 - Aave fixed-block reserve configuration, aToken and variable-debt exposure, cap checks and projected health factor.
 - Compound III fixed-block base and collateral exposure, permissions, cap checks and projected collateralization.
 - Avantis v2 EIP-712 signer recovery, unordered nonce status, delegation expiry and same-block simulation.
+- an integrity receipt containing the analyzer version, policy hash, report hash, transaction fingerprint and exact valid block.
 
 Exit code `2` means the policy rejected the transaction. Invalid input or an internal error returns exit code `1`.
+
+## Verify a report receipt
+
+```bash
+npx tsx src/cli.ts verify-report \
+  --report evidence/reports/uniswap-v4-exact-input.report.json \
+  --policy config/policy.example.json \
+  --block 51999748
+```
+
+The verifier recomputes the canonical report and policy hashes, checks the transaction fingerprint and policy outcome, and requires the requested block to match the report's fixed simulation block. Omit `--block` to verify integrity without asserting a use-time block. The receipt proves report integrity against the supplied policy; it is not a publisher signature. See [authorization receipts](docs/receipts.md).
 
 ## Policy controls
 
@@ -102,6 +115,7 @@ Exit code `2` means the policy rejected the transaction. Invalid input or an int
 - Moonwell borrowing control;
 - optional mandatory RPC simulation.
 - Permit2 signature and allowance lifetime limits; Permit2 always requires independent verification and full-transaction simulation at the same block.
+- Permit2 witness type-hash allowlist; unknown application-defined witness semantics fail closed.
 
 Implemented rejection reason codes include:
 
@@ -175,6 +189,7 @@ Implemented rejection reason codes include:
 | `PERMIT2_LIMIT_MISSING`               | token has no explicit authorization amount cap                                   |
 | `PERMIT2_STATE_UNAVAILABLE`           | required chain or contract state could not be verified                           |
 | `PERMIT2_EMPTY_BATCH`                 | a permit or transfer batch has no entries                                        |
+| `PERMIT2_WITNESS_TYPE_NOT_ALLOWED`    | a direct witness transfer uses an unapproved witness type                        |
 | `MOONWELL_STATE_REQUIRED`             | review required because verified account state or matching simulation is missing |
 | `MOONWELL_PRECHECK_FAILED`            | redemption exceeds receipts or repayment exceeds accrued debt                    |
 | `SIMULATION_FAILED`                   | pre-execution RPC call reverted or failed                                        |
@@ -193,7 +208,7 @@ The repository includes 47 raw Base mainnet transaction envelopes with immutable
 | Compound III                 | base supply, base withdrawal, base borrow, base repayment, collateral supply/withdraw and manager authorization                                                                                    |            7 |
 | Avantis/Veranta v2           | delegated EIP-712 market open, market close and coin-exposure position increase                                                                                                                    |            3 |
 
-[`fixtures/operation-coverage.json`](fixtures/operation-coverage.json) maps every operation to its fixture and records the expected policy and historical simulation outcomes. Uniswap v4 native-currency swaps are represented directly by the zero address and have real vectors in both directions; they do not require wrapping. Permit2 batch permit/transfer and the separate v4 action-level WRAP/UNWRAP commands remain deterministic test vectors because no matching top-level call to the registered Base Router is included in the observed transaction sample; they are not presented as real transactions.
+[`fixtures/operation-coverage.json`](fixtures/operation-coverage.json) maps every operation to its fixture and records the expected policy and historical simulation outcomes. Uniswap v4 native-currency swaps are represented directly by the zero address and have real vectors in both directions; they do not require wrapping. Permit2 batch permit/transfer, direct witness transfer, Universal Router sub-plans, signed Avantis TP/SL updates and the separate v4 action-level WRAP/UNWRAP commands have deterministic executable test vectors. They are not presented as observed Base transactions because no matching transaction is included in the repository's provenance sample.
 
 Each evidence simulation replays the call against the block immediately before the observed transaction. Set `BASE_RPC_URL` to an archive-capable Base endpoint when regenerating evidence.
 
@@ -259,6 +274,7 @@ schemas/          report contract
 - The tool performs read-only analysis and RPC calls.
 - It does not hold private keys, sign messages, submit transactions or approve spending.
 - Permit2 PermitSingle and PermitBatch signatures are independently verified; contract-wallet checks require an EIP-1271 RPC response. Missing verification fails closed.
+- Permit2 witness transfers verify the official EIP-712 hash, EOA/EIP-1271 signature, unordered nonce bitmap, requested amounts and an explicit witness-type policy allowlist.
 - Explicit Permit2 transfers are checked against allowances in command order. Full-transaction simulation covers implicit swap payments, ERC-20 approvals and token balances.
 - Authorization exposure and per-operation balance bounds are conditional predictions; the tool does not claim measured net balance or final residual allowance changes.
 - Unknown Uniswap v4 hooks are rejected because hook code can alter fees and asset flows.
@@ -267,7 +283,7 @@ schemas/          report contract
 - Morpho markets are restricted by their full parameter hash; exact share conversions require same-block simulation.
 - Aave operations require the canonical Base Pool, explicit reserve approval, fixed-block reserve/account checks and same-block simulation.
 - Compound III operations require the canonical Base USDC Comet, explicit asset and manager approval, fixed-block account/collateral checks and same-block simulation.
-- Avantis signed intents are bound to the v2 domain, nonce bitmap, delegation state and simulation block. Keeper-only paths fail closed.
+- Avantis signed intents, including global TP/SL updates, are bound to the v2 domain, nonce bitmap, delegation state and simulation block. The current TP/SL flow is submitted through the official price-trigger API and executed on chain by the operator.
 - A simulation is evidence for one chain state, not a guarantee for later execution.
 
 This project has not received an external security audit and must not be treated as production risk control without one.

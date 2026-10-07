@@ -16,6 +16,7 @@ import { decodeTransaction } from '../src/decode.js';
 import { loadPolicy, loadTransaction } from '../src/io.js';
 import { evaluatePolicy } from '../src/policy.js';
 import { analyzeTransaction } from '../src/report.js';
+import { verifyAuthorizationReceipt } from '../src/receipt.js';
 
 const fixtureDirectory = resolve('fixtures/transactions');
 const evidenceDirectory = resolve('evidence');
@@ -392,6 +393,14 @@ async function main(): Promise<void> {
                 `${file}: expected ${expectation.expectedDecision}, got ${report.finalDecision}; simulation=${report.simulation.error ?? report.simulation.success}; Moonwell=${report.moonwell?.status ?? 'n/a'}; reasons=${report.policy.findings.map((finding) => finding.code).join(',')}`
             );
         }
+        const receiptVerification = verifyAuthorizationReceipt(
+            report,
+            policy,
+            report.simulation.blockNumber === undefined ? undefined : BigInt(report.simulation.blockNumber)
+        );
+        if (!receiptVerification.valid) {
+            throw new Error(`${file} has an invalid authorization receipt: ${receiptVerification.findings.join('; ')}`);
+        }
         if (
             cashRejection &&
             (report.simulation.returnData === undefined ||
@@ -571,6 +580,7 @@ ${summaries.join('\n')}
 - Compound III base-token calls are resolved against account state into supply, repay, withdraw or borrow effects before policy evaluation.
 - Avantis pair indexes, leverage, slippage and opening permissions are explicitly bounded.
 - Signed Avantis v2 intents require EIP-712 recovery, an unused unordered nonce and an active trader delegation when the signer differs from the trader.
+- Report receipts bind the analyzer version, policy hash, report hash and transaction fingerprint to the exact simulation block.
 - Failed RPC simulation is a rejection.
 
 ## Operation coverage
@@ -639,7 +649,7 @@ ${avantisChecks.join('\n')}
 - The real Permit2 vector has a valid signature and successful historical execution. The default policy rejects its unlimited allowance and approximately 30-day authorization lifetime. This is an expected rejection, not a failed signature check.
 - Allowance updates describe the authorization assigned by a permit and the maximum exposure change relative to the checked allowance. They are conditional on execution and are not the final residual allowance after swaps.
 - Balance changes are operation-level calldata bounds, not a measured net portfolio delta. Exact swap output, token balances and ERC-20 approval sufficiency depend on the simulated chain state.
-- Direct Permit2 SignatureTransfer/witness calls and nested Router subplans are outside the supported command set and fail closed. EIP-1271 coverage uses controlled RPC tests; the committed live Permit2 transaction is an EOA vector.
+- Direct Permit2 witness calls verify the official typed-data digest, unordered nonce and an explicit witness-type allowlist. Nested Router subplans have deterministic recursive decoding with a depth limit. Neither operation is claimed as an observed Base vector. EIP-1271 coverage uses controlled RPC tests; the committed live Permit2 transaction is an EOA vector.
 - All chain reads and simulation use a fixed block number; matching block hashes are required before policy pass. Historical preflight uses the preceding block, so transactions depending on earlier writes in the same block may fail this replay.
 - Arbitrary Uniswap v4 hooks are outside the supported trust boundary.
 - Aerodrome support covers the three standard exact-input methods. Fee-on-transfer and unsafe methods are deliberately unsupported.
@@ -648,7 +658,7 @@ ${avantisChecks.join('\n')}
 - Aave projected health uses fixed-block Pool account data and the reserve oracle price. Pool revision 11 index rounding and automatic first-supply collateral activation are reflected in projected balances.
 - Compound III support is limited to direct calls to the canonical Base USDC Comet. Bulker batches, transfers, liquidation, absorption and reserve purchases fail closed.
 - Compound III collateral capacity uses fixed-block oracle prices and market factors. Base supply and debt are mutually exclusive in Comet, so base-token calls are resolved by repayment/withdrawal netting before projected exposure is reported.
-- Avantis support covers direct open, close, increase, margin and limit-order management plus signed v2 market open, close and increase intents. Keeper-only execution, TP/SL, TWAP and RFQ paths fail closed.
+- Avantis support covers direct open, close, increase, margin and limit-order management plus signed v2 market open, close, increase and global TP/SL intents. The TP/SL vector is deterministic because the current user flow first submits the signed intent to the official price-trigger API for operator execution. TWAP, RFQ and partial trigger records remain outside the transaction-envelope analyzer.
 - Avantis closing proceeds remain unknown before execution because realized PnL, fees and oracle fill determine the final USDC credit. Opening and size-increase collateral are exact calldata amounts.
 - RPC simulation verifies call success at a fixed historical state; it does not guarantee execution against a later state.
 - This project does not sign or broadcast transactions and is not production risk control without an independent audit.
@@ -676,6 +686,7 @@ This directory contains reproducible evidence for the Passport DeFi authorizatio
 - Avantis v2 intent and delegation verification: [../docs/avantis.md](../docs/avantis.md)
 - Aave V3 reserve, account and health-factor verification: [../docs/aave.md](../docs/aave.md)
 - Compound III market, account and collateralization verification: [../docs/compound.md](../docs/compound.md)
+- Report policy hash, analyzer version, valid block and verification command: [../docs/receipts.md](../docs/receipts.md)
 
 ## Reproduce
 

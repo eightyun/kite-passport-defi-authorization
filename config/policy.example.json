@@ -9,6 +9,7 @@
         "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22",
         "0x628ff693426583D9a7FB391E54366292F509D457",
         "0x44914408af82bC9983bbb330e3578E1105e11d4e",
+        "0x000000000022D473030F116dDEE9F6B43aC78BA3",
         "0xA238Dd80C259a72e81d7e4664a9801593F98d1c5",
         "0xb125E6687d4313864e53df431d5425969c15Eb2F"
     ],
@@ -50,6 +51,7 @@
     "requireSimulation": false,
     "maximumPermit2ExpirationSeconds": 86400,
     "maximumPermit2SignatureDeadlineSeconds": 3600,
+    "allowedPermit2WitnessTypeHashes": [],
     "maximumAvantisLeverage": "500000000000",
     "maximumAvantisSlippageP": "30000000000",
     "allowAvantisOpen": true,
