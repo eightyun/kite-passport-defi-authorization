@@ -3,6 +3,7 @@ import { moonwellStateMatches, resolveMoonwellIntent } from './moonwell.js';
 import { morphoStateMatches, resolveMorpho } from './morpho.js';
 import { avantisStateMatches } from './avantis.js';
 import { aaveStateMatches, resolveAaveIntent } from './aave.js';
+import { compoundStateMatches, resolveCompoundIntent } from './compound.js';
 import { BASE_USDC } from './contracts.js';
 import type {
     Address,
@@ -16,6 +17,7 @@ import type {
     MoonwellPreflight,
     MorphoPreflight,
     AavePreflight,
+    CompoundPreflight,
     AvantisPreflight
 } from './domain.js';
 
@@ -26,6 +28,7 @@ export interface PolicyContext {
     readonly moonwell?: MoonwellPreflight;
     readonly morpho?: MorphoPreflight;
     readonly aave?: AavePreflight;
+    readonly compound?: CompoundPreflight;
     readonly avantis?: AvantisPreflight;
 }
 
@@ -55,6 +58,7 @@ function actionTokens(action: IntentAction): readonly Address[] {
         return [action.marketParams.loanToken, action.marketParams.collateralToken];
     }
     if (action.kind === 'aave') return [action.asset];
+    if (action.kind === 'compound') return [];
     if (action.kind === 'avantis') return [BASE_USDC];
     return [];
 }
@@ -73,6 +77,10 @@ function actionRecipient(action: IntentAction): string | undefined {
         return action.receiver ?? action.beneficiary;
     }
     if (action.kind === 'aave') return action.operation === 'withdraw' ? action.recipient : undefined;
+    if (action.kind === 'compound') {
+        if (action.method.startsWith('withdraw')) return action.recipient;
+        if (action.method === 'supplyTo' || action.method === 'supplyFrom') return action.account;
+    }
     return undefined;
 }
 
@@ -109,6 +117,9 @@ function findAmountLimitFinding(
     } else if (action.kind === 'aave') {
         token = action.asset;
         value = action.amount?.mode === 'exact' ? action.amount.value : undefined;
+    } else if (action.kind === 'compound') {
+        token = action.asset;
+        value = action.amount?.mode === 'exact' ? action.amount.value : undefined;
     }
     if (token === undefined || value === undefined) {
         return undefined;
@@ -134,7 +145,10 @@ export function evaluatePolicy(decoded: IntentAnalysis, config: PolicyConfig, co
         : undefined;
     const morphoIntent = morphoResolved?.intent ?? moonwellIntent;
     const morpho = morphoResolved?.state ?? context.morpho;
-    const intent = context.aave ? resolveAaveIntent(morphoIntent, context.aave, context.simulation) : morphoIntent;
+    const aaveIntent = context.aave ? resolveAaveIntent(morphoIntent, context.aave, context.simulation) : morphoIntent;
+    const intent = context.compound
+        ? resolveCompoundIntent(aaveIntent, context.compound, context.simulation)
+        : aaveIntent;
     const findings: PolicyFinding[] = [];
     const targets = addressSet(config.allowedTargets);
     const tokens = addressSet(config.allowedTokens);
@@ -143,6 +157,8 @@ export function evaluatePolicy(decoded: IntentAnalysis, config: PolicyConfig, co
     const aerodromeFactories = addressSet(config.allowedAerodromeFactories ?? []);
     const morphoMarkets = new Set((config.allowedMorphoMarkets ?? []).map((value) => value.toLowerCase()));
     const aaveReserves = addressSet(config.allowedAaveReserves ?? []);
+    const compoundAssets = addressSet(config.allowedCompoundAssets ?? []);
+    const compoundManagers = addressSet(config.allowedCompoundManagers ?? []);
     const permit2Transferred = new Map<string, bigint>();
     const missingMoonwellState =
         intent.protocol === 'moonwell' && !moonwellStateMatches(intent, context.moonwell, context.simulation);
@@ -150,6 +166,8 @@ export function evaluatePolicy(decoded: IntentAnalysis, config: PolicyConfig, co
     const missingAvantisState =
         intent.protocol === 'avantis' && !avantisStateMatches(intent, context.avantis, context.simulation);
     const missingAaveState = intent.protocol === 'aave' && !aaveStateMatches(intent, context.aave, context.simulation);
+    const missingCompoundState =
+        intent.protocol === 'compound' && !compoundStateMatches(intent, context.compound, context.simulation);
     if (intent.protocol === 'moonwell' && context.moonwell?.status === 'invalid') {
         findings.push({
             code: 'MOONWELL_PRECHECK_FAILED',
@@ -174,6 +192,12 @@ export function evaluatePolicy(decoded: IntentAnalysis, config: PolicyConfig, co
         findings.push({
             code: context.aave.errorCode ?? 'AAVE_PRECHECK_FAILED',
             message: context.aave.error ?? 'Aave preflight failed.'
+        });
+    }
+    if (intent.protocol === 'compound' && context.compound?.status === 'invalid') {
+        findings.push({
+            code: context.compound.errorCode ?? 'COMPOUND_PRECHECK_FAILED',
+            message: context.compound.error ?? 'Compound III preflight failed.'
         });
     }
 
@@ -471,6 +495,31 @@ export function evaluatePolicy(decoded: IntentAnalysis, config: PolicyConfig, co
                 });
             }
         }
+        if (action.kind === 'compound') {
+            if (action.asset && !compoundAssets.has(action.asset.toLowerCase())) {
+                findings.push({
+                    code: 'COMPOUND_ASSET_NOT_ALLOWED',
+                    message: `Compound III asset ${action.asset} is not allowed by policy.`,
+                    actionIndex: action.index,
+                    evidence: { asset: action.asset }
+                });
+            }
+            if (action.manager && action.isAllowed && !compoundManagers.has(action.manager.toLowerCase())) {
+                findings.push({
+                    code: 'COMPOUND_MANAGER_NOT_ALLOWED',
+                    message: `Compound III manager ${action.manager} is not allowed by policy.`,
+                    actionIndex: action.index,
+                    evidence: { manager: action.manager }
+                });
+            }
+            if (['borrow-base', 'withdraw-and-borrow-base'].includes(action.operation) && !config.allowBorrow) {
+                findings.push({
+                    code: 'BORROW_NOT_ALLOWED',
+                    message: 'Compound III borrowing is disabled by policy.',
+                    actionIndex: action.index
+                });
+            }
+        }
         if (action.kind === 'avantis') {
             if (!(config.allowedAvantisPairIndexes ?? []).includes(action.pairIndex)) {
                 findings.push({
@@ -587,6 +636,18 @@ export function evaluatePolicy(decoded: IntentAnalysis, config: PolicyConfig, co
                     message:
                         context.aave?.error ??
                         'Aave requires reserve and account state plus successful simulation bound to the same transaction and block.'
+                }
+            ]
+        };
+    if (missingCompoundState)
+        return {
+            outcome: 'review',
+            findings: [
+                {
+                    code: 'COMPOUND_STATE_REQUIRED',
+                    message:
+                        context.compound?.error ??
+                        'Compound III requires market, account and permission state plus successful simulation bound to the same transaction and block.'
                 }
             ]
         };

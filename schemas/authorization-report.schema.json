@@ -337,6 +337,117 @@
                 }
             ]
         },
+        "compound": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["transactionFingerprint", "status", "exposures"],
+            "properties": {
+                "transactionFingerprint": { "$ref": "#/$defs/hash" },
+                "status": { "enum": ["ready", "unavailable", "invalid"] },
+                "blockNumber": { "$ref": "#/$defs/integerString" },
+                "blockHash": { "$ref": "#/$defs/hash" },
+                "blockTimestamp": { "type": "integer", "minimum": 0 },
+                "errorCode": { "type": "string" },
+                "error": { "type": "string" },
+                "exposures": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "actionIndex",
+                            "operation",
+                            "method",
+                            "market",
+                            "baseToken",
+                            "account",
+                            "source",
+                            "recipient",
+                            "amount",
+                            "baseSupplyBefore",
+                            "baseSupplyAfter",
+                            "baseBorrowBefore",
+                            "baseBorrowAfter",
+                            "collateralBalanceBefore",
+                            "collateralBalanceAfter",
+                            "totalCollateralBefore",
+                            "totalCollateralAfter",
+                            "borrowCapacityBaseBefore",
+                            "borrowCapacityBaseAfter",
+                            "liquidationCapacityBaseBefore",
+                            "liquidationCapacityBaseAfter",
+                            "baseBorrowMinimum",
+                            "permissionBefore"
+                        ],
+                        "properties": {
+                            "actionIndex": { "type": "integer", "minimum": 0 },
+                            "operation": {
+                                "enum": [
+                                    "supply-base",
+                                    "repay-base",
+                                    "repay-and-supply-base",
+                                    "withdraw-base",
+                                    "borrow-base",
+                                    "withdraw-and-borrow-base",
+                                    "supply-collateral",
+                                    "withdraw-collateral",
+                                    "allow-manager",
+                                    "disallow-manager"
+                                ]
+                            },
+                            "method": {
+                                "enum": [
+                                    "supply",
+                                    "supplyTo",
+                                    "supplyFrom",
+                                    "withdraw",
+                                    "withdrawTo",
+                                    "withdrawFrom",
+                                    "allow",
+                                    "allowBySig"
+                                ]
+                            },
+                            "market": { "$ref": "#/$defs/address" },
+                            "baseToken": { "$ref": "#/$defs/address" },
+                            "asset": { "$ref": "#/$defs/address" },
+                            "account": { "$ref": "#/$defs/address" },
+                            "source": { "$ref": "#/$defs/address" },
+                            "recipient": { "$ref": "#/$defs/address" },
+                            "amount": { "$ref": "#/$defs/integerString" },
+                            "baseSupplyBefore": { "$ref": "#/$defs/integerString" },
+                            "baseSupplyAfter": { "$ref": "#/$defs/integerString" },
+                            "baseBorrowBefore": { "$ref": "#/$defs/integerString" },
+                            "baseBorrowAfter": { "$ref": "#/$defs/integerString" },
+                            "collateralBalanceBefore": { "$ref": "#/$defs/integerString" },
+                            "collateralBalanceAfter": { "$ref": "#/$defs/integerString" },
+                            "totalCollateralBefore": { "$ref": "#/$defs/integerString" },
+                            "totalCollateralAfter": { "$ref": "#/$defs/integerString" },
+                            "collateralSupplyCap": { "$ref": "#/$defs/integerString" },
+                            "borrowCapacityBaseBefore": { "$ref": "#/$defs/integerString" },
+                            "borrowCapacityBaseAfter": { "$ref": "#/$defs/integerString" },
+                            "liquidationCapacityBaseBefore": { "$ref": "#/$defs/integerString" },
+                            "liquidationCapacityBaseAfter": { "$ref": "#/$defs/integerString" },
+                            "baseBorrowMinimum": { "$ref": "#/$defs/integerString" },
+                            "permissionBefore": { "type": "boolean" },
+                            "manager": { "$ref": "#/$defs/address" },
+                            "managerAllowedBefore": { "type": "boolean" },
+                            "managerAllowedAfter": { "type": "boolean" },
+                            "nonceBefore": { "$ref": "#/$defs/integerString" },
+                            "signatureValid": { "type": "boolean" }
+                        }
+                    }
+                }
+            },
+            "allOf": [
+                {
+                    "if": { "properties": { "status": { "const": "ready" } } },
+                    "then": {
+                        "required": ["blockNumber", "blockHash", "blockTimestamp"],
+                        "properties": { "exposures": { "type": "array", "minItems": 1 } }
+                    }
+                }
+            ]
+        },
         "avantis": {
             "type": "object",
             "additionalProperties": false,

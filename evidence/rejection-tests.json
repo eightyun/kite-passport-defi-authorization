@@ -1,6 +1,6 @@
 {
   "generatedAt": "2026-09-30T17:20:45.000Z",
-  "count": 27,
+  "count": 39,
   "cases": [
     {
       "scenario": "unsupported chain",
@@ -301,6 +301,138 @@
       ],
       "messages": [
         "AAVE_INTEREST_RATE_MODE_NOT_ALLOWED"
+      ]
+    },
+    {
+      "scenario": "unapproved Compound asset",
+      "expectedCode": "COMPOUND_ASSET_NOT_ALLOWED",
+      "outcome": "reject",
+      "observedCodes": [
+        "COMPOUND_ASSET_NOT_ALLOWED"
+      ],
+      "messages": [
+        "Compound III asset 0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf is not allowed by policy."
+      ]
+    },
+    {
+      "scenario": "unapproved Compound manager",
+      "expectedCode": "COMPOUND_MANAGER_NOT_ALLOWED",
+      "outcome": "reject",
+      "observedCodes": [
+        "COMPOUND_MANAGER_NOT_ALLOWED"
+      ],
+      "messages": [
+        "Compound III manager 0x78D0677032A35c63D142a48A2037048871212a8C is not allowed by policy."
+      ]
+    },
+    {
+      "scenario": "Compound compound market mismatch",
+      "expectedCode": "COMPOUND_MARKET_MISMATCH",
+      "outcome": "reject",
+      "observedCodes": [
+        "COMPOUND_MARKET_MISMATCH"
+      ],
+      "messages": [
+        "COMPOUND_MARKET_MISMATCH"
+      ]
+    },
+    {
+      "scenario": "Compound compound supply paused",
+      "expectedCode": "COMPOUND_SUPPLY_PAUSED",
+      "outcome": "reject",
+      "observedCodes": [
+        "COMPOUND_SUPPLY_PAUSED"
+      ],
+      "messages": [
+        "COMPOUND_SUPPLY_PAUSED"
+      ]
+    },
+    {
+      "scenario": "Compound compound withdraw paused",
+      "expectedCode": "COMPOUND_WITHDRAW_PAUSED",
+      "outcome": "reject",
+      "observedCodes": [
+        "COMPOUND_WITHDRAW_PAUSED"
+      ],
+      "messages": [
+        "COMPOUND_WITHDRAW_PAUSED"
+      ]
+    },
+    {
+      "scenario": "Compound compound supply cap exceeded",
+      "expectedCode": "COMPOUND_SUPPLY_CAP_EXCEEDED",
+      "outcome": "reject",
+      "observedCodes": [
+        "COMPOUND_SUPPLY_CAP_EXCEEDED"
+      ],
+      "messages": [
+        "COMPOUND_SUPPLY_CAP_EXCEEDED"
+      ]
+    },
+    {
+      "scenario": "Compound compound operator not allowed",
+      "expectedCode": "COMPOUND_OPERATOR_NOT_ALLOWED",
+      "outcome": "reject",
+      "observedCodes": [
+        "COMPOUND_OPERATOR_NOT_ALLOWED"
+      ],
+      "messages": [
+        "COMPOUND_OPERATOR_NOT_ALLOWED"
+      ]
+    },
+    {
+      "scenario": "Compound compound signature invalid",
+      "expectedCode": "COMPOUND_SIGNATURE_INVALID",
+      "outcome": "reject",
+      "observedCodes": [
+        "COMPOUND_SIGNATURE_INVALID"
+      ],
+      "messages": [
+        "COMPOUND_SIGNATURE_INVALID"
+      ]
+    },
+    {
+      "scenario": "Compound compound nonce mismatch",
+      "expectedCode": "COMPOUND_NONCE_MISMATCH",
+      "outcome": "reject",
+      "observedCodes": [
+        "COMPOUND_NONCE_MISMATCH"
+      ],
+      "messages": [
+        "COMPOUND_NONCE_MISMATCH"
+      ]
+    },
+    {
+      "scenario": "Compound compound signature expired",
+      "expectedCode": "COMPOUND_SIGNATURE_EXPIRED",
+      "outcome": "reject",
+      "observedCodes": [
+        "COMPOUND_SIGNATURE_EXPIRED"
+      ],
+      "messages": [
+        "COMPOUND_SIGNATURE_EXPIRED"
+      ]
+    },
+    {
+      "scenario": "Compound compound borrow too small",
+      "expectedCode": "COMPOUND_BORROW_TOO_SMALL",
+      "outcome": "reject",
+      "observedCodes": [
+        "COMPOUND_BORROW_TOO_SMALL"
+      ],
+      "messages": [
+        "COMPOUND_BORROW_TOO_SMALL"
+      ]
+    },
+    {
+      "scenario": "Compound compound not collateralized",
+      "expectedCode": "COMPOUND_NOT_COLLATERALIZED",
+      "outcome": "reject",
+      "observedCodes": [
+        "COMPOUND_NOT_COLLATERALIZED"
+      ],
+      "messages": [
+        "COMPOUND_NOT_COLLATERALIZED"
       ]
     }
   ]

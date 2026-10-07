@@ -94,6 +94,38 @@ export interface AaveAction {
     readonly variableDebtToken?: Address;
 }
 
+export type CompoundOperation =
+    | 'supply-base'
+    | 'repay-base'
+    | 'repay-and-supply-base'
+    | 'withdraw-base'
+    | 'borrow-base'
+    | 'withdraw-and-borrow-base'
+    | 'supply-collateral'
+    | 'withdraw-collateral'
+    | 'allow-manager'
+    | 'disallow-manager';
+
+export interface CompoundAction {
+    readonly kind: 'compound';
+    readonly index: number;
+    readonly operation: CompoundOperation;
+    readonly method:
+        'supply' | 'supplyTo' | 'supplyFrom' | 'withdraw' | 'withdrawTo' | 'withdrawFrom' | 'allow' | 'allowBySig';
+    readonly market: Address;
+    readonly asset?: Address;
+    readonly amount?: Amount;
+    readonly operator: Address;
+    readonly source: Address;
+    readonly account: Address;
+    readonly recipient?: Address;
+    readonly manager?: Address;
+    readonly isAllowed?: boolean;
+    readonly nonce?: string;
+    readonly expiry?: string;
+    readonly signature?: Hex;
+}
+
 export interface LendingAction {
     readonly kind: 'lending';
     readonly index: number;
@@ -237,6 +269,7 @@ export type IntentAction =
     | LendingAction
     | MorphoAction
     | AaveAction
+    | CompoundAction
     | TransferAction
     | AuthorizationAction
     | AvantisAction
@@ -244,7 +277,7 @@ export type IntentAction =
 
 export interface IntentAnalysis {
     readonly schemaVersion: '1.0';
-    readonly protocol: 'uniswap' | 'aerodrome' | 'moonwell' | 'morpho' | 'aave' | 'avantis' | 'unknown';
+    readonly protocol: 'uniswap' | 'aerodrome' | 'moonwell' | 'morpho' | 'aave' | 'compound' | 'avantis' | 'unknown';
     readonly adapter: string;
     readonly chainId: number;
     readonly sender: Address;
@@ -268,6 +301,8 @@ export interface PolicyConfig {
     readonly allowedAerodromeFactories?: readonly Address[];
     readonly allowedMorphoMarkets?: readonly Hex[];
     readonly allowedAaveReserves?: readonly Address[];
+    readonly allowedCompoundAssets?: readonly Address[];
+    readonly allowedCompoundManagers?: readonly Address[];
     readonly allowedAvantisPairIndexes?: readonly number[];
     readonly maximumAmountByToken: Readonly<Record<string, string>>;
     readonly maximumNativeValue: string;
@@ -304,6 +339,20 @@ export type PolicyReasonCode =
     | 'AAVE_INTEREST_RATE_MODE_NOT_ALLOWED'
     | 'AAVE_EMODE_NOT_SUPPORTED'
     | 'AAVE_HEALTH_FACTOR_TOO_LOW'
+    | 'COMPOUND_STATE_REQUIRED'
+    | 'COMPOUND_PRECHECK_FAILED'
+    | 'COMPOUND_MARKET_MISMATCH'
+    | 'COMPOUND_ASSET_NOT_ALLOWED'
+    | 'COMPOUND_SUPPLY_PAUSED'
+    | 'COMPOUND_WITHDRAW_PAUSED'
+    | 'COMPOUND_SUPPLY_CAP_EXCEEDED'
+    | 'COMPOUND_OPERATOR_NOT_ALLOWED'
+    | 'COMPOUND_MANAGER_NOT_ALLOWED'
+    | 'COMPOUND_SIGNATURE_INVALID'
+    | 'COMPOUND_NONCE_MISMATCH'
+    | 'COMPOUND_SIGNATURE_EXPIRED'
+    | 'COMPOUND_BORROW_TOO_SMALL'
+    | 'COMPOUND_NOT_COLLATERALIZED'
     | 'AERODROME_FACTORY_NOT_ALLOWED'
     | 'AVANTIS_STATE_REQUIRED'
     | 'AVANTIS_PRECHECK_FAILED'
@@ -379,6 +428,7 @@ export interface AuthorizationReport {
     readonly moonwell?: MoonwellPreflight;
     readonly morpho?: MorphoPreflight;
     readonly aave?: AavePreflight;
+    readonly compound?: CompoundPreflight;
     readonly avantis?: AvantisPreflight;
 }
 
@@ -526,6 +576,50 @@ export interface AavePreflight {
     readonly blockHash?: Hex;
     readonly blockTimestamp?: number;
     readonly exposures: readonly AaveExposure[];
+    readonly errorCode?: PolicyReasonCode;
+    readonly error?: string;
+}
+
+export interface CompoundExposure {
+    readonly actionIndex: number;
+    readonly operation: CompoundOperation;
+    readonly method: CompoundAction['method'];
+    readonly market: Address;
+    readonly baseToken: Address;
+    readonly asset?: Address;
+    readonly account: Address;
+    readonly source: Address;
+    readonly recipient: Address;
+    readonly amount: string;
+    readonly baseSupplyBefore: string;
+    readonly baseSupplyAfter: string;
+    readonly baseBorrowBefore: string;
+    readonly baseBorrowAfter: string;
+    readonly collateralBalanceBefore: string;
+    readonly collateralBalanceAfter: string;
+    readonly totalCollateralBefore: string;
+    readonly totalCollateralAfter: string;
+    readonly collateralSupplyCap?: string;
+    readonly borrowCapacityBaseBefore: string;
+    readonly borrowCapacityBaseAfter: string;
+    readonly liquidationCapacityBaseBefore: string;
+    readonly liquidationCapacityBaseAfter: string;
+    readonly baseBorrowMinimum: string;
+    readonly permissionBefore: boolean;
+    readonly manager?: Address;
+    readonly managerAllowedBefore?: boolean;
+    readonly managerAllowedAfter?: boolean;
+    readonly nonceBefore?: string;
+    readonly signatureValid?: boolean;
+}
+
+export interface CompoundPreflight {
+    readonly transactionFingerprint: Hex;
+    readonly status: 'ready' | 'unavailable' | 'invalid';
+    readonly blockNumber?: string;
+    readonly blockHash?: Hex;
+    readonly blockTimestamp?: number;
+    readonly exposures: readonly CompoundExposure[];
     readonly errorCode?: PolicyReasonCode;
     readonly error?: string;
 }

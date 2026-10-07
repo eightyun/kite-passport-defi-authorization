@@ -177,6 +177,10 @@ export function parsePolicy(value: unknown): PolicyConfig {
             value.allowedAerodromeFactories === undefined ? [] : addressArray(value, 'allowedAerodromeFactories'),
         allowedMorphoMarkets: value.allowedMorphoMarkets === undefined ? [] : hexArray(value, 'allowedMorphoMarkets'),
         allowedAaveReserves: value.allowedAaveReserves === undefined ? [] : addressArray(value, 'allowedAaveReserves'),
+        allowedCompoundAssets:
+            value.allowedCompoundAssets === undefined ? [] : addressArray(value, 'allowedCompoundAssets'),
+        allowedCompoundManagers:
+            value.allowedCompoundManagers === undefined ? [] : addressArray(value, 'allowedCompoundManagers'),
         maximumAmountByToken: limits,
         maximumNativeValue,
         maximumDeadlineSeconds: requiredNumber(value, 'maximumDeadlineSeconds'),

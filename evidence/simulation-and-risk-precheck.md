@@ -16,6 +16,13 @@ Generated from Base mainnet transaction vectors. Each RPC simulation replays the
 | avantis-close-usdc.base.json | avantis | avantis-signed-close-usdc | 0xff6794e1a05d064426aaf5ca85afe6da24e560232038221a143318305bff3cd0 | pass | pass |
 | avantis-increase-coin.base.json | avantis | avantis-signed-increase-coin-exposure | 0x563e765ea868d256480925764fb81e5a9bef599838d5539e9637efc16ef8e8a8 | pass | pass |
 | avantis-open-usdc.base.json | avantis | avantis-signed-open-usdc | 0x9f49761cfaa78094eed041fb19ba770457ff95efcc36dc7a6657c303868e34e4 | pass | pass |
+| compound-allow-manager.base.json | compound | compound-allow-manager | 0x251637b591ebb4f8923fef31e79d5009102edc5b476de9890222eda311219248 | pass | pass |
+| compound-borrow-base-usdc.base.json | compound | compound-borrow-base | 0xbc4b6452e19943825b4a4b7960a9122a741d991944725b8db925c6ed870b2fb0 | reject | pass |
+| compound-repay-base-usdc.base.json | compound | compound-repay-base | 0xcc39fea4c397d18413ccecc6c6fec5c4b8c63988abaee50fbfb51fb4ceb453f4 | pass | pass |
+| compound-supply-base-usdc.base.json | compound | compound-supply-base | 0x6bb43b2879d86d4b861cf78d8f9df4ed0972492a33248cda93064e82c8169956 | pass | pass |
+| compound-supply-collateral-cbbtc.base.json | compound | compound-supply-collateral | 0x6886ef1728662e2c3cd333282de0cc16ffd203a2287027bb49d2b76a612e054f | pass | pass |
+| compound-withdraw-base-usdc.base.json | compound | compound-withdraw-base | 0x08edd0b34df6d64d23c164e3e0daa06472629f2b1a964b730c5a26a23fa98f7f | reject | pass |
+| compound-withdraw-collateral-weth.base.json | compound | compound-withdraw-collateral | 0xe305e10d59c553621bc1deb3b4ecc8fd77269dad8a99a5f09c615958ccffac64 | pass | pass |
 | moonwell-borrow-usdc.base.json | moonwell | moonwell-borrow | 0x5eec6902b6f43617cacff4c4c78ad9853ad33860978d176bd4dfb89cb1816575 | reject | pass |
 | moonwell-disable-collateral.base.json | moonwell | moonwell-disable-collateral | 0xfa41cb14ff31739c4ba213a29d956408efb4f49a5794497d042c871bc25f8e57 | pass | pass |
 | moonwell-enable-collateral.base.json | moonwell | moonwell-enable-collateral | 0x3ffebe8b41bf8d40b5bf8faa7d82ce16ba7a677eae49c9f4772f821442005549 | pass | pass |
@@ -59,6 +66,8 @@ Generated from Base mainnet transaction vectors. Each RPC simulation replays the
 - Morpho markets must match an explicit market-ID allowlist and verified canonical parameters.
 - Aave reserves must be explicitly allowed; active, paused, frozen, collateral, borrowing and cap state is checked at the simulation block.
 - Aave variable debt, aToken balances and projected health factor are checked before authorization.
+- Compound III assets and managers must be explicitly allowed; pause state, collateral caps, permissions and projected collateralization are checked at the simulation block.
+- Compound III base-token calls are resolved against account state into supply, repay, withdraw or borrow effects before policy evaluation.
 - Avantis pair indexes, leverage, slippage and opening permissions are explicitly bounded.
 - Signed Avantis v2 intents require EIP-712 recovery, an unused unordered nonce and an active trader delegation when the signer differs from the trader.
 - Failed RPC simulation is a rejection.
@@ -80,6 +89,7 @@ The machine-readable coverage manifest is [fixtures/operation-coverage.json](../
 - Uniswap outputs are minimum guarantees; realized output still depends on pool state.
 - Morpho share-denominated amounts are resolved from the successful fixed-block call return data before policy caps are applied.
 - Aave max withdrawals and repayments are resolved from fixed-block aToken and variable-debt balances before policy caps are applied.
+- Compound III base-token netting is resolved from fixed-block supply and borrow balances before policy caps are applied.
 
 ## Moonwell fixed-block exposure evidence
 
@@ -123,6 +133,20 @@ Reserve configuration, account balances and oracle price are read at the same hi
 | aave-supply-usdc.base.json | supply | 36850000 | 0 → 36849999 | 0 → 0 | false → true | 115792089237316195423570985008687907853269984665640564039457584007913129639935 → 115792089237316195423570985008687907853269984665640564039457584007913129639935 |
 | aave-withdraw-usdc.base.json | withdraw | 1000000000 | 5617131288 → 4617131287 | 0 → 0 | true → true | 115792089237316195423570985008687907853269984665640564039457584007913129639935 → 115792089237316195423570985008687907853269984665640564039457584007913129639935 |
 
+## Compound III fixed-block exposure evidence
+
+The canonical Base USDC Comet market, collateral inventory, oracle prices, account balances, permissions and market controls are read at the historical simulation block. Capacity values use raw USDC base units.
+
+| Fixture | Operation | Asset | Amount | Base supply before → after | Base borrow before → after | Selected collateral before → after | Borrow capacity before → after |
+|---|---|---|---|---|---|---|---|
+| compound-allow-manager.base.json | allow-manager | 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 | 0 | 0 → 0 | 23000516965 → 23000516965 | 0 → 0 | 22863374975 → 22863374975 |
+| compound-borrow-base-usdc.base.json | borrow-base | 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 | 120000000 | 0 → 0 | 444445114 → 564445114 | 0 → 0 | 650024002 → 650024002 |
+| compound-repay-base-usdc.base.json | repay-base | 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 | 308716839 | 0 → 0 | 105626138216 → 105317421377 | 0 → 0 | 104705400305 → 104705400305 |
+| compound-supply-base-usdc.base.json | supply-base | 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 | 19140000 | 0 → 19140000 | 0 → 0 | 0 → 0 | 0 → 0 |
+| compound-supply-collateral-cbbtc.base.json | supply-collateral | 0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf | 186134135 | 0 → 0 | 0 → 0 | 0 → 186134135 | 2247523 → 127531345404 |
+| compound-withdraw-base-usdc.base.json | withdraw-base | 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 | 1389178830 | 1389178875 → 45 | 0 → 0 | 0 → 0 | 0 → 0 |
+| compound-withdraw-collateral-weth.base.json | withdraw-collateral | 0x4200000000000000000000000000000000000006 | 1693217842067926 | 8255 → 8255 | 0 → 0 | 1693217842067926 → 0 | 3880019 → 0 |
+
 ## Avantis fixed-block authorization evidence
 
 The signer is recovered from the exact v2 EIP-712 intent. Nonce bitmap and delegation state are read at the same historical block used for full-call simulation.
@@ -149,6 +173,8 @@ The signer is recovered from the exact v2 EIP-712 intent. Nonce bitmap and deleg
 - Morpho liquidation, flash loans and authorization mutation are outside the supported operation set. Market totals are recorded as stored at the checked block; operation asset/share deltas come from full call simulation after Morpho interest accrual.
 - Aave support covers direct Pool supply, withdraw, variable-rate borrow, variable-rate repay and collateral enable/disable. Flash loans, liquidation, stable-rate debt, permit helpers, credit delegation and external adapters fail closed.
 - Aave projected health uses fixed-block Pool account data and the reserve oracle price. Pool revision 11 index rounding and automatic first-supply collateral activation are reflected in projected balances.
+- Compound III support is limited to direct calls to the canonical Base USDC Comet. Bulker batches, transfers, liquidation, absorption and reserve purchases fail closed.
+- Compound III collateral capacity uses fixed-block oracle prices and market factors. Base supply and debt are mutually exclusive in Comet, so base-token calls are resolved by repayment/withdrawal netting before projected exposure is reported.
 - Avantis support covers direct open, close, increase, margin and limit-order management plus signed v2 market open, close and increase intents. Keeper-only execution, TP/SL, TWAP and RFQ paths fail closed.
 - Avantis closing proceeds remain unknown before execution because realized PnL, fees and oracle fill determine the final USDC credit. Opening and size-increase collateral are exact calldata amounts.
 - RPC simulation verifies call success at a fixed historical state; it does not guarantee execution against a later state.

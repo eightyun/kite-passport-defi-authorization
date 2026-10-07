@@ -267,6 +267,48 @@
             "operations": ["aave-disable-collateral"],
             "expectedDecision": "pass",
             "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "compound-supply-base-usdc.base.json",
+            "operations": ["compound-supply-base"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "compound-withdraw-base-usdc.base.json",
+            "operations": ["compound-withdraw-base"],
+            "expectedDecision": "reject",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "compound-borrow-base-usdc.base.json",
+            "operations": ["compound-borrow-base"],
+            "expectedDecision": "reject",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "compound-repay-base-usdc.base.json",
+            "operations": ["compound-repay-base"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "compound-supply-collateral-cbbtc.base.json",
+            "operations": ["compound-supply-collateral"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "compound-withdraw-collateral-weth.base.json",
+            "operations": ["compound-withdraw-collateral"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
+        },
+        {
+            "fixture": "compound-allow-manager.base.json",
+            "operations": ["compound-allow-manager"],
+            "expectedDecision": "pass",
+            "expectedSimulation": "pass"
         }
     ],
     "deterministicOnly": [

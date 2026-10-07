@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-10-07T02:31:29.000Z",
+  "transaction": {
+    "chainId": 8453,
+    "from": "0x17914D576Bd7d14A14bDF187d1C72B194C61E359",
+    "to": "0xb125E6687d4313864e53df431d5425969c15Eb2F",
+    "data": "0x110496e500000000000000000000000078d0677032a35c63d142a48a2037048871212a8c0000000000000000000000000000000000000000000000000000000000000001",
+    "value": "0",
+    "source": {
+      "name": "BaseScan",
+      "transactionHash": "0x251637b591ebb4f8923fef31e79d5009102edc5b476de9890222eda311219248",
+      "explorerUrl": "https://basescan.org/tx/0x251637b591ebb4f8923fef31e79d5009102edc5b476de9890222eda311219248",
+      "blockNumber": 52275471,
+      "timestamp": "2026-10-07T02:31:29.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "intent": {
+    "schemaVersion": "1.0",
+    "protocol": "compound",
+    "adapter": "compound-v3-base-usdc",
+    "chainId": 8453,
+    "sender": "0x17914D576Bd7d14A14bDF187d1C72B194C61E359",
+    "target": "0xb125E6687d4313864e53df431d5425969c15Eb2F",
+    "nativeValue": "0",
+    "transactionFingerprint": "0xfb1391a807ad35a8a41a1ff67e7539dd624df0d3229250b9ea16bac6ae68accf",
+    "actions": [
+      {
+        "kind": "compound",
+        "index": 0,
+        "operation": "allow-manager",
+        "method": "allow",
+        "market": "0xb125E6687d4313864e53df431d5425969c15Eb2F",
+        "operator": "0x17914D576Bd7d14A14bDF187d1C72B194C61E359",
+        "source": "0x17914D576Bd7d14A14bDF187d1C72B194C61E359",
+        "account": "0x17914D576Bd7d14A14bDF187d1C72B194C61E359",
+        "manager": "0x78D0677032A35c63D142a48A2037048871212a8C",
+        "isAllowed": true
+      }
+    ],
+    "expectedBalanceChanges": [],
+    "warnings": [
+      "Compound III balance, debt, collateral and permission changes are conditional projections at the verified fixed block."
+    ],
+    "source": {
+      "name": "BaseScan",
+      "transactionHash": "0x251637b591ebb4f8923fef31e79d5009102edc5b476de9890222eda311219248",
+      "explorerUrl": "https://basescan.org/tx/0x251637b591ebb4f8923fef31e79d5009102edc5b476de9890222eda311219248",
+      "blockNumber": 52275471,
+      "timestamp": "2026-10-07T02:31:29.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "policy": {
+    "outcome": "pass",
+    "findings": []
+  },
+  "simulation": {
+    "attempted": true,
+    "success": true,
+    "transactionFingerprint": "0xfb1391a807ad35a8a41a1ff67e7539dd624df0d3229250b9ea16bac6ae68accf",
+    "blockHash": "0x5b47dd70d4e68314a45ad5b81f869570939b70de94596a74b3ccc54bcf5f69fe",
+    "rpcUrl": "https://mainnet.base.org",
+    "blockNumber": "52275470"
+  },
+  "finalDecision": "pass",
+  "compound": {
+    "transactionFingerprint": "0xfb1391a807ad35a8a41a1ff67e7539dd624df0d3229250b9ea16bac6ae68accf",
+    "status": "ready",
+    "blockNumber": "52275470",
+    "blockHash": "0x5b47dd70d4e68314a45ad5b81f869570939b70de94596a74b3ccc54bcf5f69fe",
+    "blockTimestamp": 1791340287,
+    "exposures": [
+      {
+        "actionIndex": 0,
+        "operation": "allow-manager",
+        "method": "allow",
+        "market": "0xb125E6687d4313864e53df431d5425969c15Eb2F",
+        "baseToken": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "account": "0x17914D576Bd7d14A14bDF187d1C72B194C61E359",
+        "source": "0x17914D576Bd7d14A14bDF187d1C72B194C61E359",
+        "recipient": "0x17914D576Bd7d14A14bDF187d1C72B194C61E359",
+        "amount": "0",
+        "baseSupplyBefore": "0",
+        "baseSupplyAfter": "0",
+        "baseBorrowBefore": "23000516965",
+        "baseBorrowAfter": "23000516965",
+        "collateralBalanceBefore": "0",
+        "collateralBalanceAfter": "0",
+        "totalCollateralBefore": "0",
+        "totalCollateralAfter": "0",
+        "borrowCapacityBaseBefore": "22863374975",
+        "borrowCapacityBaseAfter": "22863374975",
+        "liquidationCapacityBaseBefore": "24210751807",
+        "liquidationCapacityBaseAfter": "24210751807",
+        "baseBorrowMinimum": "1",
+        "permissionBefore": true,
+        "manager": "0x78D0677032A35c63D142a48A2037048871212a8C",
+        "managerAllowedBefore": false,
+        "managerAllowedAfter": true
+      }
+    ]
+  }
+}

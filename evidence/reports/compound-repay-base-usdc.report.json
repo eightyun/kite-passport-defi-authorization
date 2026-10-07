@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-10-07T03:11:27.000Z",
+  "transaction": {
+    "chainId": 8453,
+    "from": "0xD548feDD82b8C11494cDEc21aa87059d670A5B45",
+    "to": "0xb125E6687d4313864e53df431d5425969c15Eb2F",
+    "data": "0xf2b9fdb8000000000000000000000000833589fcd6edb6e08f4c7c32d4f71b54bda02913000000000000000000000000000000000000000000000000000000001266a527",
+    "value": "0",
+    "source": {
+      "name": "BaseScan",
+      "transactionHash": "0xcc39fea4c397d18413ccecc6c6fec5c4b8c63988abaee50fbfb51fb4ceb453f4",
+      "explorerUrl": "https://basescan.org/tx/0xcc39fea4c397d18413ccecc6c6fec5c4b8c63988abaee50fbfb51fb4ceb453f4",
+      "blockNumber": 52276670,
+      "timestamp": "2026-10-07T03:11:27.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "intent": {
+    "schemaVersion": "1.0",
+    "protocol": "compound",
+    "adapter": "compound-v3-base-usdc",
+    "chainId": 8453,
+    "sender": "0xD548feDD82b8C11494cDEc21aa87059d670A5B45",
+    "target": "0xb125E6687d4313864e53df431d5425969c15Eb2F",
+    "nativeValue": "0",
+    "transactionFingerprint": "0xcfd13caf958c9a92cb1c9ba2f217ba0b2b7dc661864adb90ce9c8f1929c37a5e",
+    "actions": [
+      {
+        "kind": "compound",
+        "index": 0,
+        "operation": "repay-base",
+        "method": "supply",
+        "market": "0xb125E6687d4313864e53df431d5425969c15Eb2F",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "amount": {
+          "value": "308716839",
+          "mode": "exact"
+        },
+        "operator": "0xD548feDD82b8C11494cDEc21aa87059d670A5B45",
+        "source": "0xD548feDD82b8C11494cDEc21aa87059d670A5B45",
+        "account": "0xD548feDD82b8C11494cDEc21aa87059d670A5B45"
+      }
+    ],
+    "expectedBalanceChanges": [
+      {
+        "account": "0xD548feDD82b8C11494cDEc21aa87059d670A5B45",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "category": "asset",
+        "direction": "debit",
+        "amount": {
+          "value": "308716839",
+          "mode": "exact"
+        },
+        "reason": "Compound III base supply transfers the base asset into Comet"
+      },
+      {
+        "account": "0xD548feDD82b8C11494cDEc21aa87059d670A5B45",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "category": "debt",
+        "direction": "debit",
+        "amount": {
+          "value": "308716839",
+          "mode": "exact"
+        },
+        "reason": "Compound III base supply repays outstanding base debt"
+      }
+    ],
+    "warnings": [
+      "Compound III balance, debt, collateral and permission changes are conditional projections at the verified fixed block."
+    ],
+    "source": {
+      "name": "BaseScan",
+      "transactionHash": "0xcc39fea4c397d18413ccecc6c6fec5c4b8c63988abaee50fbfb51fb4ceb453f4",
+      "explorerUrl": "https://basescan.org/tx/0xcc39fea4c397d18413ccecc6c6fec5c4b8c63988abaee50fbfb51fb4ceb453f4",
+      "blockNumber": 52276670,
+      "timestamp": "2026-10-07T03:11:27.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "policy": {
+    "outcome": "pass",
+    "findings": []
+  },
+  "simulation": {
+    "attempted": true,
+    "success": true,
+    "transactionFingerprint": "0xcfd13caf958c9a92cb1c9ba2f217ba0b2b7dc661864adb90ce9c8f1929c37a5e",
+    "blockHash": "0x5f6d4f1b02127567b0500fa5110a2a6f52fa1e9f9bdef860aad6676f176dd79a",
+    "rpcUrl": "https://mainnet.base.org",
+    "blockNumber": "52276669"
+  },
+  "finalDecision": "pass",
+  "compound": {
+    "transactionFingerprint": "0xcfd13caf958c9a92cb1c9ba2f217ba0b2b7dc661864adb90ce9c8f1929c37a5e",
+    "status": "ready",
+    "blockNumber": "52276669",
+    "blockHash": "0x5f6d4f1b02127567b0500fa5110a2a6f52fa1e9f9bdef860aad6676f176dd79a",
+    "blockTimestamp": 1791342685,
+    "exposures": [
+      {
+        "actionIndex": 0,
+        "operation": "repay-base",
+        "method": "supply",
+        "market": "0xb125E6687d4313864e53df431d5425969c15Eb2F",
+        "baseToken": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "account": "0xD548feDD82b8C11494cDEc21aa87059d670A5B45",
+        "source": "0xD548feDD82b8C11494cDEc21aa87059d670A5B45",
+        "recipient": "0xD548feDD82b8C11494cDEc21aa87059d670A5B45",
+        "amount": "308716839",
+        "baseSupplyBefore": "0",
+        "baseSupplyAfter": "0",
+        "baseBorrowBefore": "105626138216",
+        "baseBorrowAfter": "105317421377",
+        "collateralBalanceBefore": "0",
+        "collateralBalanceAfter": "0",
+        "totalCollateralBefore": "0",
+        "totalCollateralAfter": "0",
+        "borrowCapacityBaseBefore": "104705400305",
+        "borrowCapacityBaseAfter": "104705400305",
+        "liquidationCapacityBaseBefore": "110864541499",
+        "liquidationCapacityBaseAfter": "110864541499",
+        "baseBorrowMinimum": "1",
+        "permissionBefore": true
+      }
+    ]
+  }
+}

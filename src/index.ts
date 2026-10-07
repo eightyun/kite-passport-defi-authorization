@@ -9,4 +9,5 @@ export * from './permit2.js';
 export * from './moonwell.js';
 export * from './morpho.js';
 export * from './aave.js';
+export * from './compound.js';
 export * from './avantis.js';

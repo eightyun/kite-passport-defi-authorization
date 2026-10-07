@@ -1,0 +1,15 @@
+{
+    "chainId": 8453,
+    "from": "0xaffc7c480c62e0ca94375df6c465afda6c9430cc",
+    "to": "0xb125e6687d4313864e53df431d5425969c15eb2f",
+    "data": "0xf3fef3a3000000000000000000000000833589fcd6edb6e08f4c7c32d4f71b54bda029130000000000000000000000000000000000000000000000000000000052cd2fce",
+    "value": "0",
+    "source": {
+        "name": "BaseScan",
+        "transactionHash": "0x08edd0b34df6d64d23c164e3e0daa06472629f2b1a964b730c5a26a23fa98f7f",
+        "explorerUrl": "https://basescan.org/tx/0x08edd0b34df6d64d23c164e3e0daa06472629f2b1a964b730c5a26a23fa98f7f",
+        "blockNumber": 52277447,
+        "timestamp": "2026-10-07T03:37:21.000Z",
+        "observedStatus": "success"
+    }
+}

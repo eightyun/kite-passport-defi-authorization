@@ -1,0 +1,120 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-10-06T17:01:07.000Z",
+  "transaction": {
+    "chainId": 8453,
+    "from": "0xfEA3BEfE1971bf895c3FeEb07d3435f6D6a03E6f",
+    "to": "0xb125E6687d4313864e53df431d5425969c15Eb2F",
+    "data": "0xf3fef3a30000000000000000000000004200000000000000000000000000000000000006000000000000000000000000000000000000000000000000000603f90000f9d6",
+    "value": "0",
+    "source": {
+      "name": "BaseScan",
+      "transactionHash": "0xe305e10d59c553621bc1deb3b4ecc8fd77269dad8a99a5f09c615958ccffac64",
+      "explorerUrl": "https://basescan.org/tx/0xe305e10d59c553621bc1deb3b4ecc8fd77269dad8a99a5f09c615958ccffac64",
+      "blockNumber": 52258360,
+      "timestamp": "2026-10-06T17:01:07.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "intent": {
+    "schemaVersion": "1.0",
+    "protocol": "compound",
+    "adapter": "compound-v3-base-usdc",
+    "chainId": 8453,
+    "sender": "0xfEA3BEfE1971bf895c3FeEb07d3435f6D6a03E6f",
+    "target": "0xb125E6687d4313864e53df431d5425969c15Eb2F",
+    "nativeValue": "0",
+    "transactionFingerprint": "0x82149ad50bf5948f0b2fb3af34684f4bf3f6f37b48c8e18810c136c2c5733271",
+    "actions": [
+      {
+        "kind": "compound",
+        "index": 0,
+        "operation": "withdraw-collateral",
+        "method": "withdraw",
+        "market": "0xb125E6687d4313864e53df431d5425969c15Eb2F",
+        "asset": "0x4200000000000000000000000000000000000006",
+        "amount": {
+          "value": "1693217842067926",
+          "mode": "exact"
+        },
+        "operator": "0xfEA3BEfE1971bf895c3FeEb07d3435f6D6a03E6f",
+        "source": "0xfEA3BEfE1971bf895c3FeEb07d3435f6D6a03E6f",
+        "account": "0xfEA3BEfE1971bf895c3FeEb07d3435f6D6a03E6f",
+        "recipient": "0xfEA3BEfE1971bf895c3FeEb07d3435f6D6a03E6f"
+      }
+    ],
+    "expectedBalanceChanges": [
+      {
+        "account": "0xfEA3BEfE1971bf895c3FeEb07d3435f6D6a03E6f",
+        "asset": "0x4200000000000000000000000000000000000006",
+        "category": "asset",
+        "direction": "credit",
+        "amount": {
+          "value": "1693217842067926",
+          "mode": "exact"
+        },
+        "reason": "Compound III collateral withdrawal transfers the asset to the recipient"
+      }
+    ],
+    "warnings": [
+      "Compound III balance, debt, collateral and permission changes are conditional projections at the verified fixed block."
+    ],
+    "source": {
+      "name": "BaseScan",
+      "transactionHash": "0xe305e10d59c553621bc1deb3b4ecc8fd77269dad8a99a5f09c615958ccffac64",
+      "explorerUrl": "https://basescan.org/tx/0xe305e10d59c553621bc1deb3b4ecc8fd77269dad8a99a5f09c615958ccffac64",
+      "blockNumber": 52258360,
+      "timestamp": "2026-10-06T17:01:07.000Z",
+      "observedStatus": "success"
+    }
+  },
+  "policy": {
+    "outcome": "pass",
+    "findings": []
+  },
+  "simulation": {
+    "attempted": true,
+    "success": true,
+    "transactionFingerprint": "0x82149ad50bf5948f0b2fb3af34684f4bf3f6f37b48c8e18810c136c2c5733271",
+    "blockHash": "0x9e3c0bdbdd23bb671c9c92684dd9d54ef073fc883967631f6aaab17da99b921c",
+    "rpcUrl": "https://mainnet.base.org",
+    "blockNumber": "52258359"
+  },
+  "finalDecision": "pass",
+  "compound": {
+    "transactionFingerprint": "0x82149ad50bf5948f0b2fb3af34684f4bf3f6f37b48c8e18810c136c2c5733271",
+    "status": "ready",
+    "blockNumber": "52258359",
+    "blockHash": "0x9e3c0bdbdd23bb671c9c92684dd9d54ef073fc883967631f6aaab17da99b921c",
+    "blockTimestamp": 1791306065,
+    "exposures": [
+      {
+        "actionIndex": 0,
+        "operation": "withdraw-collateral",
+        "method": "withdraw",
+        "market": "0xb125E6687d4313864e53df431d5425969c15Eb2F",
+        "baseToken": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "asset": "0x4200000000000000000000000000000000000006",
+        "account": "0xfEA3BEfE1971bf895c3FeEb07d3435f6D6a03E6f",
+        "source": "0xfEA3BEfE1971bf895c3FeEb07d3435f6D6a03E6f",
+        "recipient": "0xfEA3BEfE1971bf895c3FeEb07d3435f6D6a03E6f",
+        "amount": "1693217842067926",
+        "baseSupplyBefore": "8255",
+        "baseSupplyAfter": "8255",
+        "baseBorrowBefore": "0",
+        "baseBorrowAfter": "0",
+        "collateralBalanceBefore": "1693217842067926",
+        "collateralBalanceAfter": "0",
+        "totalCollateralBefore": "2734605163733943294949",
+        "totalCollateralAfter": "2734603470516101227023",
+        "collateralSupplyCap": "11000000000000000000000",
+        "borrowCapacityBaseBefore": "3880019",
+        "borrowCapacityBaseAfter": "0",
+        "liquidationCapacityBaseBefore": "4108255",
+        "liquidationCapacityBaseAfter": "0",
+        "baseBorrowMinimum": "1",
+        "permissionBefore": true
+      }
+    ]
+  }
+}

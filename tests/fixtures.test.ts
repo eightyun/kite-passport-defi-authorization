@@ -78,10 +78,20 @@ function operationLabels(
             );
         } else if (action.kind === 'aave') {
             labels.add(`aave-${action.operation}`);
+        } else if (action.kind === 'compound') {
+            labels.add(`compound-${action.operation}`);
         }
     }
     if (fixture === 'moonwell-redeem-cash-rejection.base.json') {
         labels.add('moonwell-redeem-protocol-rejection');
+    }
+    if (fixture === 'compound-borrow-base-usdc.base.json') {
+        labels.delete('compound-withdraw-base');
+        labels.add('compound-borrow-base');
+    }
+    if (fixture === 'compound-repay-base-usdc.base.json') {
+        labels.delete('compound-supply-base');
+        labels.add('compound-repay-base');
     }
     return labels;
 }
@@ -175,10 +185,13 @@ test('retains verifiable provenance for every real transaction vector', async ()
     const files = (await readdir(fixtureDirectory)).filter((file) => file.endsWith('.json'));
     for (const file of files) {
         const transaction = await loadTransaction(resolve(fixtureDirectory, file));
-        assert.equal(transaction.source?.name, 'Base Blockscout');
+        assert.ok(['Base Blockscout', 'BaseScan'].includes(transaction.source?.name ?? ''));
         assert.match(transaction.source?.transactionHash ?? '', /^0x[0-9a-f]{64}$/);
         assert.equal(transaction.source?.observedStatus, 'success');
-        assert.match(transaction.source?.explorerUrl ?? '', /^https:\/\/base\.blockscout\.com\/tx\/0x/);
+        assert.match(
+            transaction.source?.explorerUrl ?? '',
+            /^https:\/\/(?:base\.blockscout\.com|basescan\.org)\/tx\/0x/
+        );
     }
 });
 
@@ -245,7 +258,14 @@ test('maps every real vector to an auditable operation coverage entry', async ()
         'aave-borrow',
         'aave-repay',
         'aave-enable-collateral',
-        'aave-disable-collateral'
+        'aave-disable-collateral',
+        'compound-supply-base',
+        'compound-withdraw-base',
+        'compound-borrow-base',
+        'compound-repay-base',
+        'compound-supply-collateral',
+        'compound-withdraw-collateral',
+        'compound-allow-manager'
     ];
     for (const operation of requiredOperations) {
         assert.ok(coveredOperations.has(operation), `${operation} lacks a real transaction vector`);

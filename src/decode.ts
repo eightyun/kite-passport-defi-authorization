@@ -2,12 +2,14 @@ import {
     BASE_AAVE_POOL,
     BASE_AERODROME_ROUTER,
     BASE_AVANTIS_TRADING_ROUTER,
+    BASE_COMPOUND_USDC_COMET,
     BASE_MORPHO,
     BASE_MOONWELL_COMPTROLLER,
     BASE_MOONWELL_MARKETS,
     BASE_UNISWAP_UNIVERSAL_ROUTER
 } from './contracts.js';
 import { decodeAaveTransaction } from './adapters/aave.js';
+import { decodeCompoundTransaction } from './adapters/compound.js';
 import { decodeAerodromeTransaction } from './adapters/aerodrome.js';
 import { decodeAvantisTransaction } from './adapters/avantis.js';
 import { decodeMorphoTransaction } from './adapters/morpho.js';
@@ -19,6 +21,9 @@ export function decodeTransaction(transaction: TransactionEnvelope): IntentAnaly
     const target = transaction.to.toLowerCase();
     if (target === BASE_AAVE_POOL.toLowerCase()) {
         return decodeAaveTransaction(transaction);
+    }
+    if (target === BASE_COMPOUND_USDC_COMET.toLowerCase()) {
+        return decodeCompoundTransaction(transaction);
     }
     if (target === BASE_UNISWAP_UNIVERSAL_ROUTER.toLowerCase()) {
         return decodeUniswapTransaction(transaction);

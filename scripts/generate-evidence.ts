@@ -5,6 +5,7 @@ import type {
     Address,
     AavePreflight,
     AuthorizationReport,
+    CompoundPreflight,
     IntentAnalysis,
     PolicyConfig,
     PolicyDecision,
@@ -55,6 +56,7 @@ function retryableReport(report: AuthorizationReport): boolean {
         report.moonwell?.status === 'unavailable' ||
         report.morpho?.status === 'unavailable' ||
         report.aave?.status === 'unavailable' ||
+        report.compound?.status === 'unavailable' ||
         report.avantis?.status === 'unavailable' ||
         report.permit2?.checks.some((check) => check.status === 'unavailable') === true
     );
@@ -78,6 +80,8 @@ function rejectionEvidence(
     aerodromeIntent: IntentAnalysis,
     morphoIntent: IntentAnalysis,
     aaveIntent: IntentAnalysis,
+    compoundAssetIntent: IntentAnalysis,
+    compoundManagerIntent: IntentAnalysis,
     policy: PolicyConfig
 ): readonly RejectionEvidence[] {
     const swap = intent.actions[0];
@@ -88,8 +92,16 @@ function rejectionEvidence(
     const aerodromeSwap = aerodromeIntent.actions[0];
     const morphoAction = morphoIntent.actions[0];
     const aaveAction = aaveIntent.actions[0];
-    if (aerodromeSwap?.kind !== 'swap' || morphoAction?.kind !== 'morpho' || aaveAction?.kind !== 'aave') {
-        throw new Error('Expected Aerodrome, Morpho and Aave evidence vectors');
+    const compoundAction = compoundAssetIntent.actions[0];
+    const compoundManagerAction = compoundManagerIntent.actions[0];
+    if (
+        aerodromeSwap?.kind !== 'swap' ||
+        morphoAction?.kind !== 'morpho' ||
+        aaveAction?.kind !== 'aave' ||
+        compoundAction?.kind !== 'compound' ||
+        compoundManagerAction?.kind !== 'compound'
+    ) {
+        throw new Error('Expected Aerodrome, Morpho, Aave and Compound evidence vectors');
     }
     const baseNow = 1_790_788_845;
     const scenarios: readonly {
@@ -100,6 +112,7 @@ function rejectionEvidence(
         now?: number;
         simulation?: SimulationResult;
         aave?: AavePreflight;
+        compound?: CompoundPreflight;
     }[] = [
         { name: 'unsupported chain', code: 'UNSUPPORTED_CHAIN', intent: { ...intent, chainId: 1 }, policy },
         {
@@ -268,6 +281,44 @@ function rejectionEvidence(
                 errorCode: code,
                 error: code
             }
+        })),
+        {
+            name: 'unapproved Compound asset',
+            code: 'COMPOUND_ASSET_NOT_ALLOWED',
+            intent: compoundAssetIntent,
+            policy: { ...policy, allowedCompoundAssets: [] }
+        },
+        {
+            name: 'unapproved Compound manager',
+            code: 'COMPOUND_MANAGER_NOT_ALLOWED',
+            intent: compoundManagerIntent,
+            policy: { ...policy, allowedCompoundManagers: [] }
+        },
+        ...(
+            [
+                'COMPOUND_MARKET_MISMATCH',
+                'COMPOUND_SUPPLY_PAUSED',
+                'COMPOUND_WITHDRAW_PAUSED',
+                'COMPOUND_SUPPLY_CAP_EXCEEDED',
+                'COMPOUND_OPERATOR_NOT_ALLOWED',
+                'COMPOUND_SIGNATURE_INVALID',
+                'COMPOUND_NONCE_MISMATCH',
+                'COMPOUND_SIGNATURE_EXPIRED',
+                'COMPOUND_BORROW_TOO_SMALL',
+                'COMPOUND_NOT_COLLATERALIZED'
+            ] as const
+        ).map((code) => ({
+            name: `Compound ${code.toLowerCase().replaceAll('_', ' ')}`,
+            code,
+            intent: compoundAssetIntent,
+            policy,
+            compound: {
+                transactionFingerprint: compoundAssetIntent.transactionFingerprint!,
+                status: 'invalid' as const,
+                exposures: [],
+                errorCode: code,
+                error: code
+            }
         }))
     ];
 
@@ -275,7 +326,8 @@ function rejectionEvidence(
         const decision = evaluatePolicy(scenario.intent, scenario.policy, {
             nowSeconds: scenario.now ?? baseNow,
             simulation: scenario.simulation ?? successfulSimulation(),
-            ...(scenario.aave ? { aave: scenario.aave } : {})
+            ...(scenario.aave ? { aave: scenario.aave } : {}),
+            ...(scenario.compound ? { compound: scenario.compound } : {})
         });
         if (!decision.findings.some((finding) => finding.code === scenario.code)) {
             throw new Error(`Evidence scenario ${scenario.name} did not produce ${scenario.code}`);
@@ -310,11 +362,14 @@ async function main(): Promise<void> {
     const moonwellExposures: string[] = [];
     const morphoExposures: string[] = [];
     const aaveExposures: string[] = [];
+    const compoundExposures: string[] = [];
     let v4Intent: IntentAnalysis | undefined;
     let aerodromeIntent: IntentAnalysis | undefined;
     let morphoIntent: IntentAnalysis | undefined;
     let avantisIntent: IntentAnalysis | undefined;
     let aaveIntent: IntentAnalysis | undefined;
+    let compoundAssetIntent: IntentAnalysis | undefined;
+    let compoundManagerIntent: IntentAnalysis | undefined;
     const avantisChecks: string[] = [];
 
     for (const file of files) {
@@ -413,6 +468,23 @@ async function main(): Promise<void> {
             }
             if (file === 'aave-supply-usdc.base.json') aaveIntent = report.intent;
         }
+        if (report.intent.protocol === 'compound') {
+            if (
+                report.compound?.status !== 'ready' ||
+                !report.compound.exposures.length ||
+                report.compound.blockHash !== report.simulation.blockHash ||
+                report.intent.expectedBalanceChanges.some((change) => change.amount.mode !== 'exact')
+            ) {
+                throw new Error(`${file} is missing concrete Compound III fixed-block exposure evidence`);
+            }
+            for (const exposure of report.compound.exposures) {
+                compoundExposures.push(
+                    `| ${file} | ${exposure.operation} | ${exposure.asset ?? exposure.baseToken} | ${exposure.amount} | ${exposure.baseSupplyBefore} → ${exposure.baseSupplyAfter} | ${exposure.baseBorrowBefore} → ${exposure.baseBorrowAfter} | ${exposure.collateralBalanceBefore} → ${exposure.collateralBalanceAfter} | ${exposure.borrowCapacityBaseBefore} → ${exposure.borrowCapacityBaseAfter} |`
+                );
+            }
+            if (file === 'compound-supply-collateral-cbbtc.base.json') compoundAssetIntent = report.intent;
+            if (file === 'compound-allow-manager.base.json') compoundManagerIntent = report.intent;
+        }
         if (
             report.permit2 &&
             (!report.permit2.checks.length || report.permit2.checks.some((check) => check.status !== 'valid'))
@@ -445,11 +517,21 @@ async function main(): Promise<void> {
         aerodromeIntent === undefined ||
         morphoIntent === undefined ||
         avantisIntent === undefined ||
-        aaveIntent === undefined
+        aaveIntent === undefined ||
+        compoundAssetIntent === undefined ||
+        compoundManagerIntent === undefined
     ) {
-        throw new Error('Missing Uniswap v4, Aerodrome, Morpho, Aave or Avantis evidence vector');
+        throw new Error('Missing Uniswap v4, Aerodrome, Morpho, Aave, Compound or Avantis evidence vector');
     }
-    const rejections = rejectionEvidence(v4Intent, aerodromeIntent, morphoIntent, aaveIntent, policy);
+    const rejections = rejectionEvidence(
+        v4Intent,
+        aerodromeIntent,
+        morphoIntent,
+        aaveIntent,
+        compoundAssetIntent,
+        compoundManagerIntent,
+        policy
+    );
     const testFiles = (await readdir(resolve('tests'))).filter((file) => file.endsWith('.test.ts')).sort();
     const testOutput = execFileSync(
         process.execPath,
@@ -485,6 +567,8 @@ ${summaries.join('\n')}
 - Morpho markets must match an explicit market-ID allowlist and verified canonical parameters.
 - Aave reserves must be explicitly allowed; active, paused, frozen, collateral, borrowing and cap state is checked at the simulation block.
 - Aave variable debt, aToken balances and projected health factor are checked before authorization.
+- Compound III assets and managers must be explicitly allowed; pause state, collateral caps, permissions and projected collateralization are checked at the simulation block.
+- Compound III base-token calls are resolved against account state into supply, repay, withdraw or borrow effects before policy evaluation.
 - Avantis pair indexes, leverage, slippage and opening permissions are explicitly bounded.
 - Signed Avantis v2 intents require EIP-712 recovery, an unused unordered nonce and an active trader delegation when the signer differs from the trader.
 - Failed RPC simulation is a rejection.
@@ -504,6 +588,7 @@ ${coverage.deterministicOnly.map((entry) => `- ${entry.operation}: ${entry.reaso
 - Uniswap outputs are minimum guarantees; realized output still depends on pool state.
 - Morpho share-denominated amounts are resolved from the successful fixed-block call return data before policy caps are applied.
 - Aave max withdrawals and repayments are resolved from fixed-block aToken and variable-debt balances before policy caps are applied.
+- Compound III base-token netting is resolved from fixed-block supply and borrow balances before policy caps are applied.
 
 ## Moonwell fixed-block exposure evidence
 
@@ -529,6 +614,14 @@ Reserve configuration, account balances and oracle price are read at the same hi
 |---|---|---|---|---|---|---|
 ${aaveExposures.join('\n')}
 
+## Compound III fixed-block exposure evidence
+
+The canonical Base USDC Comet market, collateral inventory, oracle prices, account balances, permissions and market controls are read at the historical simulation block. Capacity values use raw USDC base units.
+
+| Fixture | Operation | Asset | Amount | Base supply before → after | Base borrow before → after | Selected collateral before → after | Borrow capacity before → after |
+|---|---|---|---|---|---|---|---|
+${compoundExposures.join('\n')}
+
 ## Avantis fixed-block authorization evidence
 
 The signer is recovered from the exact v2 EIP-712 intent. Nonce bitmap and delegation state are read at the same historical block used for full-call simulation.
@@ -553,6 +646,8 @@ ${avantisChecks.join('\n')}
 - Morpho liquidation, flash loans and authorization mutation are outside the supported operation set. Market totals are recorded as stored at the checked block; operation asset/share deltas come from full call simulation after Morpho interest accrual.
 - Aave support covers direct Pool supply, withdraw, variable-rate borrow, variable-rate repay and collateral enable/disable. Flash loans, liquidation, stable-rate debt, permit helpers, credit delegation and external adapters fail closed.
 - Aave projected health uses fixed-block Pool account data and the reserve oracle price. Pool revision 11 index rounding and automatic first-supply collateral activation are reflected in projected balances.
+- Compound III support is limited to direct calls to the canonical Base USDC Comet. Bulker batches, transfers, liquidation, absorption and reserve purchases fail closed.
+- Compound III collateral capacity uses fixed-block oracle prices and market factors. Base supply and debt are mutually exclusive in Comet, so base-token calls are resolved by repayment/withdrawal netting before projected exposure is reported.
 - Avantis support covers direct open, close, increase, margin and limit-order management plus signed v2 market open, close and increase intents. Keeper-only execution, TP/SL, TWAP and RFQ paths fail closed.
 - Avantis closing proceeds remain unknown before execution because realized PnL, fees and oracle fill determine the final USDC credit. Opening and size-increase collateral are exact calldata amounts.
 - RPC simulation verifies call success at a fixed historical state; it does not guarantee execution against a later state.
@@ -570,7 +665,7 @@ This directory contains reproducible evidence for the Passport DeFi authorizatio
 - Operation-to-vector coverage and expected outcomes: [../fixtures/operation-coverage.json](../fixtures/operation-coverage.json)
 - Parsed intent, expected balance changes, policy decision and RPC result: [reports](./reports)
 - Policy configuration: [../config/policy.example.json](../config/policy.example.json)
-- Twenty-seven explicit rejection paths: [rejection-tests.json](./rejection-tests.json)
+- Thirty-nine explicit rejection paths: [rejection-tests.json](./rejection-tests.json)
 - Simulation and risk precheck: [simulation-and-risk-precheck.md](./simulation-and-risk-precheck.md)
 - Automated assertions: [../tests](../tests)
 - Recorded assertion results, including Permit2 rejection paths: [test-results.tap](./test-results.tap)
@@ -580,6 +675,7 @@ This directory contains reproducible evidence for the Passport DeFi authorizatio
 - Morpho market identity and exposure verification: [../docs/morpho.md](../docs/morpho.md)
 - Avantis v2 intent and delegation verification: [../docs/avantis.md](../docs/avantis.md)
 - Aave V3 reserve, account and health-factor verification: [../docs/aave.md](../docs/aave.md)
+- Compound III market, account and collateralization verification: [../docs/compound.md](../docs/compound.md)
 
 ## Reproduce
 

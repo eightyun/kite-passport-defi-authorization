@@ -2,7 +2,7 @@
 
 An auditable TypeScript authorization layer for decoding DeFi calldata, evaluating transaction policy, simulating execution, and reporting expected balance changes before a Kite Passport agent submits a transaction.
 
-It supports Uniswap, Aerodrome, Moonwell, Morpho, Aave V3 and Avantis/Veranta on Base and never signs or broadcasts transactions.
+It supports Uniswap, Aerodrome, Moonwell, Morpho, Aave V3, Compound III and Avantis/Veranta on Base and never signs or broadcasts transactions.
 
 All committed tests, real transaction vectors and historical simulations currently target Base mainnet only (chain ID `8453`). No other network is claimed as tested or supported by this repository.
 
@@ -18,6 +18,7 @@ All committed tests, real transaction vectors and historical simulations current
 | Moonwell Core      | supply, withdraw, borrow, repay and collateral enable/disable                                    |
 | Morpho Blue        | supply, withdraw, borrow, repay and collateral supply/withdraw                                   |
 | Aave V3 Pool       | supply, withdraw, variable-rate borrow/repay and collateral enable/disable                       |
+| Compound III Comet | base supply/withdraw/borrow/repay, collateral supply/withdraw and manager authorization          |
 | Avantis/Veranta v2 | direct and signed market open/close, position increase, margin update and limit-order management |
 
 Uniswap v4 hooks and dynamic-fee pools are rejected by the example policy unless explicitly allowed. Unknown commands and actions are always rejected.
@@ -56,7 +57,7 @@ npm test
 npm run build
 ```
 
-The test suite covers real calldata vectors, protocol operation decoding, twenty-seven documented policy rejection paths and additional Permit2 signature, allowance and policy rejection cases.
+The test suite covers real calldata vectors, protocol operation decoding, thirty-nine documented policy rejection paths and additional Permit2 signature, allowance and policy rejection cases.
 
 ## Analyze a transaction
 
@@ -79,6 +80,7 @@ The command emits JSON containing:
 - Moonwell resolved underlying/receipt amounts and account-level supplied, debt and collateral exposures at the checked block.
 - Morpho fixed-block market identity, exact simulated asset/share amounts and account exposure changes.
 - Aave fixed-block reserve configuration, aToken and variable-debt exposure, cap checks and projected health factor.
+- Compound III fixed-block base and collateral exposure, permissions, cap checks and projected collateralization.
 - Avantis v2 EIP-712 signer recovery, unordered nonce status, delegation expiry and same-block simulation.
 
 Exit code `2` means the policy rejected the transaction. Invalid input or an internal error returns exit code `1`.
@@ -95,6 +97,7 @@ Exit code `2` means the policy rejected the transaction. Invalid input or an int
 - Aerodrome factory allowlist;
 - Morpho market-ID allowlist and canonical market verification;
 - Aave reserve allowlist, borrow control and minimum projected health factor;
+- Compound III asset and manager allowlists, borrow control, amount limits and fixed-block collateral checks;
 - Avantis pair allowlist, open-position switch, leverage and slippage limits;
 - Moonwell borrowing control;
 - optional mandatory RPC simulation.
@@ -136,6 +139,20 @@ Implemented rejection reason codes include:
 | `AAVE_INTEREST_RATE_MODE_NOT_ALLOWED` | debt operation is not variable-rate mode `2`                                     |
 | `AAVE_EMODE_NOT_SUPPORTED`            | collateral-changing operation targets an eMode account                           |
 | `AAVE_HEALTH_FACTOR_TOO_LOW`          | projected health factor is below policy                                          |
+| `COMPOUND_STATE_REQUIRED`             | matching Compound fixed-block state and simulation evidence is missing           |
+| `COMPOUND_PRECHECK_FAILED`            | Compound state or projected account change is invalid                            |
+| `COMPOUND_MARKET_MISMATCH`            | target market is not the canonical Base USDC Comet                               |
+| `COMPOUND_ASSET_NOT_ALLOWED`          | base or collateral asset is outside the configured allowlist                     |
+| `COMPOUND_SUPPLY_PAUSED`              | market supply is paused                                                          |
+| `COMPOUND_WITHDRAW_PAUSED`            | market withdrawal is paused                                                      |
+| `COMPOUND_SUPPLY_CAP_EXCEEDED`        | projected collateral total exceeds the market cap                                |
+| `COMPOUND_OPERATOR_NOT_ALLOWED`       | delegated source operation lacks account permission                              |
+| `COMPOUND_MANAGER_NOT_ALLOWED`        | manager grant targets an unapproved address                                      |
+| `COMPOUND_SIGNATURE_INVALID`          | manager authorization signature is invalid                                       |
+| `COMPOUND_NONCE_MISMATCH`             | signed manager authorization nonce does not match chain state                    |
+| `COMPOUND_SIGNATURE_EXPIRED`          | signed manager authorization has expired                                         |
+| `COMPOUND_BORROW_TOO_SMALL`           | projected nonzero base debt is below the market minimum                          |
+| `COMPOUND_NOT_COLLATERALIZED`         | projected base debt exceeds verified borrow capacity                             |
 | `AVANTIS_STATE_REQUIRED`              | signed intent verification or same-block simulation is missing                   |
 | `AVANTIS_PRECHECK_FAILED`             | signed intent preflight is invalid                                               |
 | `AVANTIS_PAIR_NOT_ALLOWED`            | pair index is outside the configured allowlist                                   |
@@ -164,7 +181,7 @@ Implemented rejection reason codes include:
 
 ## Real transaction vectors
 
-The repository includes 40 raw Base mainnet transaction envelopes with immutable explorer provenance. A transaction can prove several decoded actions.
+The repository includes 47 raw Base mainnet transaction envelopes with immutable explorer provenance. A transaction can prove several decoded actions.
 
 | Protocol                     | Real-vector coverage                                                                                                                                                                               | Vector count |
 | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -----------: |
@@ -173,6 +190,7 @@ The repository includes 40 raw Base mainnet transaction envelopes with immutable
 | Moonwell                     | supply, underlying withdrawal, receipt redemption, borrow, direct repay, repay on behalf, collateral enable/disable and a protocol-level rejection                                                 |            9 |
 | Morpho                       | supply, withdraw, borrow, repay and collateral supply/withdraw                                                                                                                                     |            6 |
 | Aave V3                      | supply, withdraw, variable-rate borrow, variable-rate repay and collateral enable/disable                                                                                                          |            6 |
+| Compound III                 | base supply, base withdrawal, base borrow, base repayment, collateral supply/withdraw and manager authorization                                                                                    |            7 |
 | Avantis/Veranta v2           | delegated EIP-712 market open, market close and coin-exposure position increase                                                                                                                    |            3 |
 
 [`fixtures/operation-coverage.json`](fixtures/operation-coverage.json) maps every operation to its fixture and records the expected policy and historical simulation outcomes. Uniswap v4 native-currency swaps are represented directly by the zero address and have real vectors in both directions; they do not require wrapping. Permit2 batch permit/transfer and the separate v4 action-level WRAP/UNWRAP commands remain deterministic test vectors because no matching top-level call to the registered Base Router is included in the observed transaction sample; they are not presented as real transactions.
@@ -189,6 +207,8 @@ Morpho requires canonical market/account state and a matching successful fixed-b
 
 Aave requires canonical reserve/account state and a matching successful fixed-block simulation before `pass`. [Aave V3 authorization and exposure verification](docs/aave.md) documents supported calls, cap checks, projected health and failure boundaries.
 
+Compound III requires canonical Comet market/account state and a matching successful fixed-block simulation before `pass`. [Compound III authorization and exposure verification](docs/compound.md) documents base-token netting, collateral capacity, manager signatures and failure boundaries.
+
 Signed Avantis v2 operations require signature recovery, an unused bitmap nonce, an active delegation when applicable and a matching successful fixed-block simulation. [Avantis v2 authorization](docs/avantis.md) documents units, supported calls and failure boundaries.
 
 The committed acceptance package is available in [`evidence`](evidence/README.md).
@@ -202,7 +222,7 @@ The Permit2 permit vector has a valid EOA signature, a matching historical nonce
 | Correct intent parsing for main operations    | adapter tests and generated reports                                                                                  |
 | Real transaction test vectors                 | `fixtures/transactions/*.json` with explorer hashes                                                                  |
 | Per-operation vector coverage                 | `fixtures/operation-coverage.json`                                                                                   |
-| At least eight rejection paths                | twenty-seven cases in `evidence/rejection-tests.json`                                                                |
+| At least eight rejection paths                | thirty-nine cases in `evidence/rejection-tests.json`                                                                 |
 | Exact rejection reasons                       | policy findings include code, message and supporting fields                                                          |
 | Expected result and balance changes           | `expectedBalanceChanges`, Permit2 allowance exposure, fixed-block lending exposures and Avantis authorization checks |
 | Transaction calldata                          | included in each fixture and generated report                                                                        |
@@ -222,6 +242,7 @@ src/
   moonwell.ts     accrued rate, account state and exposure verification
   morpho.ts       market identity, account state and exposure verification
   aave.ts         reserve, account, cap and health-factor verification
+  compound.ts     Comet market, account, permission and collateral verification
   avantis.ts      EIP-712 signature, unordered nonce and delegation verification
   permit2.ts      Permit2 decoding, signatures and allowance verification
   report.ts       versioned authorization report
@@ -245,6 +266,7 @@ schemas/          report contract
 - Moonwell health, liquidity, caps, interest and exchange rates remain state-dependent.
 - Morpho markets are restricted by their full parameter hash; exact share conversions require same-block simulation.
 - Aave operations require the canonical Base Pool, explicit reserve approval, fixed-block reserve/account checks and same-block simulation.
+- Compound III operations require the canonical Base USDC Comet, explicit asset and manager approval, fixed-block account/collateral checks and same-block simulation.
 - Avantis signed intents are bound to the v2 domain, nonce bitmap, delegation state and simulation block. Keeper-only paths fail closed.
 - A simulation is evidence for one chain state, not a guarantee for later execution.
 
@@ -261,6 +283,8 @@ This project has not received an external security audit and must not be treated
 - [Morpho Blue contracts](https://github.com/morpho-org/morpho-blue)
 - [Aave V3 Pool](https://aave.com/docs/aave-v3/smart-contracts/pool)
 - [Aave Base address book](https://github.com/aave-dao/aave-address-book/blob/main/src/AaveV3Base.sol)
+- [Compound III documentation](https://docs.compound.finance/)
+- [Compound III Comet contracts](https://github.com/compound-finance/comet)
 - [Avantis/Veranta trader SDK](https://github.com/Avantis-Labs/avantis_trader_sdk)
 
 ## License
